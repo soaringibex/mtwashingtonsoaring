@@ -1,0 +1,51 @@
+export const site = {
+  name: "Mt Washington Soaring Association",
+  shortName: "Mt Washington Soaring",
+  url: "https://www.mtwashingtonsoaring.org",
+  description:
+    "The Mount Washington Soaring Association explores the atmospheric wave of the White Mountains of New Hampshire in gliders. Every October, pilots gather at Gorham for the annual wave camp.",
+  email: "mwsoaring@googlegroups.com",
+  location: {
+    airport: "Gorham Municipal Airport (2G8)",
+    town: "Gorham, New Hampshire",
+  },
+  sponsor: {
+    name: "Data Minds Consulting",
+    url: "https://www.data-minds.com",
+  },
+  nav: [
+    { href: "/important-reading", label: "Reading" },
+    { href: "/documents", label: "Documents" },
+    { href: "/history", label: "History" },
+    { href: "/accomplishments", label: "Accomplishments" },
+    { href: "/gallery", label: "Photos" },
+    { href: "/news", label: "News" },
+    { href: "/press", label: "Press" },
+    { href: "/links", label: "Links" },
+  ],
+} as const;
+
+/** Saturday of Columbus Day weekend — the weekend the annual wave camp opens. */
+export function waveCampStart(year: number): Date {
+  // Columbus Day (US) is the second Monday of October.
+  const oct1 = new Date(year, 9, 1);
+  const firstMonday = 1 + ((8 - oct1.getDay()) % 7);
+  const columbusDay = new Date(year, 9, firstMonday + 7);
+  // The camp opens the Saturday before Columbus Day.
+  return new Date(year, 9, columbusDay.getDate() - 2);
+}
+
+export function nextWaveCamp(from: Date = new Date()): { start: Date; end: Date } {
+  let year = from.getFullYear();
+  let start = waveCampStart(year);
+  // If the following weekend has fully passed, aim at next year.
+  const end = new Date(start);
+  end.setDate(end.getDate() + 8);
+  if (from > end) {
+    year += 1;
+    start = waveCampStart(year);
+    end.setDate(start.getDate() + 8);
+    end.setFullYear(start.getFullYear());
+  }
+  return { start, end };
+}

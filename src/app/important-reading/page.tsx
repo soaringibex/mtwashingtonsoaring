@@ -1,0 +1,306 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+import { PageHero } from "@/components/ui/PageHero";
+import { Container } from "@/components/ui/Container";
+import { DocCard } from "@/components/ui/DocCard";
+import { SectionHeading } from "@/components/ui/SectionHeading";
+import { navFiles, type DocLink } from "@/lib/documents";
+import { site } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: "Important reading",
+  description:
+    "Required reading for flying the Mount Washington wave — the Mount Washington Brief, oxygen talk, airport procedures, legal references and navigational material for the Gorham wave camp.",
+};
+
+const required: DocLink[] = [
+  {
+    title: "Mount Washington Brief",
+    href: "/files/mount-washington-brief.pdf",
+    description:
+      "Flying the Mt. Washington area wave from Gorham, NH, by John F. Good. This is required reading for all attending the wave camp — print a copy and bring it with you. Please respect John's copyright and do not reproduce this document for any purpose other than your own personal use.",
+    meta: "PDF",
+  },
+  {
+    title: "Oxygen Talk",
+    href: "/files/oxygen-talk-1995.pdf",
+    description:
+      "The talk on oxygen systems given by Steele Lipe at the 1995 SSA Convention.",
+    meta: "PDF",
+  },
+];
+
+const legal: DocLink[] = [
+  {
+    title: "Class A airspace waivers — Northcraft 2024 legal interpretation",
+    href: "/files/2024-northcraft-legal-interpretation.pdf",
+    description: "FAA Office of the Chief Counsel. Re: 14 CFR 91.135 — operations in Class A airspace.",
+    meta: "PDF",
+  },
+  {
+    title: "2024 Letter of Authorization (LOA)",
+    href: "/files/2024-loa.pdf",
+    description:
+      "Certificate of Waiver or Authorization issued to the Mt Washington Soaring Association.",
+    meta: "PDF",
+  },
+];
+
+const charts = [
+  {
+    src: "/images/reading/moria-carter-se.webp",
+    full: "/images/reading/moria-carter-se-full.png",
+    alt: "Aerial view of the Moriah and Carter ranges looking southeast",
+    caption: "Moriah Carter to SE",
+    width: 690,
+    height: 527,
+  },
+  {
+    src: "/images/reading/presidential-range-nw.webp",
+    full: "/images/reading/presidential-range-nw-full.png",
+    alt: "Aerial view of the Presidential Range looking northwest",
+    caption: "Presidential Range to NW",
+    width: 690,
+    height: 528,
+  },
+  {
+    src: "/images/reading/gorham-area-nnw.webp",
+    full: "/images/reading/gorham-area-nnw-full.png",
+    alt: "Aerial view of the Gorham area looking north-northwest",
+    caption: "Gorham Area to the NNW",
+    width: 690,
+    height: 526,
+  },
+];
+
+export default function ImportantReadingPage() {
+  return (
+    <>
+      <PageHero
+        eyebrow="Before you fly"
+        title="Important reading"
+        lede="Wave flying is dangerous — one of the more dangerous activities that humans voluntarily engage in. With experience and care the risks can be lowered, but not eliminated. Read the published documents before you launch."
+        image="/images/scenic/lenticular-wing.webp"
+        imageAlt="A lenticular cloud seen past the wing of a glider"
+        priority
+      />
+
+      <section className="py-16 sm:py-20">
+        <Container>
+          <div className="max-w-3xl space-y-6 text-[1.0625rem] leading-8 text-slate-700">
+            <blockquote className="border-l-2 border-sky-300 pl-6 italic text-slate-600">
+              “The best way to get sent to the back of the launch grid is to show up not having
+              studied the published documents.”
+            </blockquote>
+            <p>
+              Some aspects of safety in wave and mountain flying are presented here, but this is
+              far from a complete discussion, and some of this material is not aimed at beginners.
+              Pilots should strive to develop the judgment that will keep them safe, understanding
+              that mountains such as these can present conditions in which even excellent aircraft
+              and skilled pilots cannot safely fly.
+            </p>
+          </div>
+
+          <div className="mt-14 space-y-20">
+            <section>
+              <SectionHeading
+                eyebrow="Start here"
+                title="Required reading"
+                lede="Everyone attending the wave camp is expected to have studied these documents."
+              />
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                {required.map((doc) => (
+                  <DocCard key={doc.href} doc={doc} />
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <SectionHeading
+                eyebrow="Legal & regulatory"
+                title="Airspace and authorization"
+                lede="Legal interpretations and regulatory information pertinent to the wave camp."
+              />
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                {legal.map((doc) => (
+                  <DocCard key={doc.href} doc={doc} />
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <SectionHeading
+                eyebrow="Gorham (2G8)"
+                title="Airport information"
+                lede="Wave camp operations are based at Gorham Municipal Airport. Print a copy of the procedures — they are briefed at the daily pilots' meetings."
+              />
+              <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:items-start">
+                <DocCard
+                  doc={{
+                    title: "Gorham (2G8) pattern procedures (2023)",
+                    href: "/files/gorham-pattern-procedures-2023.pdf",
+                    description:
+                      "Airport procedures for all wave campers. Print a copy and study it before the first launch.",
+                    meta: "PDF",
+                  }}
+                />
+                <figure className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
+                  <a
+                    href="/images/reading/gorham-airport-zones-full.png"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block"
+                  >
+                    <Image
+                      src="/images/reading/gorham-airport-zones.webp"
+                      alt="Parking map of the Gorham airport showing trailer and tiedown zones"
+                      width={690}
+                      height={317}
+                      className="w-full"
+                    />
+                  </a>
+                  <figcaption className="flex items-center justify-between gap-4 border-t border-slate-100 px-6 py-4">
+                    <span className="text-sm text-slate-600">
+                      Parking map — designated trailer and tiedown locations, and areas to keep
+                      clear at all times.
+                    </span>
+                    <a
+                      href="/images/reading/gorham-airport-zones-full.png"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="shrink-0 text-sm font-medium text-sky-700 hover:text-sky-600"
+                    >
+                      View larger
+                    </a>
+                  </figcaption>
+                </figure>
+              </div>
+            </section>
+
+            <section>
+              <SectionHeading
+                eyebrow="Know the ground"
+                title="Navigational references"
+                lede="Pine Mountain, Hayes, Carter Dome, Mt Moriah, Madison, Jefferson, Washington, The Horn, Wildcat, The Great Gulf, Tuckerman's Ravine, Huntington Ravine, the Pilot Range and the Crescent Range are all good things to know."
+              />
+              <div className="mt-8 grid gap-6 md:grid-cols-3">
+                {charts.map((chart) => (
+                  <figure
+                    key={chart.src}
+                    className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5"
+                  >
+                    <a href={chart.full} target="_blank" rel="noreferrer" className="block">
+                      <Image
+                        src={chart.src}
+                        alt={chart.alt}
+                        width={chart.width}
+                        height={chart.height}
+                        className="w-full"
+                      />
+                    </a>
+                    <figcaption className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3.5">
+                      <span className="text-sm text-slate-700">{chart.caption}</span>
+                      <a
+                        href={chart.full}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="shrink-0 text-sm font-medium text-sky-700 hover:text-sky-600"
+                      >
+                        View larger
+                      </a>
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+
+              <figure className="mt-6 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
+                <a
+                  href="/images/reading/mthays-transition-full.png"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block"
+                >
+                  <Image
+                    src="/images/reading/mthays-transition.webp"
+                    alt="Trace showing a 45-minute diamond climb from Mt Hays to the primary wave"
+                    width={1055}
+                    height={424}
+                    className="w-full"
+                  />
+                </a>
+                <figcaption className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-6 py-4">
+                  <span className="text-sm text-slate-600">
+                    45-minute diamond — Mt Hays to primary transition example.
+                  </span>
+                  <span className="flex gap-4 text-sm font-medium">
+                    <a
+                      href="/files/45-minute-diamond.igc"
+                      className="text-sky-700 hover:text-sky-600"
+                    >
+                      Download IGC
+                    </a>
+                    <a
+                      href="https://igcviewer.bgaladder.net"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sky-700 hover:text-sky-600"
+                    >
+                      Open in IGC viewer
+                    </a>
+                  </span>
+                </figcaption>
+              </figure>
+            </section>
+
+            <section id="electronic-files">
+              <SectionHeading
+                eyebrow="For your moving map"
+                title="Electronic files"
+                lede="Waypoints, airspace and task files for the Gorham area. Airspace files depict the 10-mile wave airspace (courtesy of Dave Sherrill)."
+              />
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                {navFiles.map((doc) => (
+                  <DocCard key={doc.href} doc={doc} />
+                ))}
+              </div>
+              <p className="mt-6 text-sm leading-7 text-slate-600">
+                The Gorham, NH waypoint database is also maintained at{" "}
+                <a
+                  href="https://soaringweb.org/TP/Gorham"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"
+                >
+                  soaringweb.org/TP/Gorham
+                </a>
+                .
+              </p>
+            </section>
+
+            <section>
+              <SectionHeading
+                eyebrow="Going somewhere"
+                title="Wave cross-country flights"
+                lede="When flagpole sitting in wave becomes routine, the area offers meaningful cross-country routes — but the landing options on the northern routes are sparse and sometimes distant from the course line."
+              />
+              <p className="mt-6 max-w-3xl text-sm leading-7 text-slate-600">
+                The original “Mt. Washington Area Wave Cross-Country Glider Flights” document
+                describes some possible routes. Not only the condition, but even the existence of
+                some of the reported landing areas must be confirmed before attempting these
+                routes. The original file has not been recovered — if you have a copy, please write
+                to{" "}
+                <a
+                  href={`mailto:${site.email}`}
+                  className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"
+                >
+                  {site.email}
+                </a>
+                .
+              </p>
+            </section>
+          </div>
+        </Container>
+      </section>
+    </>
+  );
+}
