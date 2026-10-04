@@ -18,11 +18,12 @@ export function Header() {
       <Container className="flex h-16 items-center justify-between gap-4">
         <Link href="/" aria-label={site.name} className="flex shrink-0 items-center">
           <Image
-            src="/images/brand/logo.png"
+            src="/images/brand/logo.svg"
             alt={site.name}
-            width={2034}
-            height={403}
+            width={2031}
+            height={401}
             priority
+            unoptimized
             className="h-10 w-auto sm:h-12"
           />
         </Link>
