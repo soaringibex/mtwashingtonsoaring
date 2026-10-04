@@ -137,6 +137,8 @@ async function fetchProfile(): Promise<Profile> {
   const maxSpeedKt = Math.max(40, ...rows.map((row) => Math.ceil(row.speedKt / 10) * 10));
 
   const hourLabel = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
     hour: "numeric",
     minute: "2-digit",
     timeZone: "America/New_York",
@@ -212,7 +214,7 @@ export function WindProfile() {
           Vertical wind profile
         </p>
         <p className="text-xs text-slate-400">
-          {profile ? `${profile.hourLabel} · Gorham (2G8)` : "Gorham (2G8)"}
+          {profile ? `${profile.hourLabel} · Mt Washington` : "Mt Washington"}
         </p>
       </div>
 

@@ -121,6 +121,8 @@ export function SummitConditions() {
   if (!summit) return null;
 
   const observed = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
     hour: "numeric",
     minute: "2-digit",
     timeZone: "America/New_York",

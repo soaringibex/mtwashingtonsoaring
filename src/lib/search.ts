@@ -59,7 +59,7 @@ const pages: SearchEntry[] = [
     title: "Vertical wind profile — current conditions",
     href: "/#conditions",
     kind: "page",
-    text: "The live column of wind over Gorham from the latest model run — speeds, directions and heights, refreshed hourly.",
+    text: "The live column of wind over Mount Washington from the latest model run — speeds, directions and heights, refreshed hourly.",
     keywords: "current conditions wind live weather profile sounding gorham heights speeds",
   },
   {

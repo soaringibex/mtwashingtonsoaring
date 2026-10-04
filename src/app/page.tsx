@@ -135,8 +135,8 @@ export default function HomePage() {
                 <p>
                   Wave days are written in the vertical wind profile — a steady cross-ridge flow at
                   altitude, with stable air through the layer. This is the live column of wind over
-                  Gorham from the latest model run: the same first look pilots take before heading
-                  to the field.
+                  Mount Washington from the latest model run: the same first look pilots take
+                  before heading to the field.
                 </p>
               </div>
               <div className="mt-8">
