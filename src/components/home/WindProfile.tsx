@@ -1,0 +1,246 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+const LATITUDE = 44.3931;
+const LONGITUDE = -71.1996;
+const REFRESH_MS = 45 * 60 * 1000;
+
+/** Pressure levels to pull, in hPa. Filtered against the surface pressure at render time. */
+const LEVELS = [1000, 975, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200];
+
+type ProfileRow = {
+  hPa: number;
+  altFt: number;
+  speedKt: number;
+  dirDeg: number;
+};
+
+type Profile = {
+  rows: ProfileRow[];
+  maxSpeedKt: number;
+  hourLabel: string;
+};
+
+const compass = [
+  "N",
+  "NNE",
+  "NE",
+  "ENE",
+  "E",
+  "ESE",
+  "SE",
+  "SSE",
+  "S",
+  "SSW",
+  "SW",
+  "WSW",
+  "W",
+  "WNW",
+  "NW",
+  "NNW",
+];
+
+function directionLetters(deg: number): string {
+  return compass[Math.round(deg / 22.5) % 16];
+}
+
+function speedBar(kt: number): string {
+  if (kt >= 55) return "bg-red-500";
+  if (kt >= 40) return "bg-orange-500";
+  if (kt >= 30) return "bg-amber-400";
+  if (kt >= 20) return "bg-sky-500";
+  if (kt >= 10) return "bg-sky-300";
+  return "bg-slate-300";
+}
+
+async function fetchProfile(): Promise<Profile> {
+  const variables = [
+    "wind_speed_10m",
+    "wind_direction_10m",
+    "surface_pressure",
+    ...LEVELS.flatMap((level) => [
+      `geopotential_height_${level}hPa`,
+      `wind_speed_${level}hPa`,
+      `wind_direction_${level}hPa`,
+    ]),
+  ];
+  const url =
+    `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}` +
+    `&hourly=${variables.join(",")}&models=gfs_seamless&wind_speed_unit=kn` +
+    `&timezone=UTC&forecast_days=2`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`wind profile request failed: ${response.status}`);
+  }
+
+  const data: { hourly: Record<string, (number | null)[]> } = await response.json();
+  const hourly = data.hourly;
+  const times = hourly.time as unknown as string[];
+
+  // The latest full hour at or before now (times are hourly UTC stamps, ascending).
+  const now = Date.now();
+  let index = 0;
+  for (let i = 0; i < times.length; i += 1) {
+    if (Date.parse(`${times[i]}:00Z`) <= now) index = i;
+    else break;
+  }
+
+  const at = (key: string): number | null => {
+    const series = hourly[key];
+    if (!series) return null;
+    const value = series[index];
+    return typeof value === "number" ? value : null;
+  };
+
+  const surfacePressure = at("surface_pressure") ?? 1013;
+  const rows: ProfileRow[] = [];
+
+  const surfaceSpeed = at("wind_speed_10m");
+  const surfaceDir = at("wind_direction_10m");
+  if (surfaceSpeed !== null && surfaceDir !== null) {
+    rows.push({
+      hPa: Math.round(surfacePressure),
+      altFt: 835,
+      speedKt: surfaceSpeed,
+      dirDeg: surfaceDir,
+    });
+  }
+
+  for (const level of LEVELS) {
+    // Skip levels that sit below the terrain (higher pressure than the surface).
+    if (level > surfacePressure) continue;
+    const height = at(`geopotential_height_${level}hPa`);
+    const speed = at(`wind_speed_${level}hPa`);
+    const dir = at(`wind_direction_${level}hPa`);
+    if (height === null || speed === null || dir === null) continue;
+    const altFt = Math.round(height * 3.28084);
+    if (altFt < 800) continue;
+    rows.push({ hPa: level, altFt, speedKt: speed, dirDeg: dir });
+  }
+
+  rows.sort((a, b) => a.altFt - b.altFt);
+
+  const maxSpeedKt = Math.max(40, ...rows.map((row) => Math.ceil(row.speedKt / 10) * 10));
+
+  const hourLabel = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/New_York",
+    timeZoneName: "short",
+  }).format(new Date(Date.parse(`${times[index]}:00Z`)));
+
+  return { rows, maxSpeedKt, hourLabel };
+}
+
+export function WindProfile() {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => {
+      fetchProfile()
+        .then((next) => {
+          if (!cancelled) {
+            setProfile(next);
+            setError(false);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setError(true);
+        });
+    };
+    load();
+    const timer = setInterval(load, REFRESH_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
+
+  return (
+    <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="font-display text-xs font-semibold uppercase tracking-[0.28em] text-sky-700">
+          Vertical wind profile
+        </p>
+        <p className="text-xs text-slate-400">
+          {profile ? `${profile.hourLabel} · Gorham (2G8)` : "Gorham (2G8)"}
+        </p>
+      </div>
+
+      {profile ? (
+        <>
+          <ul className="mt-5 grid gap-2">
+            {profile.rows.map((row) => (
+              <li
+                key={`${row.hPa}-${row.altFt}`}
+                className="grid grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem] items-center gap-2.5"
+              >
+                <span
+                  className="text-right text-[11px] tabular-nums text-slate-500"
+                  title={`${row.hPa} hPa`}
+                >
+                  {row.altFt.toLocaleString("en-US")} ft
+                </span>
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  className="size-4 text-sky-600"
+                  style={{ transform: `rotate(${row.dirDeg + 180}deg)` }}
+                >
+                  <path d="M12 3.5 18 19l-6-3-6 3z" fill="currentColor" />
+                </svg>
+                <span className="relative block h-2.5 overflow-hidden rounded-full bg-slate-100">
+                  <span
+                    className={`absolute inset-y-0 left-0 rounded-full ${speedBar(row.speedKt)}`}
+                    style={{
+                      width: `${Math.max(4, (row.speedKt / profile.maxSpeedKt) * 100)}%`,
+                    }}
+                  />
+                </span>
+                <span className="text-right text-xs font-medium tabular-nums text-slate-700">
+                  {directionLetters(row.dirDeg)} {Math.round(row.speedKt)} kt
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 text-[11px] leading-5 text-slate-400">
+            Arrows point the way the wind is blowing. Mount Washington&apos;s summit is 6,288 ft and
+            the Class A floor is 18,000 ft. Latest model run (GFS via Open-Meteo), refreshed hourly
+            —{" "}
+            <Link href="/links#weather" className="font-medium text-sky-700 hover:text-sky-600">
+              more weather links
+            </Link>
+            .
+          </p>
+        </>
+      ) : error ? (
+        <p className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600 ring-1 ring-slate-900/5">
+          The wind profile is unavailable right now.{" "}
+          <Link href="/links#weather" className="font-medium text-sky-700 hover:text-sky-600">
+            Weather links
+          </Link>
+        </p>
+      ) : (
+        <div className="mt-5 grid gap-2" aria-hidden="true">
+          {Array.from({ length: 10 }).map((_, index) => (
+            <div
+              key={index}
+              className="grid grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem] items-center gap-2.5"
+            >
+              <span className="h-3 animate-pulse rounded bg-slate-100" />
+              <span className="size-3 animate-pulse rounded-full bg-slate-100" />
+              <span className="h-2.5 animate-pulse rounded-full bg-slate-100" />
+              <span className="h-3 animate-pulse rounded bg-slate-100" />
+            </div>
+          ))}
+          <p className="mt-2 text-xs text-slate-400">Loading the latest wind profile…</p>
+        </div>
+      )}
+    </div>
+  );
+}

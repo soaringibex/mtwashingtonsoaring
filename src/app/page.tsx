@@ -3,6 +3,7 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow, SectionHeading } from "@/components/ui/SectionHeading";
 import { Countdown } from "@/components/home/Countdown";
+import { WindProfile } from "@/components/home/WindProfile";
 import { Reveal } from "@/components/ui/Reveal";
 import { linkGroups } from "@/lib/links";
 import { posts } from "@/lib/news";
@@ -119,6 +120,36 @@ export default function HomePage() {
             <div className="animate-fade-up lg:animate-fade-up [animation-delay:150ms]">
               <Countdown />
             </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* Current conditions */}
+      <section className="bg-slate-50 py-20 sm:py-24">
+        <Container>
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-center">
+            <Reveal>
+              <Eyebrow>Current conditions</Eyebrow>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-900 text-balance sm:text-4xl">
+                See what the wind is doing right now.
+              </h2>
+              <div className="mt-6 space-y-5 text-[1.0625rem] leading-8 text-slate-700">
+                <p>
+                  Wave days are written in the vertical wind profile — a steady cross-ridge flow at
+                  altitude, with stable air through the layer. This is the live column of wind over
+                  Gorham from the latest model run: the same first look pilots take before heading
+                  to the field.
+                </p>
+              </div>
+              <div className="mt-8">
+                <ButtonLink href="/links#weather" variant="secondary">
+                  Weather links
+                </ButtonLink>
+              </div>
+            </Reveal>
+            <Reveal delay={120}>
+              <WindProfile />
+            </Reveal>
           </div>
         </Container>
       </section>
