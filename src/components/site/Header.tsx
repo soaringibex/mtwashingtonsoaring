@@ -20,10 +20,10 @@ export function Header() {
           <Image
             src="/images/brand/logo.png"
             alt={site.name}
-            width={1728}
-            height={507}
+            width={2034}
+            height={403}
             priority
-            className="h-11 w-auto sm:h-12"
+            className="h-10 w-auto sm:h-12"
           />
         </Link>
 
