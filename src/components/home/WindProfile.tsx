@@ -255,59 +255,63 @@ export function WindProfile() {
                 </li>
               ))}
             </ul>
-            {/* A stylized west-to-east profile of Mount Washington, drawn behind the bars so the
-                wind at mountain heights reads against the mountain itself. The peak sits at the
-                summit's altitude (between the 4,977 ft and 6,594 ft rows). */}
-            <svg
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-              className="pointer-events-none absolute bottom-0 left-[6.125rem] right-[4.75rem] h-40 sm:left-[7.25rem] sm:right-[6.125rem]"
-            >
-              <path
-                d="M0 100 L2 95 L5 88 L8 79 L10 72 L13 64 L16 56 L18.5 49 L21 42 L23.5 34 L26 26 L28.5 17 L30.5 9 L32 5 L33.5 5 L36 10 L39.5 18 L44 28 L49.5 38 L56 48 L63.5 58 L71.5 68 L80 77 L88 85 L94.5 91 L100 95 L100 100 Z"
-                className="fill-slate-300/80"
-              />
-            </svg>
-            {temperature ? (
+            {/* A stylized north-to-south profile of the Presidential Range — Jefferson, Clay,
+                Washington, Monroe, Franklin, Eisenhower — drawn behind the bars so the wind at
+                mountain heights reads against the ridge itself. */}
+            <div className="pointer-events-none absolute bottom-0 left-[6.125rem] right-[4.75rem] h-40 sm:left-[7.25rem] sm:right-[6.125rem]">
               <svg
-                viewBox={`0 0 100 ${temperature.height}`}
+                viewBox="0 0 100 100"
                 preserveAspectRatio="none"
                 aria-hidden="true"
-                className="pointer-events-none absolute left-[6.125rem] right-[4.75rem] top-0 z-20 h-full sm:left-[7.25rem] sm:right-[6.125rem]"
+                className="h-full w-full"
               >
-                <polyline
-                  points={temperature.points}
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeOpacity={0.85}
-                  strokeWidth={5}
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
+                <path
+                  d="M0 100 L2 86 L4.5 58 L7 30 L8.5 15 L12 18 L14 17 L17 22 L19.5 18.5 L23 24 L27 20 L31 12 L34 6 L36 5 L38.5 7.5 L41 12 L45 15.5 L48 15 L51 18 L54 20.5 L57.5 26 L61 25 L64.5 28.5 L68 29.5 L71.5 31 L75 34 L79 38 L84 43 L90 49 L96 56 L100 61 L100 100 Z"
+                  className="fill-slate-300/80"
                 />
-                <polyline
-                  points={temperature.points}
-                  fill="none"
-                  stroke="#ef4444"
-                  strokeWidth={2}
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                />
-                {temperature.dots.map((dot) => (
-                  <circle
-                    key={`${dot.altFt}-${dot.tempF}`}
-                    cx={dot.x}
-                    cy={dot.y}
-                    r={2.2}
-                    fill="#ef4444"
-                    className="pointer-events-auto"
-                  >
-                    <title>{`${Math.round(dot.tempF)}°F at ${dot.altFt.toLocaleString("en-US")} ft`}</title>
-                  </circle>
-                ))}
               </svg>
+            </div>
+            {temperature ? (
+              <div className="pointer-events-none absolute left-[6.125rem] right-[4.75rem] top-0 z-20 h-full sm:left-[7.25rem] sm:right-[6.125rem]">
+                <svg
+                  viewBox={`0 0 100 ${temperature.height}`}
+                  preserveAspectRatio="none"
+                  aria-hidden="true"
+                  className="h-full w-full"
+                >
+                  <polyline
+                    points={temperature.points}
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeOpacity={0.85}
+                    strokeWidth={5}
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <polyline
+                    points={temperature.points}
+                    fill="none"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  {temperature.dots.map((dot) => (
+                    <circle
+                      key={`${dot.altFt}-${dot.tempF}`}
+                      cx={dot.x}
+                      cy={dot.y}
+                      r={2.2}
+                      fill="#ef4444"
+                      className="pointer-events-auto"
+                    >
+                      <title>{`${Math.round(dot.tempF)}°F at ${dot.altFt.toLocaleString("en-US")} ft`}</title>
+                    </circle>
+                  ))}
+                </svg>
+              </div>
             ) : null}
           </div>
           <p className="mt-4 text-[11px] leading-5 text-slate-400">
