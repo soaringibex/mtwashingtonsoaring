@@ -53,8 +53,9 @@ function speedBar(kt: number): string {
   if (kt >= 40) return "bg-violet-700";
   if (kt >= 30) return "bg-violet-600";
   if (kt >= 20) return "bg-violet-500";
-  if (kt >= 10) return "bg-violet-400";
-  return "bg-violet-300";
+  if (kt >= 15) return "bg-violet-400";
+  if (kt >= 10) return "bg-sky-300";
+  return "bg-slate-300";
 }
 
 async function fetchProfile(): Promise<Profile> {
@@ -239,7 +240,7 @@ export function WindProfile() {
                   </svg>
                   <span className="relative block h-2.5 overflow-hidden rounded-full bg-slate-100">
                     <span
-                      className={`absolute inset-y-0 left-0 z-10 rounded-full ${speedBar(row.speedKt)}`}
+                      className={`absolute inset-y-0 left-0 z-10 rounded-full ${speedBar(Math.round(row.speedKt))}`}
                       style={{
                         width: `${Math.max(4, (row.speedKt / profile.maxSpeedKt) * 100)}%`,
                       }}
