@@ -83,12 +83,12 @@ export function Countdown() {
           {cells.map((cell) => (
             <div
               key={cell.label}
-              className="rounded-2xl bg-slate-950/40 px-2 py-3 text-center sm:px-3 sm:py-4"
+              className="rounded-2xl bg-slate-950/40 px-1.5 py-3 text-center sm:px-2 sm:py-4"
             >
               <p className="font-display text-2xl font-bold tabular-nums text-white sm:text-3xl">
                 {String(cell.value).padStart(2, "0")}
               </p>
-              <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-200">
+              <p className="mt-1 whitespace-nowrap text-[9.5px] font-semibold uppercase tracking-[0.1em] text-sky-200">
                 {cell.label}
               </p>
             </div>
