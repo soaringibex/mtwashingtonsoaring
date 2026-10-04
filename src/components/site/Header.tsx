@@ -1,37 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { site } from "@/lib/site";
 import { Container } from "@/components/ui/Container";
-
-function Logo() {
-  return (
-    <span className="flex items-center gap-2.5">
-      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-sky-600 to-sky-800 shadow-sm">
-        <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
-          <path d="M12 3.5 18.5 9 12 10.5 5.5 9z" fill="#ffffff" />
-          <path
-            d="M4 17c2.1-3.2 4.2-3.2 6.3 0s4.2 3.2 6.3 0"
-            fill="none"
-            stroke="#7dd3fc"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        </svg>
-      </span>
-      <span className="flex flex-col leading-tight">
-        <span className="font-display text-[15px] font-bold tracking-tight text-slate-900">
-          Mt Washington
-        </span>
-        <span className="text-[10.5px] font-medium uppercase tracking-[0.18em] text-slate-500">
-          Soaring Association
-        </span>
-      </span>
-    </span>
-  );
-}
 
 export function Header() {
   const pathname = usePathname();
@@ -42,8 +16,15 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-900/5 bg-white/85 backdrop-blur-md">
       <Container className="flex h-16 items-center justify-between gap-4">
-        <Link href="/" aria-label={site.name}>
-          <Logo />
+        <Link href="/" aria-label={site.name} className="flex shrink-0 items-center">
+          <Image
+            src="/images/brand/logo.png"
+            alt={site.name}
+            width={1728}
+            height={507}
+            priority
+            className="h-11 w-auto sm:h-12"
+          />
         </Link>
 
         <nav className="hidden items-center lg:flex" aria-label="Main">
