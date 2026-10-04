@@ -64,6 +64,36 @@ export function Footer() {
                 </Link>
               </li>
             </ul>
+
+            <p className="mt-8 font-display text-xs font-semibold uppercase tracking-[0.28em] text-sky-400">
+              Search
+            </p>
+            <form action="/search" method="get" role="search" className="mt-4">
+              <label htmlFor="footer-search" className="sr-only">
+                Search the site
+              </label>
+              <div className="relative">
+                <input
+                  id="footer-search"
+                  type="search"
+                  name="q"
+                  placeholder="Search the site…"
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="w-full rounded-full border border-white/15 bg-white/5 py-2.5 pl-4 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-sky-400/60 focus:bg-white/10 focus:ring-2 focus:ring-sky-400/20"
+                />
+                <button
+                  type="submit"
+                  aria-label="Search"
+                  className="absolute right-1.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4" aria-hidden="true">
+                    <circle cx="11" cy="11" r="6.5" />
+                    <path d="m16.5 16.5 4 4" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+            </form>
           </div>
 
           <div className="lg:col-span-4">
