@@ -49,12 +49,12 @@ function directionLetters(deg: number): string {
 }
 
 function speedBar(kt: number): string {
-  if (kt >= 55) return "bg-red-500";
-  if (kt >= 40) return "bg-orange-500";
-  if (kt >= 30) return "bg-amber-400";
-  if (kt >= 20) return "bg-sky-500";
-  if (kt >= 10) return "bg-sky-300";
-  return "bg-slate-300";
+  if (kt >= 55) return "bg-violet-800";
+  if (kt >= 40) return "bg-violet-700";
+  if (kt >= 30) return "bg-violet-600";
+  if (kt >= 20) return "bg-violet-500";
+  if (kt >= 10) return "bg-violet-400";
+  return "bg-violet-300";
 }
 
 async function fetchProfile(): Promise<Profile> {
@@ -262,7 +262,7 @@ export function WindProfile() {
                 className="h-full w-full"
               >
                 <path
-                  d="M0 84 L2 79 L4 71 L5.5 58 L6.5 40 L7.5 25 L8.5 15 L12 18 L14 17 L17 22 L19.5 18.5 L23 24 L27 20 L31 12 L34 6 L36 5 L38.5 7.5 L41 12 L45 15.5 L48 15 L51 18 L54 20.5 L57.5 26 L61 25 L64.5 28.5 L68 29.5 L71.5 31 L75 34 L79 38 L84 43 L90 49 L96 56 L100 61 L100 100 L0 100 Z"
+                  d="M0 96 L6 89 L12 81 L19 71 L25 60 L30 50 L34 40 L37 30 L39.5 20 L41 15 L44 17.5 L46 17 L48 21 L51 18.5 L54 23.5 L57 19.5 L59.5 11 L61.5 5 L63.5 7 L65.5 10.5 L68 14.5 L71 14.5 L73.5 19 L76 20.5 L78.5 20 L81 24.5 L83.5 25.5 L86 29.5 L88.5 30.5 L91 35 L93.5 41 L96 48 L98 53 L100 58 L100 100 L0 100 Z"
                   className="fill-slate-300/80"
                 />
               </svg>
