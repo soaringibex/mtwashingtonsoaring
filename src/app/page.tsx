@@ -125,7 +125,7 @@ export default function HomePage() {
       {/* Current conditions */}
       <section id="conditions" className="bg-slate-50 py-20 sm:py-24">
         <Container>
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-center">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_520px] lg:items-center">
             <Reveal>
               <Eyebrow>Current conditions</Eyebrow>
               <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-900 text-balance sm:text-4xl">

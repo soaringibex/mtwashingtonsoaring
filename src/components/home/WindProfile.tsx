@@ -15,6 +15,7 @@ type ProfileRow = {
   altFt: number;
   speedKt: number;
   dirDeg: number;
+  tempF: number | null;
 };
 
 type Profile = {
@@ -59,17 +60,19 @@ async function fetchProfile(): Promise<Profile> {
   const variables = [
     "wind_speed_10m",
     "wind_direction_10m",
+    "temperature_2m",
     "surface_pressure",
     ...LEVELS.flatMap((level) => [
       `geopotential_height_${level}hPa`,
       `wind_speed_${level}hPa`,
       `wind_direction_${level}hPa`,
+      `temperature_${level}hPa`,
     ]),
   ];
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}` +
     `&hourly=${variables.join(",")}&models=gfs_seamless&wind_speed_unit=kn` +
-    `&timezone=UTC&forecast_days=2`;
+    `&temperature_unit=fahrenheit&timezone=UTC&forecast_days=2`;
 
   const response = await fetch(url);
   if (!response.ok) {
@@ -106,6 +109,7 @@ async function fetchProfile(): Promise<Profile> {
       altFt: 835,
       speedKt: surfaceSpeed,
       dirDeg: surfaceDir,
+      tempF: at("temperature_2m"),
     });
   }
 
@@ -118,7 +122,13 @@ async function fetchProfile(): Promise<Profile> {
     if (height === null || speed === null || dir === null) continue;
     const altFt = Math.round(height * 3.28084);
     if (altFt < 800) continue;
-    rows.push({ hPa: level, altFt, speedKt: speed, dirDeg: dir });
+    rows.push({
+      hPa: level,
+      altFt,
+      speedKt: speed,
+      dirDeg: dir,
+      tempF: at(`temperature_${level}hPa`),
+    });
   }
 
   // Highest altitude first, so the column reads like the sky does.
@@ -134,6 +144,37 @@ async function fetchProfile(): Promise<Profile> {
   }).format(new Date(Date.parse(`${times[index]}:00Z`)));
 
   return { rows, maxSpeedKt, hourLabel };
+}
+
+type TemperaturePoint = { x: number; y: number; tempF: number; altFt: number };
+
+/** Map each row's temperature into the right-hand gutter — a °F profile in row space. */
+function buildTemperatureProfile(
+  rows: ProfileRow[],
+): { points: string; dots: TemperaturePoint[]; height: number } | null {
+  const present = rows
+    .map((row) => row.tempF)
+    .filter((value): value is number => value !== null);
+  if (present.length < 2) return null;
+  const lo = Math.floor((Math.min(...present) - 4) / 10) * 10;
+  let hi = Math.ceil((Math.max(...present) + 4) / 10) * 10;
+  if (hi - lo < 20) hi = lo + 20;
+
+  const height = rows.length * 12;
+  const dots = rows
+    .map((row, index) =>
+      row.tempF === null
+        ? null
+        : {
+            x: 8 + ((row.tempF - lo) / (hi - lo)) * 40,
+            y: index * 12 + 6,
+            tempF: row.tempF,
+            altFt: row.altFt,
+          },
+    )
+    .filter((dot): dot is TemperaturePoint => dot !== null);
+
+  return { points: dots.map((dot) => `${dot.x},${dot.y}`).join(" "), dots, height };
 }
 
 export function WindProfile() {
@@ -162,6 +203,8 @@ export function WindProfile() {
     };
   }, []);
 
+  const temperature = profile ? buildTemperatureProfile(profile.rows) : null;
+
   return (
     <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -180,7 +223,7 @@ export function WindProfile() {
               {profile.rows.map((row) => (
                 <li
                   key={`${row.hPa}-${row.altFt}`}
-                  className="grid grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem] items-center gap-2.5"
+                  className="grid grid-cols-[4.25rem_0.875rem_minmax(0,1fr)_4.25rem_2.5rem] items-center gap-2 sm:grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem_3.5rem] sm:gap-2.5"
                 >
                   <span
                     className="text-right text-[11px] tabular-nums text-slate-500"
@@ -207,6 +250,7 @@ export function WindProfile() {
                   <span className="text-right text-xs font-medium tabular-nums text-slate-700">
                     {directionLetters(row.dirDeg)} {Math.round(row.speedKt)} kt
                   </span>
+                  <span />
                 </li>
               ))}
             </ul>
@@ -217,17 +261,43 @@ export function WindProfile() {
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
               aria-hidden="true"
-              className="pointer-events-none absolute bottom-0 left-[7.25rem] right-[6.125rem] h-40"
+              className="pointer-events-none absolute bottom-0 left-[6.125rem] right-[7.75rem] h-40 sm:left-[7.25rem] sm:right-[10.25rem]"
             >
               <path
                 d="M0 100 L2 95 L5 88 L8 79 L10 72 L13 64 L16 56 L18.5 49 L21 42 L23.5 34 L26 26 L28.5 17 L30.5 9 L32 5 L33.5 5 L36 10 L39.5 18 L44 28 L49.5 38 L56 48 L63.5 58 L71.5 68 L80 77 L88 85 L94.5 91 L100 95 L100 100 Z"
                 className="fill-slate-300/80"
               />
             </svg>
+            {temperature ? (
+              <svg
+                viewBox={`0 0 56 ${temperature.height}`}
+                preserveAspectRatio="none"
+                aria-hidden="true"
+                className="pointer-events-none absolute right-0 top-0 h-full w-10 sm:w-14"
+              >
+                <polyline
+                  points={temperature.points}
+                  fill="none"
+                  stroke="#ef4444"
+                  strokeWidth={2}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+                {temperature.dots.map((dot) => (
+                  <g key={`${dot.altFt}-${dot.tempF}`}>
+                    <ellipse cx={dot.x} cy={dot.y} rx={2.4} ry={1.3} fill="#ef4444">
+                      <title>{`${Math.round(dot.tempF)}°F at ${dot.altFt.toLocaleString("en-US")} ft`}</title>
+                    </ellipse>
+                  </g>
+                ))}
+              </svg>
+            ) : null}
           </div>
           <p className="mt-4 text-[11px] leading-5 text-slate-400">
-            Arrows point the way the wind is blowing. Mount Washington&apos;s summit is 6,288 ft and
-            the Class A floor is 18,000 ft. Latest model run (
+            Arrows point the way the wind is blowing; the red curve is the temperature profile in
+            °F. Mount Washington&apos;s summit is 6,288 ft and the Class A floor is 18,000 ft.
+            Latest model run (
             <a
               href="https://open-meteo.com/"
               target="_blank"
@@ -255,12 +325,13 @@ export function WindProfile() {
           {Array.from({ length: 10 }).map((_, index) => (
             <div
               key={index}
-              className="grid grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem] items-center gap-2.5"
+              className="grid grid-cols-[4.25rem_0.875rem_minmax(0,1fr)_4.25rem_2.5rem] items-center gap-2 sm:grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem_3.5rem] sm:gap-2.5"
             >
               <span className="h-3 animate-pulse rounded bg-slate-100" />
               <span className="size-3 animate-pulse rounded-full bg-slate-100" />
               <span className="h-2.5 animate-pulse rounded-full bg-slate-100" />
               <span className="h-3 animate-pulse rounded bg-slate-100" />
+              <span className="mx-auto h-3 w-5 animate-pulse rounded bg-slate-100" />
             </div>
           ))}
           <p className="mt-2 text-xs text-slate-400">Loading the latest wind profile…</p>
