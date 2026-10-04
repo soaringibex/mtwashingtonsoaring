@@ -3,7 +3,7 @@
 A modern rebuild of [mtwashingtonsoaring.org](https://www.mtwashingtonsoaring.org), the home of the
 Mount Washington wave flying community in Gorham, New Hampshire.
 
-**Live:** https://mtwashingtonsoaring.vercel.app
+**Live:** https://mtwashingtonsoaring-tawny.vercel.app
 
 Built with **Next.js (App Router) + Tailwind CSS v4**, TypeScript, and `next/font` / `next/image`.
 Every page is statically prerendered — deployable to Vercel with zero configuration.
