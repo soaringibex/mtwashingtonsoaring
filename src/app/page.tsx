@@ -127,7 +127,7 @@ export default function HomePage() {
       {/* Current conditions */}
       <section id="conditions" className="bg-slate-50 py-20 sm:py-24">
         <Container>
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-center">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_520px] lg:items-center">
             <Reveal>
               <Eyebrow>Current conditions</Eyebrow>
               <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-900 text-balance sm:text-4xl">
@@ -135,10 +135,10 @@ export default function HomePage() {
               </h2>
               <div className="mt-6 space-y-5 text-[1.0625rem] leading-8 text-slate-700">
                 <p>
-                  Wave days are written in the vertical wind profile — a steady cross-ridge flow at
-                  altitude, with stable air through the layer. This is the live column of wind over
-                  Gorham from the latest model run: the same first look pilots take before heading
-                  to the field.
+                  Wave days are written in the sounding — a steady cross-ridge flow at altitude,
+                  with a temperature profile that stays stable through the layer. This is the live
+                  column over Gorham from the latest model run: the same first look pilots take
+                  before heading to the field.
                 </p>
               </div>
               <div className="mt-8">

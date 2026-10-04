@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 const LATITUDE = 44.3931;
 const LONGITUDE = -71.1996;
 const REFRESH_MS = 45 * 60 * 1000;
+const SUMMIT_FT = 6288;
+const CLASS_A_FT = 18000;
 
 /** Pressure levels to pull, in hPa. Filtered against the surface pressure at render time. */
 const LEVELS = [1000, 975, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200];
@@ -15,11 +17,12 @@ type ProfileRow = {
   altFt: number;
   speedKt: number;
   dirDeg: number;
+  tempC: number | null;
+  dewpointC: number | null;
 };
 
 type Profile = {
   rows: ProfileRow[];
-  maxSpeedKt: number;
   hourLabel: string;
 };
 
@@ -46,24 +49,67 @@ function directionLetters(deg: number): string {
   return compass[Math.round(deg / 22.5) % 16];
 }
 
-function speedBar(kt: number): string {
-  if (kt >= 55) return "bg-red-500";
-  if (kt >= 40) return "bg-orange-500";
-  if (kt >= 30) return "bg-amber-400";
-  if (kt >= 20) return "bg-sky-500";
-  if (kt >= 10) return "bg-sky-300";
-  return "bg-slate-300";
+/**
+ * Wind-barb geometry in the SVG's local coordinates (x right, y down):
+ * the staff points toward the wind's source, and the barbs sit on the
+ * clockwise side, per the northern-hemisphere station model.
+ */
+function barbGeometry(speedKt: number, dirDeg: number) {
+  const rounded = Math.max(0, Math.round(speedKt / 5) * 5);
+  const from = dirDeg * (Math.PI / 180);
+  const vx = Math.sin(from);
+  const vy = -Math.cos(from);
+  const lx = -vy;
+  const ly = vx;
+
+  // Work out the marks first, then size the staff so they all sit on it.
+  const pennantCount = Math.floor(rounded / 50);
+  const fullCount = Math.floor((rounded % 50) / 10);
+  const halfCount = rounded % 10 >= 5 ? 1 : 0;
+  const consumed = pennantCount * 13 + fullCount * 5.5 + halfCount * 5.5;
+  const staffLength = Math.max(26, 2.5 + consumed + 3);
+
+  const tip = { x: vx * staffLength, y: vy * staffLength };
+  const at = (t: number) => ({ x: tip.x - vx * t, y: tip.y - vy * t });
+  const marks: { x1: number; y1: number; x2: number; y2: number }[] = [];
+  const pennants: string[] = [];
+
+  let cursor = 2.5;
+  for (let i = 0; i < pennantCount; i += 1) {
+    const a = at(cursor);
+    const b = at(cursor + 12);
+    const apex = at(cursor + 6);
+    pennants.push(
+      `${a.x},${a.y} ${b.x},${b.y} ${apex.x + lx * 9.5},${apex.y + ly * 9.5}`,
+    );
+    cursor += 13;
+  }
+  for (let i = 0; i < fullCount; i += 1) {
+    const p = at(cursor);
+    marks.push({ x1: p.x, y1: p.y, x2: p.x + lx * 8.5, y2: p.y + ly * 8.5 });
+    cursor += 5.5;
+  }
+  if (halfCount > 0) {
+    const p = at(cursor);
+    marks.push({ x1: p.x, y1: p.y, x2: p.x + lx * 4.5, y2: p.y + ly * 4.5 });
+  }
+
+  return { tip, marks, pennants, rounded };
 }
 
 async function fetchProfile(): Promise<Profile> {
   const variables = [
     "wind_speed_10m",
     "wind_direction_10m",
+    "temperature_2m",
+    "dewpoint_2m",
     "surface_pressure",
     ...LEVELS.flatMap((level) => [
       `geopotential_height_${level}hPa`,
       `wind_speed_${level}hPa`,
       `wind_direction_${level}hPa`,
+      `temperature_${level}hPa`,
+      `dewpoint_${level}hPa`,
     ]),
   ];
   const url =
@@ -73,7 +119,7 @@ async function fetchProfile(): Promise<Profile> {
 
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`wind profile request failed: ${response.status}`);
+    throw new Error(`sounding request failed: ${response.status}`);
   }
 
   const data: { hourly: Record<string, (number | null)[]> } = await response.json();
@@ -106,6 +152,8 @@ async function fetchProfile(): Promise<Profile> {
       altFt: 835,
       speedKt: surfaceSpeed,
       dirDeg: surfaceDir,
+      tempC: at("temperature_2m"),
+      dewpointC: at("dewpoint_2m"),
     });
   }
 
@@ -118,12 +166,21 @@ async function fetchProfile(): Promise<Profile> {
     if (height === null || speed === null || dir === null) continue;
     const altFt = Math.round(height * 3.28084);
     if (altFt < 800) continue;
-    rows.push({ hPa: level, altFt, speedKt: speed, dirDeg: dir });
+    rows.push({
+      hPa: level,
+      altFt,
+      speedKt: speed,
+      dirDeg: dir,
+      tempC: at(`temperature_${level}hPa`),
+      dewpointC: at(`dewpoint_${level}hPa`),
+    });
+  }
+
+  if (rows.length < 3) {
+    throw new Error("sounding returned too few levels");
   }
 
   rows.sort((a, b) => a.altFt - b.altFt);
-
-  const maxSpeedKt = Math.max(40, ...rows.map((row) => Math.ceil(row.speedKt / 10) * 10));
 
   const hourLabel = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
@@ -132,7 +189,193 @@ async function fetchProfile(): Promise<Profile> {
     timeZoneName: "short",
   }).format(new Date(Date.parse(`${times[index]}:00Z`)));
 
-  return { rows, maxSpeedKt, hourLabel };
+  return { rows, hourLabel };
+}
+
+function SoundingChart({ profile }: { profile: Profile }) {
+  const width = 620;
+  const height = 640;
+  const margin = { top: 20, right: 108, bottom: 44, left: 56 };
+  const plotW = width - margin.left - margin.right;
+  const plotH = height - margin.top - margin.bottom;
+
+  const rows = profile.rows;
+  const maxAlt = Math.max(...rows.map((row) => row.altFt), 20000);
+  const yMax = Math.ceil((maxAlt + 1200) / 5000) * 5000;
+
+  const temperatures = rows
+    .flatMap((row) => [row.tempC, row.dewpointC])
+    .filter((value): value is number => value !== null);
+  const tMin = Math.floor((Math.min(...temperatures) - 5) / 10) * 10;
+  let tMax = Math.ceil((Math.max(...temperatures) + 5) / 10) * 10;
+  if (tMax - tMin < 50) tMax = tMin + 50;
+
+  const x = (tempC: number) => margin.left + ((tempC - tMin) / (tMax - tMin)) * plotW;
+  const y = (altFt: number) =>
+    margin.top + (1 - Math.min(altFt, yMax) / yMax) * plotH;
+
+  const altitudeLines: number[] = [];
+  for (let alt = 0; alt <= yMax; alt += 5000) altitudeLines.push(alt);
+  const tempLines: number[] = [];
+  for (let temp = tMin; temp <= tMax; temp += 10) tempLines.push(temp);
+
+  const tempPolyline = rows
+    .filter((row) => row.tempC !== null)
+    .map((row) => `${x(row.tempC as number)},${y(row.altFt)}`)
+    .join(" ");
+  const dewPolyline = rows
+    .filter((row) => row.dewpointC !== null)
+    .map((row) => `${x(row.dewpointC as number)},${y(row.altFt)}`)
+    .join(" ");
+
+  const barbX = margin.left + plotW + 42;
+
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      className="mt-2 w-full"
+      role="img"
+      aria-label={`Sounding for Gorham: temperature, dew point and winds from the surface to ${yMax.toLocaleString("en-US")} feet`}
+    >
+      {/* Altitude grid */}
+      {altitudeLines.map((alt) => (
+        <g key={`alt-${alt}`}>
+          <line
+            x1={margin.left}
+            x2={margin.left + plotW}
+            y1={y(alt)}
+            y2={y(alt)}
+            stroke={alt % 10000 === 0 ? "#e2e8f0" : "#f1f5f9"}
+          />
+          {alt % 10000 === 0 ? (
+            <text
+              x={margin.left - 8}
+              y={y(alt) + 3.5}
+              textAnchor="end"
+              fontSize={10}
+              fill="#64748b"
+            >
+              {alt.toLocaleString("en-US")} ft
+            </text>
+          ) : null}
+        </g>
+      ))}
+
+      {/* Temperature grid */}
+      {tempLines.map((temp) => (
+        <g key={`t-${temp}`}>
+          <line
+            x1={x(temp)}
+            x2={x(temp)}
+            y1={margin.top}
+            y2={margin.top + plotH}
+            stroke={temp === 0 ? "#cbd5e1" : "#f1f5f9"}
+          />
+          <text x={x(temp)} y={height - margin.bottom + 18} textAnchor="middle" fontSize={10} fill="#64748b">
+            {temp}
+          </text>
+        </g>
+      ))}
+
+      {/* Reference levels */}
+      <line
+        x1={margin.left}
+        x2={margin.left + plotW}
+        y1={y(SUMMIT_FT)}
+        y2={y(SUMMIT_FT)}
+        stroke="#94a3b8"
+        strokeDasharray="4 3"
+      />
+      <text x={margin.left + 4} y={y(SUMMIT_FT) - 4} fontSize={9} fill="#94a3b8">
+        Summit 6,288 ft
+      </text>
+      <line
+        x1={margin.left}
+        x2={margin.left + plotW}
+        y1={y(CLASS_A_FT)}
+        y2={y(CLASS_A_FT)}
+        stroke="#94a3b8"
+        strokeDasharray="4 3"
+      />
+      <text x={margin.left + 4} y={y(CLASS_A_FT) - 4} fontSize={9} fill="#94a3b8">
+        Class A 18,000 ft
+      </text>
+
+      {/* Curves */}
+      {dewPolyline ? (
+        <polyline
+          points={dewPolyline}
+          fill="none"
+          stroke="#0ea5e9"
+          strokeWidth={1.5}
+          strokeLinejoin="round"
+        />
+      ) : null}
+      {tempPolyline ? (
+        <polyline
+          points={tempPolyline}
+          fill="none"
+          stroke="#ef4444"
+          strokeWidth={2}
+          strokeLinejoin="round"
+        />
+      ) : null}
+      {rows.map((row) =>
+        row.tempC !== null ? (
+          <circle key={`tc-${row.hPa}`} cx={x(row.tempC)} cy={y(row.altFt)} r={2} fill="#ef4444" />
+        ) : null,
+      )}
+      {rows.map((row) =>
+        row.dewpointC !== null ? (
+          <circle key={`dc-${row.hPa}`} cx={x(row.dewpointC)} cy={y(row.altFt)} r={2} fill="#0ea5e9" />
+        ) : null,
+      )}
+
+      {/* Wind barbs */}
+      {rows.map((row) => {
+        const barb = barbGeometry(row.speedKt, row.dirDeg);
+        return (
+          <g
+            key={`barb-${row.hPa}`}
+            transform={`translate(${barbX} ${y(row.altFt)})`}
+            stroke="#334155"
+            strokeWidth={1.4}
+            strokeLinecap="round"
+            fill="none"
+          >
+            <title>{`${Math.round(row.speedKt)} kt from ${directionLetters(row.dirDeg)}`}</title>
+            {barb.rounded === 0 ? (
+              <circle r={3} />
+            ) : (
+              <>
+                <line x1={0} y1={0} x2={barb.tip.x} y2={barb.tip.y} />
+                {barb.pennants.map((points, index) => (
+                  <polygon key={index} points={points} fill="#334155" stroke="none" />
+                ))}
+                {barb.marks.map((mark, index) => (
+                  <line
+                    key={index}
+                    x1={mark.x1}
+                    y1={mark.y1}
+                    x2={mark.x2}
+                    y2={mark.y2}
+                  />
+                ))}
+              </>
+            )}
+          </g>
+        );
+      })}
+
+      {/* Axis notes */}
+      <text x={margin.left} y={12} fontSize={10} fill="#94a3b8">
+        ft
+      </text>
+      <text x={margin.left + plotW} y={height - 6} textAnchor="end" fontSize={10} fill="#94a3b8">
+        °C
+      </text>
+    </svg>
+  );
 }
 
 export function WindProfile() {
@@ -165,7 +408,7 @@ export function WindProfile() {
     <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="font-display text-xs font-semibold uppercase tracking-[0.28em] text-sky-700">
-          Vertical wind profile
+          Sounding
         </p>
         <p className="text-xs text-slate-400">
           {profile ? `${profile.hourLabel} · Gorham (2G8)` : "Gorham (2G8)"}
@@ -174,44 +417,12 @@ export function WindProfile() {
 
       {profile ? (
         <>
-          <ul className="mt-5 grid gap-2">
-            {profile.rows.map((row) => (
-              <li
-                key={`${row.hPa}-${row.altFt}`}
-                className="grid grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem] items-center gap-2.5"
-              >
-                <span
-                  className="text-right text-[11px] tabular-nums text-slate-500"
-                  title={`${row.hPa} hPa`}
-                >
-                  {row.altFt.toLocaleString("en-US")} ft
-                </span>
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  className="size-4 text-sky-600"
-                  style={{ transform: `rotate(${row.dirDeg + 180}deg)` }}
-                >
-                  <path d="M12 3.5 18 19l-6-3-6 3z" fill="currentColor" />
-                </svg>
-                <span className="relative block h-2.5 overflow-hidden rounded-full bg-slate-100">
-                  <span
-                    className={`absolute inset-y-0 left-0 rounded-full ${speedBar(row.speedKt)}`}
-                    style={{
-                      width: `${Math.max(4, (row.speedKt / profile.maxSpeedKt) * 100)}%`,
-                    }}
-                  />
-                </span>
-                <span className="text-right text-xs font-medium tabular-nums text-slate-700">
-                  {directionLetters(row.dirDeg)} {Math.round(row.speedKt)} kt
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 text-[11px] leading-5 text-slate-400">
-            Arrows point the way the wind is blowing. Mount Washington&apos;s summit is 6,288 ft and
-            the Class A floor is 18,000 ft. Latest model run (GFS via Open-Meteo), refreshed hourly
-            —{" "}
+          <SoundingChart profile={profile} />
+          <p className="mt-3 text-[11px] leading-5 text-slate-400">
+            <span className="font-medium text-red-500">Temperature</span> and{" "}
+            <span className="font-medium text-sky-500">dew point</span> in °C · wind barbs point into
+            the wind: half = 5 kt, full = 10 kt, flag = 50 kt. Latest model run (GFS via Open-Meteo),
+            refreshed hourly —{" "}
             <Link href="/links#weather" className="font-medium text-sky-700 hover:text-sky-600">
               more weather links
             </Link>
@@ -220,25 +431,15 @@ export function WindProfile() {
         </>
       ) : error ? (
         <p className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600 ring-1 ring-slate-900/5">
-          The wind profile is unavailable right now.{" "}
+          The sounding is unavailable right now.{" "}
           <Link href="/links#weather" className="font-medium text-sky-700 hover:text-sky-600">
             Weather links
           </Link>
         </p>
       ) : (
-        <div className="mt-5 grid gap-2" aria-hidden="true">
-          {Array.from({ length: 10 }).map((_, index) => (
-            <div
-              key={index}
-              className="grid grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem] items-center gap-2.5"
-            >
-              <span className="h-3 animate-pulse rounded bg-slate-100" />
-              <span className="size-3 animate-pulse rounded-full bg-slate-100" />
-              <span className="h-2.5 animate-pulse rounded-full bg-slate-100" />
-              <span className="h-3 animate-pulse rounded bg-slate-100" />
-            </div>
-          ))}
-          <p className="mt-2 text-xs text-slate-400">Loading the latest wind profile…</p>
+        <div className="mt-5" aria-hidden="true">
+          <div className="h-[26rem] animate-pulse rounded-2xl bg-slate-100" />
+          <p className="mt-3 text-xs text-slate-400">Loading the latest sounding…</p>
         </div>
       )}
     </div>
