@@ -20,7 +20,7 @@ export function Header() {
           <Image
             src="/images/brand/logo.svg"
             alt={site.name}
-            width={2130}
+            width={2127}
             height={405}
             priority
             unoptimized
