@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { PageHero } from "@/components/ui/PageHero";
 import { Container } from "@/components/ui/Container";
 import { PhotoGrid } from "@/components/gallery/PhotoGrid";
 import { albums } from "@/lib/gallery";
-import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Photos",
@@ -26,24 +24,7 @@ export default function GalleryPage() {
 
       <section className="py-16 sm:py-20">
         <Container>
-          <p className="max-w-3xl rounded-3xl bg-amber-50 p-5 text-sm leading-7 text-amber-900 ring-1 ring-amber-200/60">
-            We haven&apos;t been able to recover several pictures from the old website. If you have
-            photos from previous years and would like to share them, please{" "}
-            <Link href="/contact" className="font-semibold underline underline-offset-4">
-              reach out to the webmaster
-            </Link>{" "}
-            or write to{" "}
-            <a
-              href={`mailto:${site.email}`}
-              className="font-semibold underline underline-offset-4"
-            >
-              {site.email}
-            </a>
-            .
-          </p>
-          <div className="mt-12">
-            <PhotoGrid albums={albums} />
-          </div>
+          <PhotoGrid albums={albums} />
         </Container>
       </section>
     </>
