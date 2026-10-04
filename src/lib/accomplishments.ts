@@ -72,7 +72,7 @@ export const awards: Award[] = [
     blurb:
       "Diamond climbs are the currency of the Mount Washington wave — several hundred were recorded in the original wave camp years alone.",
     years: [
-      { year: "2024", entries: ["David Lysy"] },
+      { year: "2024", entries: ["David Lysy, Lyme, New Hampshire"] },
       { year: "2016", entries: ["Glen Kelley, Bedford, New Hampshire"] },
       {
         year: "2015",
@@ -160,7 +160,7 @@ export const awards: Award[] = [
     blurb: "Gold climbs below 20,000 feet became known around the east as an “Eastern Diamond.”",
     years: [
       { year: "2025", entries: ["Thomas Van de Velde, Brookline, Massachusetts"] },
-      { year: "2024", entries: ["Emilie Phillips", "David Sherrill", "Tyson Sawyer", "Nelson Howe", "Robert Zacharski", "David Lysy"] },
+      { year: "2024", entries: ["Emilie Phillips, Mason, New Hampshire", "David Sherrill, Westford, Massachusetts", "Tyson Sawyer, Mason, New Hampshire", "Nelson Howe, Marlborough, New Hampshire", "David Lysy, Lyme, New Hampshire"] },
       { year: "2017", entries: ["David Joyce, Brookline, New Hampshire"] },
       {
         year: "2015",
