@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
       },
       { source: "/contactus", destination: "/contact", permanent: true },
       { source: "/year-2024-documents", destination: "/documents/2024", permanent: true },
-      { source: "/year-2025-documents", destination: "/documents/2025", permanent: true },
+      { source: "/year-2025-documents", destination: "/documents", permanent: true },
       { source: "/year-2026-documents", destination: "/documents/2026", permanent: true },
     ];
   },

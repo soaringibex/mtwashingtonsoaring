@@ -29,12 +29,6 @@ export const docYears: DocYear[] = [
     ],
   },
   {
-    year: "2025",
-    title: "2025 documents",
-    blurb: "Documents for the 2025 season will be posted here as they become available.",
-    docs: [],
-  },
-  {
     year: "2024",
     title: "2024 documents",
     blurb: "Season paperwork, legal interpretations and the 2024 letter of authorization.",
