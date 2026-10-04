@@ -19,7 +19,6 @@ export const site = {
     { href: "/history", label: "History" },
     { href: "/accomplishments", label: "Accomplishments" },
     { href: "/gallery", label: "Photos" },
-    { href: "/news", label: "News" },
     { href: "/press", label: "Press" },
     { href: "/links", label: "Links" },
   ],

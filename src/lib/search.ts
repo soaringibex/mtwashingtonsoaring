@@ -2,7 +2,6 @@ import { awards } from "@/lib/accomplishments";
 import { archiveDocs, docYears, navFiles } from "@/lib/documents";
 import { albums } from "@/lib/gallery";
 import { linkGroups } from "@/lib/links";
-import { posts } from "@/lib/news";
 import { press } from "@/lib/press";
 import { legal, oxygen, required } from "@/lib/reading";
 
@@ -10,7 +9,6 @@ export type SearchKind =
   | "page"
   | "reading"
   | "document"
-  | "news"
   | "press"
   | "photo"
   | "history"
@@ -30,7 +28,6 @@ export const kindLabels: Record<SearchKind, string> = {
   page: "Pages",
   reading: "Reading",
   document: "Documents",
-  news: "News",
   press: "Press",
   photo: "Photos",
   history: "History",
@@ -43,7 +40,6 @@ export const kindOrder: SearchKind[] = [
   "reading",
   "document",
   "history",
-  "news",
   "press",
   "photo",
   "achievement",
@@ -85,13 +81,6 @@ const pages: SearchEntry[] = [
     kind: "page",
     text: "Wave camp photo albums — the recent seasons and the archive.",
     keywords: "gallery pictures images albums wave camp",
-  },
-  {
-    title: "News",
-    href: "/news",
-    kind: "page",
-    text: "Posts about the camp and the association.",
-    keywords: "updates posts articles blog",
   },
   {
     title: "Press",
@@ -270,15 +259,6 @@ const documents: SearchEntry[] = [
   })),
 ];
 
-const news: SearchEntry[] = posts.map((post) => ({
-  title: post.title,
-  href: `/news/${post.slug}`,
-  kind: "news",
-  section: post.dateLabel,
-  text: post.excerpt,
-  keywords: "wave camp when dates october columbus day",
-}));
-
 const pressEntries: SearchEntry[] = press.map((item) => ({
   title: item.title,
   href: item.unavailable ? "/press" : (item.href ?? "/press"),
@@ -325,7 +305,6 @@ export const searchEntries: SearchEntry[] = [
   ...reading,
   ...documents,
   ...history,
-  ...news,
   ...pressEntries,
   ...photos,
   ...achievements,

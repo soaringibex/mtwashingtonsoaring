@@ -4,11 +4,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       // Legacy Wild Apricot URLs → new locations
-      { source: "/blog", destination: "/news", permanent: true },
-      { source: "/blog/2", destination: "/news", permanent: true },
+      { source: "/blog", destination: "/", permanent: true },
+      { source: "/blog/2", destination: "/", permanent: true },
       {
         source: "/blog/news-2/when-is-the-gorham-wave-camp-held-1",
-        destination: "/news/when-is-the-gorham-wave-camp-held",
+        destination: "/",
         permanent: true,
       },
       { source: "/contactus", destination: "/contact", permanent: true },

@@ -6,7 +6,6 @@ import { Countdown } from "@/components/home/Countdown";
 import { WindProfile } from "@/components/home/WindProfile";
 import { Reveal } from "@/components/ui/Reveal";
 import { linkGroups } from "@/lib/links";
-import { posts } from "@/lib/news";
 import { site } from "@/lib/site";
 
 const stats = [
@@ -79,7 +78,6 @@ const galleryPreview = [
 
 export default function HomePage() {
   const clubs = linkGroups.find((group) => group.id === "clubs")?.links ?? [];
-  const latest = posts[0];
 
   return (
     <>
@@ -109,9 +107,7 @@ export default function HomePage() {
                 Gorham, New Hampshire, to fly them again.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <ButtonLink href="/news/when-is-the-gorham-wave-camp-held">
-                  Plan for wave camp
-                </ButtonLink>
+                <ButtonLink href="/documents">Plan for wave camp</ButtonLink>
                 <ButtonLink href="/important-reading" variant="light">
                   Required reading
                 </ButtonLink>
@@ -373,56 +369,34 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* News + CTA */}
+      {/* CTA */}
       <section className="py-20 sm:py-28">
         <Container>
-          <div className="grid gap-8 lg:grid-cols-2">
-            {latest ? (
-              <Reveal>
-                <article className="flex h-full flex-col rounded-3xl bg-white p-8 shadow-sm ring-1 ring-slate-900/5">
-                  <Eyebrow>Latest news</Eyebrow>
-                  <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-slate-900">
-                    {latest.title}
-                  </h3>
-                  <p className="mt-4 flex-1 text-[1.0625rem] leading-8 text-slate-600">
-                    {latest.excerpt}
-                  </p>
-                  <div className="mt-6 flex items-center gap-4">
-                    <ButtonLink href={`/news/${latest.slug}`} variant="secondary">
-                      Read more
-                    </ButtonLink>
-                    <span className="text-sm text-slate-500">{latest.dateLabel}</span>
-                  </div>
-                </article>
-              </Reveal>
-            ) : null}
-
-            <Reveal delay={120}>
-              <div className="flex h-full flex-col justify-between rounded-3xl bg-gradient-to-br from-sky-600 to-sky-900 p-8 text-white">
-                <div>
-                  <p className="font-display text-xs font-semibold uppercase tracking-[0.28em] text-sky-200">
-                    Get on the list
-                  </p>
-                  <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-balance">
-                    Camp information and signups go out by email.
-                  </h3>
-                  <p className="mt-4 text-[1.0625rem] leading-8 text-sky-100">
-                    A few weeks before each encampment, the mailing list gets the signup sheet,
-                    schedule and logistics. Any interested pilot is welcome — you do not need to
-                    belong to one of the founding clubs.
-                  </p>
-                </div>
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <ButtonLink href={`mailto:${site.email}`} variant="light">
-                    {site.email}
-                  </ButtonLink>
-                  <ButtonLink href="/documents" variant="light">
-                    Camp documents
-                  </ButtonLink>
-                </div>
+          <Reveal>
+            <div className="flex h-full flex-col justify-between rounded-3xl bg-gradient-to-br from-sky-600 to-sky-900 p-8 text-white sm:p-10">
+              <div>
+                <p className="font-display text-xs font-semibold uppercase tracking-[0.28em] text-sky-200">
+                  Get on the list
+                </p>
+                <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-balance">
+                  Camp information and signups go out by email.
+                </h3>
+                <p className="mt-4 max-w-3xl text-[1.0625rem] leading-8 text-sky-100">
+                  A few weeks before each encampment, the mailing list gets the signup sheet,
+                  schedule and logistics. Any interested pilot is welcome — you do not need to
+                  belong to one of the founding clubs.
+                </p>
               </div>
-            </Reveal>
-          </div>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <ButtonLink href={`mailto:${site.email}`} variant="light">
+                  {site.email}
+                </ButtonLink>
+                <ButtonLink href="/documents" variant="light">
+                  Camp documents
+                </ButtonLink>
+              </div>
+            </div>
+          </Reveal>
         </Container>
       </section>
     </>
