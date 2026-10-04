@@ -15,7 +15,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-900/5 bg-white/85 backdrop-blur-md">
-      <Container className="flex h-16 items-center justify-between gap-4">
+      <Container className="flex h-16 items-center justify-between gap-4 sm:h-18 xl:h-20">
         <Link href="/" aria-label={site.name} className="flex shrink-0 items-center">
           <Image
             src="/images/brand/logo.svg"
@@ -24,7 +24,7 @@ export function Header() {
             height={401}
             priority
             unoptimized
-            className="h-10 w-auto sm:h-12"
+            className="h-11 w-auto sm:h-13 xl:h-16"
           />
         </Link>
 
