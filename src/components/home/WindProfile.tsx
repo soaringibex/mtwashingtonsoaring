@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { fetchJson } from "@/lib/fetch-json";
 
 const LATITUDE = 44.3931;
 const LONGITUDE = -71.1996;
@@ -74,12 +75,7 @@ async function fetchProfile(): Promise<Profile> {
     `&hourly=${variables.join(",")}&models=gfs_seamless&wind_speed_unit=kn` +
     `&temperature_unit=fahrenheit&timezone=UTC&forecast_days=2`;
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`wind profile request failed: ${response.status}`);
-  }
-
-  const data: { hourly: Record<string, (number | null)[]> } = await response.json();
+  const data = (await fetchJson(url)) as { hourly: Record<string, (number | null)[]> };
   const hourly = data.hourly;
   const times = hourly.time as unknown as string[];
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fetchJson } from "@/lib/fetch-json";
 
 const REFRESH_MS = 10 * 60 * 1000;
 const KMH_TO_KT = 0.539957;
@@ -46,11 +47,9 @@ function observationNumber(value: unknown): number | null {
 
 /** The summit observation (NWS station KMWN, at the observatory). */
 async function fetchStation(): Promise<Summit> {
-  const response = await fetch("https://api.weather.gov/stations/KMWN/observations/latest", {
+  const data = (await fetchJson("https://api.weather.gov/stations/KMWN/observations/latest", {
     headers: { Accept: "application/geo+json" },
-  });
-  if (!response.ok) throw new Error(`summit observation request failed: ${response.status}`);
-  const data = await response.json();
+  })) as { properties?: Record<string, unknown> };
   const properties = data?.properties ?? {};
   const tempC = observationNumber(properties.temperature);
   const windKmh = observationNumber(properties.windSpeed);
@@ -76,9 +75,15 @@ async function fetchModel(): Promise<Summit> {
     "https://api.open-meteo.com/v1/forecast?latitude=44.2705&longitude=-71.3032" +
     "&current=temperature_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m" +
     "&wind_speed_unit=kn&temperature_unit=fahrenheit&elevation=1916&timezone=UTC";
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`summit model request failed: ${response.status}`);
-  const data = await response.json();
+  const data = (await fetchJson(url)) as {
+    current?: {
+      time?: string;
+      temperature_2m?: unknown;
+      wind_speed_10m?: unknown;
+      wind_gusts_10m?: unknown;
+      wind_direction_10m?: unknown;
+    };
+  };
   const current = data?.current ?? {};
   if (
     typeof current.temperature_2m !== "number" ||
