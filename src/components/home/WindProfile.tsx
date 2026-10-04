@@ -49,11 +49,11 @@ function directionLetters(deg: number): string {
 }
 
 function speedBar(kt: number): string {
-  if (kt >= 55) return "bg-violet-800";
-  if (kt >= 40) return "bg-violet-700";
-  if (kt >= 30) return "bg-violet-600";
-  if (kt >= 20) return "bg-violet-500";
-  if (kt >= 15) return "bg-violet-400";
+  if (kt >= 55) return "bg-sky-800";
+  if (kt >= 40) return "bg-sky-700";
+  if (kt >= 30) return "bg-sky-600";
+  if (kt >= 20) return "bg-sky-500";
+  if (kt >= 15) return "bg-sky-400";
   if (kt >= 10) return "bg-sky-300";
   return "bg-slate-300";
 }
