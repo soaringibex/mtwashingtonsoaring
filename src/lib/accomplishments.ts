@@ -2,6 +2,8 @@ export type Award = {
   id: string;
   title: string;
   criterion: string;
+  /** Nominal altitude for the climb visual, in feet. */
+  ft: number;
   blurb: string;
   years: { year: string; entries: string[] }[];
 };
@@ -11,6 +13,7 @@ export const awards: Award[] = [
     id: "lennie-pin",
     title: "Lennie Pin",
     criterion: "for flights above 25,000 feet",
+    ft: 25000,
     blurb:
       "The Lennie Pin recognizes pilots who have climbed above 25,000 feet in the Mount Washington wave.",
     years: [
@@ -65,6 +68,7 @@ export const awards: Award[] = [
     id: "diamond-altitude",
     title: "Diamond Altitude",
     criterion: "for a climb of 5,000 meters",
+    ft: 16404,
     blurb:
       "Diamond climbs are the currency of the Mount Washington wave — several hundred were recorded in the original wave camp years alone.",
     years: [
@@ -151,6 +155,7 @@ export const awards: Award[] = [
     id: "gold-altitude",
     title: "Gold Altitude",
     criterion: "for flights above 3,000 meters",
+    ft: 9843,
     blurb: "Gold climbs below 20,000 feet became known around the east as an “Eastern Diamond.”",
     years: [
       { year: "2017", entries: ["David Joyce, Brookline, New Hampshire"] },
@@ -198,4 +203,19 @@ export const awards: Award[] = [
       },
     ],
   },
+];
+
+export type ClimbTier = {
+  id: string;
+  label: string;
+  ft: number;
+};
+
+/** Anchor points for the altitude rail, in climb order. */
+export const climbTiers: ClimbTier[] = [
+  { id: "base", label: "Gorham", ft: 900 },
+  { id: "tier-gold", label: "Gold", ft: 9843 },
+  { id: "tier-diamond", label: "Diamond", ft: 16404 },
+  { id: "tier-lennie", label: "Lennie Pin", ft: 25000 },
+  { id: "tier-summit", label: "Records", ft: 33600 },
 ];
