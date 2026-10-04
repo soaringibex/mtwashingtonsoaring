@@ -121,7 +121,8 @@ async function fetchProfile(): Promise<Profile> {
     rows.push({ hPa: level, altFt, speedKt: speed, dirDeg: dir });
   }
 
-  rows.sort((a, b) => a.altFt - b.altFt);
+  // Highest altitude first, so the column reads like the sky does.
+  rows.sort((a, b) => b.altFt - a.altFt);
 
   const maxSpeedKt = Math.max(40, ...rows.map((row) => Math.ceil(row.speedKt / 10) * 10));
 
