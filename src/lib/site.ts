@@ -22,6 +22,7 @@ export const site = {
     { href: "/news", label: "News" },
     { href: "/press", label: "Press" },
     { href: "/links", label: "Links" },
+    { href: "/search", label: "Search" },
   ],
 } as const;
 
