@@ -27,7 +27,7 @@ FAMILY = "MWSA Logo"
 MOUNT_TEXT = "MOUNT WASHINGTON"
 SOAR_TEXT = "SOARING ASSOCIATION"
 MOUNT_COLOR = "#052a5b"
-SOAR_COLOR = "#a9d1f2"
+SOAR_COLOR = "#3f5f84"  # the mountain's foreground slate navy
 
 
 def parse_flags(argv: list[str]) -> dict[str, str]:
@@ -85,6 +85,8 @@ def main() -> None:
     width = float(flags["width"])
     mount_cap = float(flags["mount_cap"])
     soar_cap = float(flags["soar_cap"])
+    mount_color = flags.get("mount_color", MOUNT_COLOR)
+    soar_color = flags.get("soar_color", SOAR_COLOR)
 
     svg = base.read_text()
     match = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', svg)
@@ -114,10 +116,10 @@ def main() -> None:
     text = (
         f'<text x="{mount_x:.1f}" y="{mount_baseline:.0f}" font-family="{FAMILY}" '
         f'font-weight="800" font-size="{mount_size:.2f}" letter-spacing="{mount_spacing:.2f}" '
-        f'fill="{MOUNT_COLOR}">{MOUNT_TEXT}</text>\n'
+        f'fill="{mount_color}">{MOUNT_TEXT}</text>\n'
         f'<text x="{soar_x:.1f}" y="{soar_baseline:.0f}" font-family="{FAMILY}" '
         f'font-weight="500" font-size="{soar_size:.2f}" letter-spacing="{soar_spacing:.2f}" '
-        f'fill="{SOAR_COLOR}">{SOAR_TEXT}</text>'
+        f'fill="{soar_color}">{SOAR_TEXT}</text>'
     )
 
     svg = svg.replace("</svg>", f"{style}\n{text}\n</svg>")
