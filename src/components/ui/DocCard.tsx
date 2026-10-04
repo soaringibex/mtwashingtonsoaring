@@ -1,4 +1,4 @@
-import type { DocLink } from "@/lib/documents";
+import type { DocLink } from "@/lib/flying";
 
 export function DocCard({ doc }: { doc: DocLink }) {
   const action = doc.external ? "Open link" : doc.href.endsWith(".pdf") ? "Download PDF" : "Download";

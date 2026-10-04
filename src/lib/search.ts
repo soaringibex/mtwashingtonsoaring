@@ -1,14 +1,14 @@
 import { awards } from "@/lib/accomplishments";
-import { archiveDocs, docYears, navFiles } from "@/lib/documents";
+import { campDocs, gorham, legal, navFiles, oxygen, required } from "@/lib/flying";
 import { albums } from "@/lib/gallery";
 import { linkGroups } from "@/lib/links";
 import { press } from "@/lib/press";
-import { legal, oxygen, required } from "@/lib/reading";
+import { storyGroups } from "@/lib/stories";
 
 export type SearchKind =
   | "page"
-  | "reading"
-  | "document"
+  | "flying"
+  | "story"
   | "press"
   | "photo"
   | "history"
@@ -26,8 +26,8 @@ export type SearchEntry = {
 
 export const kindLabels: Record<SearchKind, string> = {
   page: "Pages",
-  reading: "Reading",
-  document: "Documents",
+  flying: "Flying here",
+  story: "Stories",
   press: "Press",
   photo: "Photos",
   history: "History",
@@ -37,8 +37,8 @@ export const kindLabels: Record<SearchKind, string> = {
 
 export const kindOrder: SearchKind[] = [
   "page",
-  "reading",
-  "document",
+  "flying",
+  "story",
   "history",
   "press",
   "photo",
@@ -52,7 +52,8 @@ const pages: SearchEntry[] = [
     href: "/",
     kind: "page",
     text: "The Mount Washington wave, the October encampment at Gorham, and the countdown to the next wave camp.",
-    keywords: "index start wave camp gorham october columbus day dates next camp countdown",
+    keywords:
+      "index start wave camp gorham october columbus day dates next camp countdown summit conditions current",
   },
   {
     title: "Vertical wind profile — current conditions",
@@ -90,18 +91,18 @@ const pages: SearchEntry[] = [
     keywords: "media newspaper magazine articles clippings",
   },
   {
-    title: "Documents",
-    href: "/documents",
+    title: "Stories",
+    href: "/stories",
     kind: "page",
-    text: "Season paperwork, letters of authorization, signup sheets and archived documents.",
-    keywords: "loa waiver paperwork seasons signup",
+    text: "First-hand accounts from the wave — bailouts, first visits, recollections from the early camps, and the camp logbooks.",
+    keywords: "stories accounts logbooks recollections memories",
   },
   {
-    title: "Important reading",
-    href: "/important-reading",
+    title: "Flying here — for pilots",
+    href: "/flying",
     kind: "page",
-    text: "Required reading before you fly — the Mount Washington Brief, oxygen, airport procedures and navigational material.",
-    keywords: "reading required brief oxygen procedure",
+    text: "Everything for pilots who come to fly — required reading, safety, airspace and the LOA, the airport, and the moving-map files.",
+    keywords: "required reading brief oxygen loa waiver documents paperwork airport gorham charts signup files",
   },
   {
     title: "Links",
@@ -185,79 +186,83 @@ const history: SearchEntry[] = [
   },
 ];
 
-const reading: SearchEntry[] = [
+const flying: SearchEntry[] = [
   ...required.map((doc) => ({
     title: doc.title,
     href: doc.href,
-    kind: "reading" as const,
+    kind: "flying" as const,
     section: "Required reading",
     text: doc.description,
-    keywords: "required reading pdf",
+    keywords: "required reading pdf brief",
   })),
   ...oxygen.map((doc) => ({
     title: doc.title,
     href: doc.href,
-    kind: "reading" as const,
-    section: "Oxygen and the altitude brain",
+    kind: "flying" as const,
+    section: "Safety at altitude",
     text: doc.description,
     keywords: "oxygen hypoxia decompression dcs altitude health",
   })),
   ...legal.map((doc) => ({
     title: doc.title,
     href: doc.href,
-    kind: "reading" as const,
-    section: "Airspace and authorization",
+    kind: "flying" as const,
+    section: "Legal & airspace",
     text: doc.description,
-    keywords: "legal loa waiver class a faa certificate authorization",
+    keywords: "legal loa letter of authorization waiver class a faa certificate interpretation",
+  })),
+  ...gorham.map((doc) => ({
+    title: doc.title,
+    href: doc.href,
+    kind: "flying" as const,
+    section: "Gorham (2G8)",
+    text: doc.description,
+    keywords: "airport gorham 2g8 pattern procedures landing sites",
+  })),
+  ...campDocs.map((doc) => ({
+    title: doc.title,
+    href: doc.href,
+    kind: "flying" as const,
+    section: "Camp paperwork",
+    text: doc.description,
+    keywords: "signup paperwork camp documents season",
+  })),
+  ...navFiles.map((doc) => ({
+    title: doc.title,
+    href: doc.href,
+    kind: "flying" as const,
+    section: "Electronic files",
+    text: doc.description,
+    keywords: "waypoints airspace cup igc kmz sua moving map",
   })),
   {
     title: "Mind the window — weather judgment",
-    href: "/important-reading",
-    kind: "reading",
+    href: "/flying",
+    kind: "flying",
     section: "Weather judgment",
     text: "Wave windows close without much warning. Watch the upstream openings, keep the downwind escape over Maine in mind, and don't go up if it isn't clear downwind.",
     keywords: "window cloud imc downwind fryeburg safety briefing weather",
   },
   {
     title: "Aerial reference charts",
-    href: "/important-reading",
-    kind: "reading",
+    href: "/flying",
+    kind: "flying",
     section: "Know the ground",
     text: "Aerial photographs of the Moriah–Carter range, the Presidential Range and the Gorham area, for putting names to the landmarks below.",
     keywords: "moriah carter presidential range gorham aerial chart landmarks",
   },
 ];
 
-const documents: SearchEntry[] = [
-  ...docYears.flatMap((year) =>
-    year.docs.map((doc) => ({
-      title: doc.title,
-      href: doc.href,
-      kind: "document" as const,
-      section: year.title,
-      text: doc.description,
-      keywords: /LOA/i.test(doc.title)
-        ? "loa letter of authorization waiver certificate faa class a"
-        : `${year.year} season paperwork`,
-    })),
-  ),
-  ...archiveDocs.map((doc) => ({
-    title: doc.title,
-    href: doc.href,
-    kind: "document" as const,
-    section: "Archive",
-    text: doc.description,
-    keywords: "archive logbook briefing landing sites",
+const stories: SearchEntry[] = storyGroups.flatMap((group) =>
+  group.stories.map((story) => ({
+    title: story.title,
+    href: story.href,
+    kind: "story" as const,
+    section: group.title,
+    text: story.description,
+    keywords: "stories accounts logbook recollections camps",
   })),
-  ...navFiles.map((doc) => ({
-    title: doc.title,
-    href: doc.href,
-    kind: "document" as const,
-    section: "Navigational files",
-    text: doc.description,
-    keywords: "waypoints airspace cup igc kmz sua moving map",
-  })),
-];
+);
 
 const pressEntries: SearchEntry[] = press.map((item) => ({
   title: item.title,
@@ -302,8 +307,8 @@ const achievements: SearchEntry[] = awards.flatMap((award) =>
 
 export const searchEntries: SearchEntry[] = [
   ...pages,
-  ...reading,
-  ...documents,
+  ...flying,
+  ...stories,
   ...history,
   ...pressEntries,
   ...photos,

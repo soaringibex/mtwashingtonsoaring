@@ -14,8 +14,8 @@ export const site = {
     url: "https://www.data-minds.com",
   },
   nav: [
-    { href: "/important-reading", label: "Reading" },
-    { href: "/documents", label: "Documents" },
+    { href: "/flying", label: "Flying here" },
+    { href: "/stories", label: "Stories" },
     { href: "/history", label: "History" },
     { href: "/accomplishments", label: "Accomplishments" },
     { href: "/gallery", label: "Photos" },

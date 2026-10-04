@@ -108,7 +108,7 @@ export function Footer() {
               <li>{site.location.town}</li>
               <li>
                 <Link
-                  href="/important-reading"
+                  href="/flying"
                   className="font-medium text-sky-300 transition-colors hover:text-sky-200"
                 >
                   Required reading before you fly →

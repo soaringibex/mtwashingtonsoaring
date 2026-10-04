@@ -12,9 +12,12 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       { source: "/contactus", destination: "/contact", permanent: true },
-      { source: "/year-2024-documents", destination: "/documents/2024", permanent: true },
-      { source: "/year-2025-documents", destination: "/documents", permanent: true },
-      { source: "/year-2026-documents", destination: "/documents/2026", permanent: true },
+      { source: "/year-2024-documents", destination: "/flying", permanent: true },
+      { source: "/year-2025-documents", destination: "/flying", permanent: true },
+      { source: "/year-2026-documents", destination: "/flying", permanent: true },
+      { source: "/important-reading", destination: "/flying", permanent: true },
+      { source: "/documents", destination: "/flying", permanent: true },
+      { source: "/documents/:year", destination: "/flying", permanent: true },
     ];
   },
 };

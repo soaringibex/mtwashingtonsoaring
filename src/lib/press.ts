@@ -50,6 +50,14 @@ export const press: PressItem[] = [
     external: true,
   },
   {
+    title: "Soaring Magazine, March 1987",
+    source: "Soaring Magazine",
+    date: "March 1987",
+    href: "/files/soaring-magazine-1987-03.pdf",
+    description:
+      "Locate “Or What's a Heaven For” on page 15 — and check page 44 for the Soaring Safety Foundation article on oxygen systems and high-altitude physiology.",
+  },
+  {
     title: "A Letter from the Mt. Washington Wave",
     source: "Soaring Magazine",
     date: "March 1971",

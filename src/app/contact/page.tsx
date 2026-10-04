@@ -79,8 +79,8 @@ export default function ContactPage() {
               you launch.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <ButtonLink href="/important-reading" variant="light">
-                Important reading
+              <ButtonLink href="/flying" variant="light">
+                Required reading
               </ButtonLink>
               <ButtonLink href="/links" variant="light">
                 Founding clubs

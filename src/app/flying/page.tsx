@@ -4,14 +4,13 @@ import { PageHero } from "@/components/ui/PageHero";
 import { Container } from "@/components/ui/Container";
 import { DocCard } from "@/components/ui/DocCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { navFiles } from "@/lib/documents";
-import { legal, oxygen, required } from "@/lib/reading";
+import { campDocs, gorham, legal, navFiles, oxygen, required } from "@/lib/flying";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Important reading",
+  title: "Flying here",
   description:
-    "Required reading for flying the Mount Washington wave — the Mount Washington Brief, oxygen talk, airport procedures, legal references and navigational material for the Gorham wave camp.",
+    "For pilots flying the Mount Washington wave — required reading, oxygen and altitude safety, airspace and the LOA, Gorham airport procedures, charts and moving-map files.",
 };
 
 const charts = [
@@ -41,13 +40,13 @@ const charts = [
   },
 ];
 
-export default function ImportantReadingPage() {
+export default function FlyingPage() {
   return (
     <>
       <PageHero
-        eyebrow="Before you fly"
-        title="Important reading"
-        lede="Wave flying is dangerous — one of the more dangerous activities that humans voluntarily engage in. With experience and care the risks can be lowered, but not eliminated. Read the published documents before you launch."
+        eyebrow="For visiting pilots"
+        title="Flying here"
+        lede="Everything needed before and during the wave camp — required reading, airspace and paperwork, the airport, and the files for your moving map."
         image="/images/scenic/lenticular-wing.webp"
         imageAlt="A lenticular cloud seen past the wing of a glider"
         priority
@@ -70,7 +69,7 @@ export default function ImportantReadingPage() {
           </div>
 
           <div className="mt-14 space-y-20">
-            <section>
+            <section id="required">
               <SectionHeading
                 eyebrow="Start here"
                 title="Required reading"
@@ -78,19 +77,6 @@ export default function ImportantReadingPage() {
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
                 {required.map((doc) => (
-                  <DocCard key={doc.href} doc={doc} />
-                ))}
-              </div>
-            </section>
-
-            <section>
-              <SectionHeading
-                eyebrow="Going high"
-                title="Oxygen and the altitude brain"
-                lede="Wave camp climbs routinely end above 12,500 feet, and the good ones above 18,000 — where oxygen, not skill, keeps the decisions sound. Read at least the hypoxia article before you fly high."
-              />
-              <div className="mt-8 grid gap-4 md:grid-cols-2">
-                {oxygen.map((doc) => (
                   <DocCard key={doc.href} doc={doc} />
                 ))}
               </div>
@@ -115,9 +101,22 @@ export default function ImportantReadingPage() {
 
             <section>
               <SectionHeading
-                eyebrow="Legal & regulatory"
-                title="Airspace and authorization"
-                lede="Legal interpretations and regulatory information pertinent to the wave camp."
+                eyebrow="Staying sharp"
+                title="Safety at altitude"
+                lede="Wave camp climbs routinely end above 12,500 feet, and the good ones above 18,000 — where oxygen, not skill, keeps the decisions sound. Read at least the hypoxia article before you fly high."
+              />
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                {oxygen.map((doc) => (
+                  <DocCard key={doc.href} doc={doc} />
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <SectionHeading
+                eyebrow="Legal & airspace"
+                title="Airspace and paperwork"
+                lede="The waiver that opens the wave airspace, and the legal interpretations behind it. Every attendee reviews and signs the current waiver before flying."
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
                 {legal.map((doc) => (
@@ -133,15 +132,11 @@ export default function ImportantReadingPage() {
                 lede="Wave camp operations are based at Gorham Municipal Airport. Print a copy of the procedures — they are briefed at the daily pilots' meetings."
               />
               <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:items-start">
-                <DocCard
-                  doc={{
-                    title: "Gorham (2G8) pattern procedures (2023)",
-                    href: "/files/gorham-pattern-procedures-2023.pdf",
-                    description:
-                      "Airport procedures for all wave campers. Print a copy and study it before the first launch.",
-                    meta: "PDF",
-                  }}
-                />
+                <div className="grid gap-4">
+                  {gorham.map((doc) => (
+                    <DocCard key={doc.href} doc={doc} />
+                  ))}
+                </div>
                 <figure className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
                   <a
                     href="/images/reading/gorham-airport-zones-full.png"
@@ -270,6 +265,29 @@ export default function ImportantReadingPage() {
                   className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"
                 >
                   soaringweb.org/TP/Gorham
+                </a>
+                .
+              </p>
+            </section>
+
+            <section>
+              <SectionHeading
+                eyebrow="Camp paperwork"
+                title="Signups and camp documents"
+                lede="The current-season signup sheet, schedule and logistics go out over the email list each fall — write to the list to get on it."
+              />
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                {campDocs.map((doc) => (
+                  <DocCard key={doc.href} doc={doc} />
+                ))}
+              </div>
+              <p className="mt-6 text-sm leading-7 text-slate-600">
+                To join the list, write to{" "}
+                <a
+                  href={`mailto:${site.email}`}
+                  className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"
+                >
+                  {site.email}
                 </a>
                 .
               </p>

@@ -404,7 +404,7 @@ export default function AccomplishmentsPage() {
                   <ButtonLink href="/history" variant="light">
                     How it all started
                   </ButtonLink>
-                  <ButtonLink href="/important-reading" variant="light">
+                  <ButtonLink href="/flying" variant="light">
                     Fly the wave
                   </ButtonLink>
                 </div>
