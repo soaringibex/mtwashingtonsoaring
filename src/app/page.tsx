@@ -3,6 +3,7 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow, SectionHeading } from "@/components/ui/SectionHeading";
 import { Countdown } from "@/components/home/Countdown";
+import { SummitConditions } from "@/components/home/SummitConditions";
 import { WindProfile } from "@/components/home/WindProfile";
 import { Reveal } from "@/components/ui/Reveal";
 import { linkGroups } from "@/lib/links";
@@ -107,13 +108,14 @@ export default function HomePage() {
                 Gorham, New Hampshire, to fly them again.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <ButtonLink href="/documents">Plan for wave camp</ButtonLink>
-                <ButtonLink href="/important-reading" variant="light">
+                <ButtonLink href="/flying">Plan for wave camp</ButtonLink>
+                <ButtonLink href="/flying#required" variant="light">
                   Required reading
                 </ButtonLink>
               </div>
             </div>
-            <div className="animate-fade-up lg:animate-fade-up [animation-delay:150ms]">
+            <div className="animate-fade-up space-y-4 lg:animate-fade-up [animation-delay:150ms]">
+              <SummitConditions />
               <Countdown />
             </div>
           </div>
@@ -391,8 +393,8 @@ export default function HomePage() {
                 <ButtonLink href={`mailto:${site.email}`} variant="light">
                   {site.email}
                 </ButtonLink>
-                <ButtonLink href="/documents" variant="light">
-                  Camp documents
+                <ButtonLink href="/flying" variant="light">
+                  For pilots
                 </ButtonLink>
               </div>
             </div>
