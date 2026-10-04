@@ -3,7 +3,7 @@
 A modern rebuild of [mtwashingtonsoaring.org](https://www.mtwashingtonsoaring.org), the home of the
 Mount Washington wave flying community in Gorham, New Hampshire.
 
-**Live:** https://mtwashingtonsoaring-tawny.vercel.app
+**Live:** https://mtwashingtonsoaring.vercel.app
 
 Built with **Next.js (App Router) + Tailwind CSS v4**, TypeScript, and `next/font` / `next/image`.
 Every page is statically prerendered — deployable to Vercel with zero configuration.
@@ -12,10 +12,11 @@ Every page is statically prerendered — deployable to Vercel with zero configur
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
-npm run build      # production build (all routes prerendered)
-npm run lint       # ESLint
-npm start          # serve the production build
+npm run dev          # http://localhost:3000
+npm run build        # asset check + production build (all routes prerendered)
+npm run check:assets # fail if any /files or /images reference is missing
+npm run lint         # ESLint
+npm start            # serve the production build
 ```
 
 ## Pages
