@@ -20,8 +20,8 @@ export function Header() {
           <Image
             src="/images/brand/logo.svg"
             alt={site.name}
-            width={2100}
-            height={410}
+            width={2130}
+            height={405}
             priority
             unoptimized
             className="h-11 w-auto sm:h-12 xl:h-16"
