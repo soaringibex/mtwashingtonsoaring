@@ -9,10 +9,10 @@ transparent PNG: the original still contains the white snow caps and letter
 counters, which a transparency pass would have already erased.
 
 Pixels are quantised to the artwork's blue palette (light to dark) and traced
-with potrace, stacked light-under-dark with cumulative masks so adjacent
-regions overlap slightly and no hairline seams show. Anti-aliased rim pixels
-are classified by projecting them onto the white -> colour blend lines, so
-each shape's own colour extends to its edge — no white fringe, no light halo.
+with potrace, stacked light-under-dark with exact colour regions and hairline
+self-coloured strokes so adjacent regions overlap slightly. Shape cores are
+classified by nearest colour and grown outward over the anti-aliased rim, so
+edges take their shape's own colour — no white fringe, no light halo.
 Near-white areas (background, snow, counters) are left transparent. Requires
 `potrace` on PATH.
 """
@@ -24,16 +24,19 @@ import tempfile
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
-# Light -> dark, sampled from the artwork. White is intentionally absent:
-# near-white areas are treated as transparent.
+# Light -> dark — the artwork's own flat tones, sampled with quantize-8.
+# Using all of them keeps tonal boundaries exact instead of merging tones.
 PALETTE = [
     "#d2e6f7",  # pale wave
     "#a9d1f2",  # light wave / mountain highlight
+    "#8bb2d6",  # light slope
     "#76a2cb",  # mid blue
+    "#5179a2",  # steel blue
     "#3f5f84",  # slate navy
-    "#052a5b",  # deep navy (text, glider, dark rock)
+    "#173f6e",  # deep blue
+    "#052a5b",  # darkest navy (text, glider, rock shadow)
 ]
 
 WHITE_CUTOFF = 240  # min-channel at or above this counts as white
@@ -106,28 +109,27 @@ def main() -> None:
     rgb = pixels[..., :3]
     height, width = rgb.shape[:2]
 
+    # Denoise before quantising: the artwork carries fine texture in the
+    # mountain's slopes, which would otherwise trace as dark speckles.
+    smoothed = np.array(
+        image.convert("RGB").filter(ImageFilter.MedianFilter(5))
+    ).astype(np.int16)
+
     # Everything that is not near-white is artwork. Near-white pixels are
     # background, snow or letter counters — they stay transparent.
     content = (pixels[..., 3] > 200) & (rgb.min(axis=2) < WHITE_CUTOFF)
 
-    # Classify: project each pixel onto the white -> colour line for every
-    # palette entry and keep the best fit. For rim pixels this recovers the
-    # colour of the shape they belong to.
+    # Classify by nearest palette colour. This artwork's tones all share one
+    # hue, so blend-line projection metrics are degenerate here; nearest-
+    # neighbour is exact for the flat areas. Anti-aliased rims are handled by
+    # growing the core labels below, not by the classifier.
     palette_rgb = np.array(
         [tuple(int(c[i : i + 2], 16) for i in (1, 3, 5)) for c in PALETTE]
     )
-    flat = rgb.reshape(-1, 3).astype(np.float64)
-    white = np.full(3, 255.0)
-    errors = []
-    for index, colour in enumerate(palette_rgb):
-        direction = colour.astype(np.float64) - white
-        t = np.clip(((flat - white) @ direction) / float(direction @ direction), 0.0, 1.0)
-        projection = white + t[:, None] * direction
-        error = ((flat - projection) ** 2).sum(axis=1)
-        # Bias against lighter tones: ambiguous edge pixels then extend the
-        # darker shape they belong to instead of ringing it with a light halo.
-        weight = 1.0 + 0.1 * (len(PALETTE) - 1 - index)
-        errors.append(error * weight)
+    flat = smoothed.reshape(-1, 3).astype(np.float64)
+    errors = [
+        ((flat - colour.astype(np.float64)) ** 2).sum(axis=1) for colour in palette_rgb
+    ]
     assigned = np.stack(errors, axis=1).argmin(axis=1).reshape(height, width)
 
     # Line classification is reliable for solid areas but ambiguous on
