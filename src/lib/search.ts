@@ -193,7 +193,7 @@ const flying: SearchEntry[] = [
     kind: "flying" as const,
     section: "Required reading",
     text: doc.description,
-    keywords: "required reading pdf brief",
+    keywords: "required reading pdf brief loa waiver certificate faa class a",
   })),
   ...oxygen.map((doc) => ({
     title: doc.title,

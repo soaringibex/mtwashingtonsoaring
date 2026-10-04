@@ -73,7 +73,7 @@ export default function FlyingPage() {
               <SectionHeading
                 eyebrow="Start here"
                 title="Required reading"
-                lede="Everyone attending the wave camp is expected to have studied these documents."
+                lede="Everyone attending the wave camp is expected to have studied these documents and reviewed the current waiver."
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
                 {required.map((doc) => (
@@ -116,7 +116,7 @@ export default function FlyingPage() {
               <SectionHeading
                 eyebrow="Legal & airspace"
                 title="Airspace and paperwork"
-                lede="The waiver that opens the wave airspace, and the legal interpretations behind it. Every attendee reviews and signs the current waiver before flying."
+                lede="Previous seasons' waivers and the FAA legal interpretations behind the airspace operations."
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
                 {legal.map((doc) => (

@@ -21,6 +21,13 @@ export const required: DocLink[] = [
     description: "The talk on oxygen systems given by Steele Lipe at the 1995 SSA Convention.",
     meta: "PDF",
   },
+  {
+    title: "2026 Letter of Authorization (LOA)",
+    href: "/files/2026-loa.pdf",
+    description:
+      "The current Certificate of Waiver or Authorization issued to the Mt Washington Soaring Association — all attendees review and sign it before flying. A copy is hosted here for convenience; the signed original is kept at the field.",
+    meta: "PDF",
+  },
 ];
 
 /** Staying sharp at altitude. */
@@ -53,13 +60,6 @@ export const oxygen: DocLink[] = [
 
 /** Airspace, waivers and the paperwork behind the operations. */
 export const legal: DocLink[] = [
-  {
-    title: "2026 Letter of Authorization (LOA)",
-    href: "/files/2026-loa.pdf",
-    description:
-      "The current Certificate of Waiver or Authorization issued to the Mt Washington Soaring Association. A copy is hosted here for convenience; the signed original is kept at the field.",
-    meta: "PDF",
-  },
   {
     title: "2024 Letter of Authorization (LOA)",
     href: "/files/2024-loa.pdf",
