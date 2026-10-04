@@ -57,6 +57,12 @@ export const linkGroups: LinkGroup[] = [
         href: "http://www.youtube.com/watch?v=AcrREDvTv5w",
         description: "Mount Washington yields a perfect 11-knot climb on 10/10/10.",
       },
+      {
+        title: "Ascent from Crawford Notch",
+        href: "https://www.youtube.com/watch?v=ZSoiPQ-SPuE",
+        description:
+          "Evan Ludeman's late-afternoon flight — 40 minutes of raw video that starts at Crawford Notch and ends near 18,000 feet in the wave over Mount Washington.",
+      },
     ],
   },
   {
@@ -77,6 +83,30 @@ export const linkGroups: LinkGroup[] = [
         title: "Why does the wave wave?",
         href: "https://www.youtube.com/watch?v=IqzsAvTxK6s",
         description: "Lecture by G. Dale.",
+      },
+      {
+        title: "Why pilots crash — G. Dale interview",
+        href: "https://www.youtube.com/watch?v=l3xy3JKES70",
+        description:
+          "G. Dale describes getting caught on top in wave, and the decisions that lead there. A Soaring Show interview.",
+      },
+      {
+        title: "Glider IMC — a sobering case study",
+        href: "https://www.youtube.com/watch?v=8djWfNmJlKo",
+        description:
+          "A glider descends through cloud into the lee of a ridge in New Zealand. Circulated at wave camp as an example of how quickly an escape route can close — watch it and think about your own way out.",
+      },
+      {
+        title: "High-altitude physiology (FAA)",
+        href: "https://www.faa.gov/sites/faa.gov/files/pilots/safety/pilotsafetybrochures/physiologc.pdf",
+        description:
+          "FAA brochure on the physiology of the high-altitude environment — hypoxia, decompression, vision and more.",
+      },
+      {
+        title: "Aerospace physiology training and PROTE",
+        href: "https://www.faa.gov/pilots/training/airman_education/aerospace_physiology",
+        description:
+          "FAA training on the physiology of flight, including hypoxia familiarization in the Portable Reduced Oxygen Training Enclosure. A medical certificate or BasicMed is required to enter the enclosure — worth planning for before wave camp.",
       },
     ],
   },
@@ -111,6 +141,12 @@ export const linkGroups: LinkGroup[] = [
     id: "other",
     title: "Other",
     links: [
+      {
+        title: "USGS National Map viewer",
+        href: "https://apps.nationalmap.gov/viewer/",
+        description:
+          "Topographic maps for the White Mountains — handy for putting a name to the peaks, ridges and notches you fly over, and for scouting the ground below.",
+      },
       {
         title: "Cloud Appreciation Society",
         href: "https://cloudappreciationsociety.org/",

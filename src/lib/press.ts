@@ -10,6 +10,20 @@ export type PressItem = {
 
 export const press: PressItem[] = [
   {
+    title: "UFO-like lenticular cloud forms over White Mountains",
+    source: "WMUR",
+    date: "November 26, 2025",
+    href: "https://www.wmur.com/article/ufo-lenticular-cloud-white-mountains-nh-112525/69546486",
+    external: true,
+  },
+  {
+    title: "Diamond climbs in a 1-26 at the 1966 Mount Washington Wave Camp",
+    source: "1-26 Association Newsletter",
+    date: "Winter 2024–25",
+    href: "https://www.126association.org/wp-content/uploads/2025/04/1-26-Newsltr-Wtr2425.pdf",
+    external: true,
+  },
+  {
     title: "Wave camp feature",
     source: "The Berlin Reporter",
     date: "October 17, 2007",

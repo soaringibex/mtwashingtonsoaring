@@ -123,10 +123,14 @@ export default function HistoryPage() {
               <sup>[13]</sup> The results of the first “wave camp” were so good — six diamonds and
               14 gold climbs in nine days — that a tradition of annual wave camps was started.
               From 1966 to 1985 wave camps were held every October, most of them based at the
-              North Conway airport. As experience was gained, fewer and fewer long aerotows to the
-              primary wave were made (the airport is 17 miles from Mount Washington). Pilots
-              learned that they could release in the secondary or tertiary wave, or even in ridge
-              lift, and still make a good climb.
+              North Conway airport — the White Mountain Airport run by Wylie Apte, on the ground
+              now occupied by the Settlers&apos; Green outlets. As experience was gained, fewer and
+              fewer long aerotows to the primary wave were made (the airport is 17 miles from
+              Mount Washington). Pilots learned that they could release in the secondary or
+              tertiary wave, or even in ridge lift, and still make a good climb. Releases were
+              often low: a pilot might work the ridge at Rattlesnake Mountain just east of the
+              field, hoping to escape into the wave, with the eight-mile downwind dash to
+              Fryeburg, Maine waiting as the bail-out if the lift gave out.
             </p>
             <p>
               Word quickly spread. Several Canadian pilots joined the group, traveling from as far
@@ -208,6 +212,14 @@ export default function HistoryPage() {
               October. Lewin Barringer&apos;s spirit of exploration lives on as well: the
               feasibility of cross-country wave flights has been demonstrated, and further x-c
               flights are planned.
+            </p>
+            <p>
+              The camp has always run on the people who show up to work it. For many years one of
+              them was Walter Striedieck, a familiar figure in eastern wave flying who traveled
+              from his home in North Carolina to tow and fly at Gorham in his Pawnee and PW6. His
+              help on the tow line had long been part of why the camp worked, and when he stopped
+              making the trip, the 2023 camp report noted how much his support in past years was
+              missed.
             </p>
 
             <div className="not-prose my-10">

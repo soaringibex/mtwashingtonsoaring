@@ -13,6 +13,23 @@ export type Album = {
 
 export const albums: Album[] = [
   {
+    id: "2025",
+    title: "Wave Camp 2025",
+    blurb: "Undercast, cloud shadows and stacked lenticulars — shared by David Sherrill.",
+    photos: [
+      {
+        src: "/images/gallery/2025/cloud-shadow-and-lennie.jpg",
+        alt: "The glider's shadow cast on the cloud deck below, with a lenticular cloud on the horizon",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2025/undercast-wing.jpg",
+        alt: "The glider's wing stretched over a white undercast, with cloud tops to the horizon",
+        aspect: "landscape",
+      },
+    ],
+  },
+  {
     id: "2024",
     title: "Wave Camp 2024",
     blurb: "There was wave, but on the edges of the camp.",

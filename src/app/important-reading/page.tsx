@@ -30,6 +30,33 @@ const required: DocLink[] = [
   },
 ];
 
+const oxygen: DocLink[] = [
+  {
+    title: "Hypoxia — Soaring, August 2018",
+    href: "https://topfly-aero.com/wp-content/uploads/2018/12/SOARING-2018-08-Hypoxia-Article-proof.pdf",
+    description:
+      "The physiology of oxygen starvation at altitude, why it steals your judgment first, and what to do about it.",
+    meta: "PDF",
+    external: true,
+  },
+  {
+    title: "Oxygen systems at high altitude (OSTIV/SSA, 2018)",
+    href: "http://topfly.free.fr/2018_OXY_SSA_OSTIV.pdf",
+    description:
+      "A technical companion to the hypoxia article — oxygen equipment, delivery methods and failure modes.",
+    meta: "PDF",
+    external: true,
+  },
+  {
+    title: "High altitude is hard on your brain — Soaring, May–July 2023",
+    href: "https://drive.google.com/drive/folders/14BLIa1jBp8iw3Vl3JdCQwVyr0K_0Et_o",
+    description:
+      "A three-part series on decompression sickness: what it is, how to recognize it, and how to treat it. The treatment notes are blunt — recurrent symptoms warrant a hyperbaric chamber on 100% oxygen, and after DCS, no matter how mild, stand down for at least three days.",
+    meta: "3 PDFs",
+    external: true,
+  },
+];
+
 const legal: DocLink[] = [
   {
     title: "Class A airspace waivers — Northcraft 2024 legal interpretation",
@@ -38,10 +65,10 @@ const legal: DocLink[] = [
     meta: "PDF",
   },
   {
-    title: "2024 Letter of Authorization (LOA)",
-    href: "/files/2024-loa.pdf",
+    title: "2026 Letter of Authorization (LOA)",
+    href: "/files/2026-loa.pdf",
     description:
-      "Certificate of Waiver or Authorization issued to the Mt Washington Soaring Association.",
+      "The current Certificate of Waiver or Authorization issued to the Mt Washington Soaring Association. A copy is hosted here for convenience; the signed original is kept at the field.",
     meta: "PDF",
   },
 ];
@@ -113,6 +140,36 @@ export default function ImportantReadingPage() {
                   <DocCard key={doc.href} doc={doc} />
                 ))}
               </div>
+            </section>
+
+            <section>
+              <SectionHeading
+                eyebrow="Going high"
+                title="Oxygen and the altitude brain"
+                lede="Wave camp climbs routinely end above 12,500 feet, and the good ones above 18,000 — where oxygen, not skill, keeps the decisions sound. Read at least the hypoxia article before you fly high."
+              />
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                {oxygen.map((doc) => (
+                  <DocCard key={doc.href} doc={doc} />
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <SectionHeading
+                eyebrow="Weather judgment"
+                title="Mind the window"
+                lede="The wave lives and dies with its window. A day that looks flyable can close overhead within minutes — the question is never whether you are high enough, but whether you can still get down."
+              />
+              <p className="mt-6 max-w-3xl text-[1.0625rem] leading-8 text-slate-700">
+                Above 18,000 feet, watch for the upstream openings: if the way in from the west is
+                still clear, you have time. Below that — or on any day when the upstream sky has
+                gone flat — you may get very little warning before the window snaps shut. Keep the
+                downwind escape over Maine in mind as an option rather than a last resort, and
+                choose it while you are still high, not once you are on the cloud tops. The
+                camp&apos;s briefings put it shorter still: if it is not clear downwind, don&apos;t
+                go up.
+              </p>
             </section>
 
             <section>
