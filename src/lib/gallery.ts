@@ -15,7 +15,7 @@ export const albums: Album[] = [
   {
     id: "2025",
     title: "Wave Camp 2025",
-    blurb: "Undercast, cloud shadows and stacked lenticulars — shared by David Sherrill.",
+    blurb: "Undercast, cloud shadows and cockpit views from the wave — shared by David Sherrill and Thomas Van de Velde.",
     photos: [
       {
         src: "/images/gallery/2025/cloud-shadow-and-lennie.jpg",
@@ -25,6 +25,36 @@ export const albums: Album[] = [
       {
         src: "/images/gallery/2025/undercast-wing.jpg",
         alt: "The glider's wing stretched over a white undercast, with cloud tops to the horizon",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2025/panel-at-16872.jpg",
+        alt: "The instrument panel at 16,872 feet, with cloud streets below and the climb still working",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2025/wave-climb-over-clouds.jpg",
+        alt: "Evening wave climb at 7,549 feet — 6.6 knots on the vario, the cloud deck below",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2025/sun-through-the-canopy.jpg",
+        alt: "Sunlight bursting through the canopy as the glider climbs in the wave",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2025/wing-over-the-cloud-deck.jpg",
+        alt: "Looking down the wing over the cloud deck and rotor below",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2025/undercast-to-the-horizon.jpg",
+        alt: "A sea of undercast stretching to the horizon, seen from the wing",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2025/auto-road-from-the-air.jpg",
+        alt: "The Mount Washington Auto Road switchbacking through the alpine zone, seen from the air",
         aspect: "landscape",
       },
     ],
