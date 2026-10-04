@@ -12,7 +12,7 @@ const BASE = process.env.BASE_URL ?? "http://localhost:3001";
 const OUT = process.env.OUT_DIR ?? ".screenshots/full";
 const PORT = 9333;
 
-const targets = [
+const DEFAULT_TARGETS = [
   { name: "home", path: "/", width: 1440, height: 900 },
   { name: "history", path: "/history", width: 1440, height: 900 },
   { name: "reading", path: "/important-reading", width: 1440, height: 900 },
@@ -21,6 +21,10 @@ const targets = [
   { name: "home-mobile", path: "/", width: 390, height: 844 },
   { name: "gallery-mobile", path: "/gallery", width: 390, height: 844 },
 ];
+
+const targets = process.env.CAPTURE_TARGETS
+  ? JSON.parse(process.env.CAPTURE_TARGETS)
+  : DEFAULT_TARGETS;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -110,7 +114,7 @@ async function main() {
         await sleep(250);
       }
 
-      // Scroll through the page so lazy-loaded images actually load, then return to the top.
+      // Scroll through the page so lazy-loaded images actually load.
       await send(
         ws,
         "Runtime.evaluate",
@@ -121,22 +125,50 @@ async function main() {
               window.scrollTo(0, y);
               await new Promise((resolve) => setTimeout(resolve, 150));
             }
-            window.scrollTo(0, 0);
-            await new Promise((resolve) => setTimeout(resolve, 400));
-            // Render the sticky header at its document position for the full-page capture.
-            const header = document.querySelector("header");
-            header?.style.setProperty("position", "static", "important");
-            await new Promise((resolve) => setTimeout(resolve, 200));
           })()`,
           awaitPromise: true,
         },
         sessionId,
       );
 
+      const fullPage = !target.scrollTo;
+      if (target.scrollTo) {
+        await send(
+          ws,
+          "Runtime.evaluate",
+          {
+            expression: `(async () => {
+              const el = document.querySelector(${JSON.stringify(target.scrollTo)});
+              if (el) el.scrollIntoView({ block: "start" });
+              await new Promise((resolve) => setTimeout(resolve, 800));
+            })()`,
+            awaitPromise: true,
+          },
+          sessionId,
+        );
+      } else {
+        await send(
+          ws,
+          "Runtime.evaluate",
+          {
+            expression: `(async () => {
+              window.scrollTo(0, 0);
+              await new Promise((resolve) => setTimeout(resolve, 300));
+              // Render the sticky header at its document position for the full-page capture.
+              const header = document.querySelector("header");
+              header?.style.setProperty("position", "static", "important");
+              await new Promise((resolve) => setTimeout(resolve, 200));
+            })()`,
+            awaitPromise: true,
+          },
+          sessionId,
+        );
+      }
+
       const shot = await send(
         ws,
         "Page.captureScreenshot",
-        { format: "png", captureBeyondViewport: true },
+        { format: "png", captureBeyondViewport: fullPage },
         sessionId,
       );
       const file = path.join(OUT, `${target.name}.png`);
