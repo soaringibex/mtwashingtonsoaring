@@ -125,7 +125,7 @@ export default function HomePage() {
       </section>
 
       {/* Current conditions */}
-      <section className="bg-slate-50 py-20 sm:py-24">
+      <section id="conditions" className="bg-slate-50 py-20 sm:py-24">
         <Container>
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-center">
             <Reveal>

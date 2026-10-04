@@ -59,6 +59,13 @@ const pages: SearchEntry[] = [
     keywords: "index start wave camp gorham october columbus day dates next camp countdown",
   },
   {
+    title: "Vertical wind profile — current conditions",
+    href: "/#conditions",
+    kind: "page",
+    text: "The live column of wind over Gorham from the latest model run — speeds, directions and heights, refreshed hourly.",
+    keywords: "current conditions wind live weather profile sounding gorham heights speeds",
+  },
+  {
     title: "History",
     href: "/history",
     kind: "page",
