@@ -88,7 +88,8 @@ export function AltitudeRail({ tiers }: { tiers: ClimbTier[] }) {
   }, [tiers]);
 
   const activeTier = tiers[readout.active] ?? tiers[0];
-  const markerTop = (readout.position / (tiers.length - 1)) * 100;
+  // Altimeters read bottom-up: the field is at the bottom, the records at the top.
+  const markerTop = (1 - readout.position / (tiers.length - 1)) * 100;
 
   return (
     <div className="sticky top-[45%] -translate-y-1/2" aria-hidden="true">
@@ -106,7 +107,7 @@ export function AltitudeRail({ tiers }: { tiers: ClimbTier[] }) {
               className={`absolute left-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full ${
                 index <= readout.active ? "bg-sky-600" : "bg-slate-300"
               }`}
-              style={{ top: `${(index / (tiers.length - 1)) * 100}%` }}
+              style={{ top: `${(1 - index / (tiers.length - 1)) * 100}%` }}
             />
           ))}
 
