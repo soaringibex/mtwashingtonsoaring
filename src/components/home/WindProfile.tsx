@@ -148,7 +148,7 @@ async function fetchProfile(): Promise<Profile> {
 
 type TemperaturePoint = { x: number; y: number; tempF: number; altFt: number };
 
-/** Map each row's temperature into the right-hand gutter — a °F profile in row space. */
+/** Map each row's temperature across the central column — a °F curve drawn over the bars. */
 function buildTemperatureProfile(
   rows: ProfileRow[],
 ): { points: string; dots: TemperaturePoint[]; height: number } | null {
@@ -160,14 +160,14 @@ function buildTemperatureProfile(
   let hi = Math.ceil((Math.max(...present) + 4) / 10) * 10;
   if (hi - lo < 20) hi = lo + 20;
 
-  const height = rows.length * 12;
+  const height = rows.length * 10;
   const dots = rows
     .map((row, index) =>
       row.tempF === null
         ? null
         : {
-            x: 8 + ((row.tempF - lo) / (hi - lo)) * 40,
-            y: index * 12 + 6,
+            x: 6 + ((row.tempF - lo) / (hi - lo)) * 88,
+            y: index * 10 + 5,
             tempF: row.tempF,
             altFt: row.altFt,
           },
@@ -223,7 +223,7 @@ export function WindProfile() {
               {profile.rows.map((row) => (
                 <li
                   key={`${row.hPa}-${row.altFt}`}
-                  className="grid grid-cols-[4.25rem_0.875rem_minmax(0,1fr)_4.25rem_2.5rem] items-center gap-2 sm:grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem_3.5rem] sm:gap-2.5"
+                  className="grid grid-cols-[4.25rem_0.875rem_minmax(0,1fr)_4.25rem] items-center gap-2 sm:grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem] sm:gap-2.5"
                 >
                   <span
                     className="text-right text-[11px] tabular-nums text-slate-500"
@@ -250,7 +250,6 @@ export function WindProfile() {
                   <span className="text-right text-xs font-medium tabular-nums text-slate-700">
                     {directionLetters(row.dirDeg)} {Math.round(row.speedKt)} kt
                   </span>
-                  <span />
                 </li>
               ))}
             </ul>
@@ -261,7 +260,7 @@ export function WindProfile() {
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
               aria-hidden="true"
-              className="pointer-events-none absolute bottom-0 left-[6.125rem] right-[7.75rem] h-40 sm:left-[7.25rem] sm:right-[10.25rem]"
+              className="pointer-events-none absolute bottom-0 left-[6.125rem] right-[4.75rem] h-40 sm:left-[7.25rem] sm:right-[6.125rem]"
             >
               <path
                 d="M0 100 L2 95 L5 88 L8 79 L10 72 L13 64 L16 56 L18.5 49 L21 42 L23.5 34 L26 26 L28.5 17 L30.5 9 L32 5 L33.5 5 L36 10 L39.5 18 L44 28 L49.5 38 L56 48 L63.5 58 L71.5 68 L80 77 L88 85 L94.5 91 L100 95 L100 100 Z"
@@ -270,11 +269,21 @@ export function WindProfile() {
             </svg>
             {temperature ? (
               <svg
-                viewBox={`0 0 56 ${temperature.height}`}
+                viewBox={`0 0 100 ${temperature.height}`}
                 preserveAspectRatio="none"
                 aria-hidden="true"
-                className="pointer-events-none absolute right-0 top-0 h-full w-10 sm:w-14"
+                className="pointer-events-none absolute left-[6.125rem] right-[4.75rem] top-0 z-20 h-full sm:left-[7.25rem] sm:right-[6.125rem]"
               >
+                <polyline
+                  points={temperature.points}
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeOpacity={0.85}
+                  strokeWidth={5}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
                 <polyline
                   points={temperature.points}
                   fill="none"
@@ -285,11 +294,16 @@ export function WindProfile() {
                   vectorEffect="non-scaling-stroke"
                 />
                 {temperature.dots.map((dot) => (
-                  <g key={`${dot.altFt}-${dot.tempF}`}>
-                    <ellipse cx={dot.x} cy={dot.y} rx={2.4} ry={1.3} fill="#ef4444">
-                      <title>{`${Math.round(dot.tempF)}°F at ${dot.altFt.toLocaleString("en-US")} ft`}</title>
-                    </ellipse>
-                  </g>
+                  <circle
+                    key={`${dot.altFt}-${dot.tempF}`}
+                    cx={dot.x}
+                    cy={dot.y}
+                    r={2.2}
+                    fill="#ef4444"
+                    className="pointer-events-auto"
+                  >
+                    <title>{`${Math.round(dot.tempF)}°F at ${dot.altFt.toLocaleString("en-US")} ft`}</title>
+                  </circle>
                 ))}
               </svg>
             ) : null}
@@ -325,13 +339,12 @@ export function WindProfile() {
           {Array.from({ length: 10 }).map((_, index) => (
             <div
               key={index}
-              className="grid grid-cols-[4.25rem_0.875rem_minmax(0,1fr)_4.25rem_2.5rem] items-center gap-2 sm:grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem_3.5rem] sm:gap-2.5"
+              className="grid grid-cols-[4.25rem_0.875rem_minmax(0,1fr)_4.25rem] items-center gap-2 sm:grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem] sm:gap-2.5"
             >
               <span className="h-3 animate-pulse rounded bg-slate-100" />
               <span className="size-3 animate-pulse rounded-full bg-slate-100" />
               <span className="h-2.5 animate-pulse rounded-full bg-slate-100" />
               <span className="h-3 animate-pulse rounded bg-slate-100" />
-              <span className="mx-auto h-3 w-5 animate-pulse rounded bg-slate-100" />
             </div>
           ))}
           <p className="mt-2 text-xs text-slate-400">Loading the latest wind profile…</p>
