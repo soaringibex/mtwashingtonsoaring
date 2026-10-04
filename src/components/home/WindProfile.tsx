@@ -252,9 +252,10 @@ export function WindProfile() {
                 </li>
               ))}
             </ul>
-            {/* A stylized north-to-south profile of the Presidential Range — Jefferson, Clay,
-                Washington, Monroe, Franklin, Eisenhower — drawn behind the bars so the wind at
-                mountain heights reads against the ridge itself. */}
+            {/* A north-to-south profile of the Presidential Range — Madison, Adams, Jefferson,
+                Washington, Monroe, Eisenhower, Pierce — traced from the topographic
+                cross-section, drawn behind the bars so the wind at mountain heights reads
+                against the ridge itself. */}
             <div className="pointer-events-none absolute bottom-0 left-[6.125rem] right-[4.75rem] h-40 sm:left-[7.25rem] sm:right-[6.125rem]">
               <svg
                 viewBox="0 0 100 100"
@@ -263,7 +264,7 @@ export function WindProfile() {
                 className="h-full w-full"
               >
                 <path
-                  d="M0 96 L6 89 L12 81 L19 71 L25 60 L30 50 L34 40 L37 30 L39.5 20 L41 15 L44 17.5 L46 17 L48 21 L51 18.5 L54 23.5 L57 19.5 L59.5 11 L61.5 5 L63.5 7 L65.5 10.5 L68 14.5 L71 14.5 L73.5 19 L76 20.5 L78.5 20 L81 24.5 L83.5 25.5 L86 29.5 L88.5 30.5 L91 35 L93.5 41 L96 48 L98 53 L100 58 L100 100 L0 100 Z"
+                  d="M0 61 L5 57 L10 50 L14 42 L17 33 L19.5 24 L21 21 L23 26 L24.5 28 L26 22 L27.5 14 L29.5 19 L32 32 L34.5 27 L36.5 20 L38.5 15 L41 23 L43.5 29 L45.5 26 L47.5 24 L50 17 L52.5 9 L55 5 L57 10 L59.5 24 L61.5 24 L63.5 21 L66 21 L68.5 27 L71.5 38 L73.5 35 L76.5 31 L78.5 36 L80 41 L81.5 39 L83 39 L85 42 L87.5 46 L90 49 L92.5 53 L95 55 L100 57 L100 100 L0 100 Z"
                   className="fill-slate-300/80"
                 />
               </svg>
