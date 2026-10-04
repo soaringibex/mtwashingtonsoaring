@@ -27,7 +27,7 @@ FAMILY = "MWSA Logo"
 MOUNT_TEXT = "MOUNT WASHINGTON"
 SOAR_TEXT = "SOARING ASSOCIATION"
 MOUNT_COLOR = "#052a5b"
-SOAR_COLOR = "#3f5f84"  # the mountain's foreground slate navy
+SOAR_COLOR = "#a9d1f2"  # the top wave's light blue
 
 
 def parse_flags(argv: list[str]) -> dict[str, str]:
