@@ -175,40 +175,56 @@ export function WindProfile() {
 
       {profile ? (
         <>
-          <ul className="mt-5 grid gap-2">
-            {profile.rows.map((row) => (
-              <li
-                key={`${row.hPa}-${row.altFt}`}
-                className="grid grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem] items-center gap-2.5"
-              >
-                <span
-                  className="text-right text-[11px] tabular-nums text-slate-500"
-                  title={`${row.hPa} hPa`}
+          <div className="relative mt-5">
+            <ul className="grid gap-2">
+              {profile.rows.map((row) => (
+                <li
+                  key={`${row.hPa}-${row.altFt}`}
+                  className="grid grid-cols-[5rem_1rem_minmax(0,1fr)_5.5rem] items-center gap-2.5"
                 >
-                  {row.altFt.toLocaleString("en-US")} ft
-                </span>
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  className="size-4 text-sky-600"
-                  style={{ transform: `rotate(${row.dirDeg + 180}deg)` }}
-                >
-                  <path d="M12 3.5 18 19l-6-3-6 3z" fill="currentColor" />
-                </svg>
-                <span className="relative block h-2.5 overflow-hidden rounded-full bg-slate-100">
                   <span
-                    className={`absolute inset-y-0 left-0 rounded-full ${speedBar(row.speedKt)}`}
-                    style={{
-                      width: `${Math.max(4, (row.speedKt / profile.maxSpeedKt) * 100)}%`,
-                    }}
-                  />
-                </span>
-                <span className="text-right text-xs font-medium tabular-nums text-slate-700">
-                  {directionLetters(row.dirDeg)} {Math.round(row.speedKt)} kt
-                </span>
-              </li>
-            ))}
-          </ul>
+                    className="text-right text-[11px] tabular-nums text-slate-500"
+                    title={`${row.hPa} hPa`}
+                  >
+                    {row.altFt.toLocaleString("en-US")} ft
+                  </span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    className="size-4 text-sky-600"
+                    style={{ transform: `rotate(${row.dirDeg + 180}deg)` }}
+                  >
+                    <path d="M12 3.5 18 19l-6-3-6 3z" fill="currentColor" />
+                  </svg>
+                  <span className="relative block h-2.5 overflow-hidden rounded-full bg-slate-100">
+                    <span
+                      className={`absolute inset-y-0 left-0 z-10 rounded-full ${speedBar(row.speedKt)}`}
+                      style={{
+                        width: `${Math.max(4, (row.speedKt / profile.maxSpeedKt) * 100)}%`,
+                      }}
+                    />
+                  </span>
+                  <span className="text-right text-xs font-medium tabular-nums text-slate-700">
+                    {directionLetters(row.dirDeg)} {Math.round(row.speedKt)} kt
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {/* A stylized west-to-east profile of Mount Washington, drawn behind the bars so the
+                wind at mountain heights reads against the mountain itself. The peak sits at the
+                summit's altitude (between the 4,977 ft and 6,594 ft rows). */}
+            <svg
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-0 left-[7.25rem] right-[6.125rem] h-40"
+            >
+              <path
+                d="M0 100 L2 95 L5 88 L8 79 L10 72 L13 64 L16 56 L18.5 49 L21 42 L23.5 34 L26 26 L28.5 17 L30.5 9 L32 5 L33.5 5 L36 10 L39.5 18 L44 28 L49.5 38 L56 48 L63.5 58 L71.5 68 L80 77 L88 85 L94.5 91 L100 95 L100 100 Z"
+                className="fill-slate-300/80"
+              />
+            </svg>
+          </div>
           <p className="mt-4 text-[11px] leading-5 text-slate-400">
             Arrows point the way the wind is blowing. Mount Washington&apos;s summit is 6,288 ft and
             the Class A floor is 18,000 ft. Latest model run (
