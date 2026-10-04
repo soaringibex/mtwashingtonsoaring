@@ -131,19 +131,23 @@ async function main() {
         sessionId,
       );
 
-      const fullPage = !target.scrollTo;
-      if (target.scrollTo) {
-        await send(
-          ws,
-          "Runtime.evaluate",
-          {
-            expression: `(async () => {
+      const fullPage = !target.scrollTo && target.scrollY === undefined;
+      if (target.scrollTo || target.scrollY !== undefined) {
+        const expression =
+          target.scrollTo !== undefined
+            ? `(async () => {
               const el = document.querySelector(${JSON.stringify(target.scrollTo)});
               if (el) el.scrollIntoView({ block: "start" });
               await new Promise((resolve) => setTimeout(resolve, 800));
-            })()`,
-            awaitPromise: true,
-          },
+            })()`
+            : `(async () => {
+              window.scrollTo(0, ${Number(target.scrollY)});
+              await new Promise((resolve) => setTimeout(resolve, 800));
+            })()`;
+        await send(
+          ws,
+          "Runtime.evaluate",
+          { expression, awaitPromise: true },
           sessionId,
         );
       } else {

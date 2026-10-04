@@ -92,7 +92,7 @@ export function AltitudeRail({ tiers }: { tiers: ClimbTier[] }) {
   const markerTop = (1 - readout.position / (tiers.length - 1)) * 100;
 
   return (
-    <div className="sticky top-[45%] -translate-y-1/2" aria-hidden="true">
+    <div className="sticky top-[calc(50svh-12.5rem)]" aria-hidden="true">
       <div className="flex w-20 flex-col items-center rounded-3xl border border-slate-900/10 bg-white/85 px-2 py-4 shadow-xl shadow-sky-950/10 backdrop-blur-md">
         <p className="font-display text-[9px] font-semibold uppercase tracking-[0.25em] text-slate-500">
           Climb
