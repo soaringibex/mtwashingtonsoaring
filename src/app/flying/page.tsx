@@ -83,21 +83,23 @@ export default function FlyingPage() {
             </section>
 
             <section>
-              <SectionHeading
-                eyebrow="Weather judgment"
-                title="Mind the window"
-                lede="The wave lives and dies with its window. A day that looks flyable can close overhead within minutes — the question is never whether you are high enough, but whether you can still get down."
-              />
-              <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
-                <p className="text-[1.0625rem] leading-8 text-slate-700">
-                  Above 18,000 feet, watch for the upstream openings: if the way in from the west is
-                  still clear, you have time. Below that — or on any day when the upstream sky has
-                  gone flat — you may get very little warning before the window snaps shut. Keep the
-                  downwind escape over Maine in mind as an option rather than a last resort, and
-                  choose it while you are still high, not once you are on the cloud tops. The
-                  camp&apos;s briefings put it shorter still: if it is not clear downwind, don&apos;t
-                  go up.
-                </p>
+              <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
+                <div>
+                  <SectionHeading
+                    eyebrow="Weather judgment"
+                    title="Mind the window"
+                    lede="The wave lives and dies with its window. A day that looks flyable can close overhead within minutes — the question is never whether you are high enough, but whether you can still get down."
+                  />
+                  <p className="mt-6 text-[1.0625rem] leading-8 text-slate-700">
+                    Above 18,000 feet, watch for the upstream openings: if the way in from the west
+                    is still clear, you have time. Below that — or on any day when the upstream sky
+                    has gone flat — you may get very little warning before the window snaps shut.
+                    Keep the downwind escape over Maine in mind as an option rather than a last
+                    resort, and choose it while you are still high, not once you are on the cloud
+                    tops. The camp&apos;s briefings put it shorter still: if it is not clear
+                    downwind, don&apos;t go up.
+                  </p>
+                </div>
                 <figure className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
                   <Image
                     src="/images/gallery/2025/undercast-to-the-horizon.jpg"
