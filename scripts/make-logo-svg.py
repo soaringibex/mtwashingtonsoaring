@@ -2,11 +2,13 @@
 """Vectorise the association logo into a flat-colour, transparent SVG with potrace.
 
 Usage:
-  python3 scripts/make-logo-svg.py "<logo on white>.png" public/images/brand/logo.svg
+  python3 scripts/make-logo-svg.py <source.png> <destination.svg> [--upscale N]
 
-Run this against the original artwork (white background), not the processed
-transparent PNG: the original still contains the white snow caps and letter
-counters, which a transparency pass would have already erased.
+Run this against the artwork with a white background and no wordmark (see
+scripts/logo-strip-text.py). With --upscale N the artwork is traced at N times
+its resolution and the result is mapped back to the original coordinates —
+thin features (the glider's wing) trace far more cleanly that way. All pixel
+parameters (denoise, core erosion, label growth, turdsize) scale with N.
 
 Pixels are quantised to the artwork's blue palette (light to dark) and traced
 with potrace, stacked light-under-dark with exact colour regions and hairline
@@ -36,11 +38,23 @@ PALETTE = [
     "#5179a2",  # steel blue
     "#3f5f84",  # slate navy
     "#173f6e",  # deep blue
-    "#052a5b",  # darkest navy (text, glider, rock shadow)
+    "#052a5b",  # darkest navy (glider, rock shadow)
 ]
 
 WHITE_CUTOFF = 240  # min-channel at or above this counts as white
-MARGIN = 6  # px of padding kept around the artwork
+MARGIN = 6  # px of padding kept around the artwork (at 1x)
+
+
+def parse_flags(argv: list[str]) -> dict[str, str]:
+    flags: dict[str, str] = {}
+    index = 0
+    while index < len(argv) - 1:
+        if argv[index].startswith("--"):
+            flags[argv[index][2:].replace("-", "_")] = argv[index + 1]
+            index += 2
+        else:
+            index += 1
+    return flags
 
 
 def erode(mask: np.ndarray, iterations: int = 1) -> np.ndarray:
@@ -55,7 +69,15 @@ def erode(mask: np.ndarray, iterations: int = 1) -> np.ndarray:
 
 
 def trace(
-    mask: np.ndarray, width: int, height: int, colour: str, workdir: Path, outline: bool
+    mask: np.ndarray,
+    width: int,
+    height: int,
+    colour: str,
+    workdir: Path,
+    outline: bool,
+    turdsize: int,
+    opttolerance: float,
+    stroke_width: float,
 ) -> str:
     """Trace one binary mask and return the <g>...</g> block potrace produced."""
     pbm = workdir / f"layer-{colour.lstrip('#')}.pbm"
@@ -71,9 +93,9 @@ def trace(
             "potrace",
             "-s",
             "--turdsize",
-            "12",
+            str(turdsize),
             "--opttolerance",
-            "0.3",
+            f"{opttolerance:g}",
             "-o",
             str(svg),
             str(pbm),
@@ -91,28 +113,38 @@ def trace(
         # A hairline stroke in the layer's own colour guarantees it covers the
         # layer beneath, where independent smoothing leaves sub-pixel slivers.
         result = result.replace(
-            'stroke="none"', f'stroke="{colour}" stroke-width="2"'
+            'stroke="none"', f'stroke="{colour}" stroke-width="{stroke_width:g}"'
         )
     return result
 
 
 def main() -> None:
-    if len(sys.argv) != 3:
+    if len(sys.argv) < 3:
         raise SystemExit(
-            "usage: python3 scripts/make-logo-svg.py <source.png> <destination.svg>"
+            "usage: python3 scripts/make-logo-svg.py <source.png> <destination.svg> "
+            "[--upscale N]"
         )
 
     source, destination = Path(sys.argv[1]), Path(sys.argv[2])
+    flags = parse_flags(sys.argv[3:])
+    upscale = max(1, int(flags.get("upscale", "1")))
 
     image = Image.open(source).convert("RGBA")
+    if upscale > 1:
+        image = image.resize(
+            (image.width * upscale, image.height * upscale), Image.LANCZOS
+        )
     pixels = np.array(image).astype(np.int16)
     rgb = pixels[..., :3]
     height, width = rgb.shape[:2]
 
     # Denoise before quantising: the artwork carries fine texture in the
     # mountain's slopes, which would otherwise trace as dark speckles.
+    median_size = 5 * upscale
+    if median_size % 2 == 0:
+        median_size += 1
     smoothed = np.array(
-        image.convert("RGB").filter(ImageFilter.MedianFilter(5))
+        image.convert("RGB").filter(ImageFilter.MedianFilter(median_size))
     ).astype(np.int16)
 
     # Everything that is not near-white is artwork. Near-white pixels are
@@ -137,9 +169,9 @@ def main() -> None:
     # line). Classify only the shape cores and grow those labels outward over
     # the rim, preferring the darkest neighbouring label. That extends each
     # shape's own colour to its edge with no light ring.
-    interior = erode(content, 3)
+    interior = erode(content, 3 * upscale)
     labels = np.where(interior, assigned, -1)
-    for _ in range(6):
+    for _ in range(6 * upscale):
         unresolved = content & (labels < 0)
         if not unresolved.any():
             break
@@ -159,12 +191,13 @@ def main() -> None:
     assigned = np.where(labels >= 0, labels, assigned)
 
     # Trim to the artwork with a small margin.
+    margin = MARGIN * upscale
     rows = np.where(content.any(axis=1))[0]
     columns = np.where(content.any(axis=0))[0]
-    top = max(int(rows[0]) - MARGIN, 0)
-    bottom = min(int(rows[-1]) + MARGIN + 1, height)
-    left = max(int(columns[0]) - MARGIN, 0)
-    right = min(int(columns[-1]) + MARGIN + 1, width)
+    top = max(int(rows[0]) - margin, 0)
+    bottom = min(int(rows[-1]) + margin + 1, height)
+    left = max(int(columns[0]) - margin, 0)
+    right = min(int(columns[-1]) + margin + 1, width)
     content = content[top:bottom, left:right]
     assigned = assigned[top:bottom, left:right]
     height, width = content.shape
@@ -179,16 +212,36 @@ def main() -> None:
             mask = (assigned == index) & content
             if not mask.any():
                 continue
-            groups.append(trace(mask, width, height, colour, workdir, outline=index > 0))
+            groups.append(
+                trace(
+                    mask,
+                    width,
+                    height,
+                    colour,
+                    workdir,
+                    outline=index > 0,
+                    turdsize=12 * upscale * upscale,
+                    opttolerance=0.3 * upscale,
+                    stroke_width=2 * upscale,
+                )
+            )
 
     body = "\n".join(groups)
+    out_width = width / upscale
+    out_height = height / upscale
+    if upscale > 1:
+        # Coordinates inside the group are upscaled pixels; map them back.
+        body = f'<g transform="scale({1 / upscale:.6f})">\n{body}\n</g>'
     destination.write_text(
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">\n'
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {out_width:.2f} {out_height:.2f}">\n'
         f"{body}\n</svg>\n"
     )
 
     size_kb = destination.stat().st_size / 1024
-    print(f"wrote {destination} ({width}x{height}, {size_kb:.0f} KB, {len(groups)} layers)")
+    print(
+        f"wrote {destination} ({out_width:.0f}x{out_height:.0f} at 1x, "
+        f"{size_kb:.0f} KB, {len(groups)} layers, upscale {upscale})"
+    )
 
 
 if __name__ == "__main__":
