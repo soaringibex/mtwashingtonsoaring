@@ -20,10 +20,10 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 
-def closing(mask: np.ndarray) -> np.ndarray:
-    """Dilate then erode by 1 px — bridges hairline gaps in the mask."""
+def dilate(mask: np.ndarray) -> np.ndarray:
+    """One-pixel 8-neighbourhood dilation."""
     padded = np.pad(mask, 1, constant_values=False)
-    grown = (
+    return (
         padded[:-2, 1:-1]
         | padded[2:, 1:-1]
         | padded[1:-1, :-2]
@@ -33,6 +33,11 @@ def closing(mask: np.ndarray) -> np.ndarray:
         | padded[2:, :-2]
         | padded[2:, 2:]
     )
+
+
+def closing(mask: np.ndarray) -> np.ndarray:
+    """Dilate then erode by 1 px — bridges hairline gaps in the mask."""
+    grown = dilate(mask)
     padded = np.pad(grown, 1, constant_values=False)
     return padded[:-2, 1:-1] & padded[2:, 1:-1] & padded[1:-1, :-2] & padded[1:-1, 2:]
 
@@ -61,18 +66,22 @@ def main() -> None:
     smoothed = Image.fromarray(mask).filter(ImageFilter.MedianFilter(3))
     cleaned = closing(np.array(smoothed) > 127)
 
+    # Fatten by one pixel: the wing's outer section is only 1–2 px thick, and
+    # the vectoriser's own denoise would otherwise eat it away.
+    fattened = dilate(cleaned)
+
     result = pixels.copy()
-    result[cleaned] = (5, 42, 91)  # #052a5b
+    result[fattened] = (5, 42, 91)  # #052a5b
     Image.fromarray(result).save(destination)
 
     debug = (pixels.astype(np.float64) * 0.45 + 255 * 0.55).astype(np.uint8)
-    debug[cleaned] = (220, 40, 40)
+    debug[fattened] = (220, 40, 40)
     debug_path = destination.with_name(f"{destination.stem}.mask.png")
     Image.fromarray(debug).save(debug_path)
 
     print(
         f"wrote {destination} and {debug_path.name} "
-        f"({int(cleaned.sum())} px replaced)"
+        f"({int(fattened.sum())} px replaced)"
     )
 
 

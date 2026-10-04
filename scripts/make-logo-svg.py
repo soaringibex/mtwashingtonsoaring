@@ -2,7 +2,8 @@
 """Vectorise the association logo into a flat-colour, transparent SVG with potrace.
 
 Usage:
-  python3 scripts/make-logo-svg.py <source.png> <destination.svg> [--upscale N]
+  python3 scripts/make-logo-svg.py <source.png> <destination.svg> \
+      [--upscale N] [--protect x0,y0,x1,y1]
 
 Run this against the artwork with a white background and no wordmark (see
 scripts/logo-strip-text.py). With --upscale N the artwork is traced at N times
@@ -146,6 +147,18 @@ def main() -> None:
     smoothed = np.array(
         image.convert("RGB").filter(ImageFilter.MedianFilter(median_size))
     ).astype(np.int16)
+
+    # Thin features (the glider's wing) cannot survive the median filter — the
+    # denoise would erase anything below half its window. Restore that region
+    # unfiltered; it floats in smooth surroundings, so nothing else needs it.
+    protect = flags.get("protect")
+    if protect:
+        px0, py0, px1, py1 = (float(value) for value in protect.split(","))
+        x0 = max(int(px0 * upscale), 0)
+        y0 = max(int(py0 * upscale), 0)
+        x1 = min(int(px1 * upscale), width)
+        y1 = min(int(py1 * upscale), height)
+        smoothed[y0:y1, x0:x1] = pixels[y0:y1, x0:x1, :3]
 
     # Everything that is not near-white is artwork. Near-white pixels are
     # background, snow or letter counters — they stay transparent.
