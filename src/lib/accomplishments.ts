@@ -158,6 +158,7 @@ export const awards: Award[] = [
     ft: 9843,
     blurb: "Gold climbs below 20,000 feet became known around the east as an “Eastern Diamond.”",
     years: [
+      { year: "2025", entries: ["Thomas Van de Velde"] },
       { year: "2017", entries: ["David Joyce, Brookline, New Hampshire"] },
       {
         year: "2015",
