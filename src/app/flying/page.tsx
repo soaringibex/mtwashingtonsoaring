@@ -116,7 +116,7 @@ export default function FlyingPage() {
               <SectionHeading
                 eyebrow="Legal & airspace"
                 title="Airspace and paperwork"
-                lede="Previous seasons' waivers and the FAA legal interpretations behind the airspace operations."
+                lede="The FAA legal interpretations behind the airspace operations. The current waiver itself lives in the required reading above."
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
                 {legal.map((doc) => (

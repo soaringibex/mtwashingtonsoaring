@@ -61,13 +61,6 @@ export const oxygen: DocLink[] = [
 /** Airspace, waivers and the paperwork behind the operations. */
 export const legal: DocLink[] = [
   {
-    title: "2024 Letter of Authorization (LOA)",
-    href: "/files/2024-loa.pdf",
-    description:
-      "The previous season's Certificate of Waiver or Authorization, kept for reference.",
-    meta: "PDF",
-  },
-  {
     title: "Class A airspace waivers — Northcraft 2024 legal interpretation",
     href: "/files/2024-northcraft-legal-interpretation.pdf",
     description: "FAA Office of the Chief Counsel. Re: 14 CFR 91.135 — operations in Class A airspace.",
