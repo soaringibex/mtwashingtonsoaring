@@ -214,7 +214,7 @@ export type ClimbTier = {
 
 /** Anchor points for the altitude rail, in climb order. */
 export const climbTiers: ClimbTier[] = [
-  { id: "base", label: "Gorham", ft: 900 },
+  { id: "base", label: "Gorham", ft: 835 },
   { id: "tier-gold", label: "Gold", ft: 9843 },
   { id: "tier-diamond", label: "Diamond", ft: 16404 },
   { id: "tier-lennie", label: "Lennie Pin", ft: 25000 },

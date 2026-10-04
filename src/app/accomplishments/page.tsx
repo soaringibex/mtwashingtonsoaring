@@ -247,7 +247,7 @@ export default function AccomplishmentsPage() {
           <div className="space-y-20 pb-32 pt-20 sm:space-y-28 sm:pt-24">
             <nav aria-label="Climb stations" className="flex flex-wrap gap-2 lg:hidden">
               {[
-                { href: "#base", label: "Base · 900 ft" },
+                { href: "#base", label: "Base · 835 ft" },
                 { href: "#tier-gold", label: "9,843 ft" },
                 { href: "#tier-diamond", label: "16,404 ft" },
                 { href: "#tier-lennie", label: "25,000 ft" },
@@ -272,7 +272,7 @@ export default function AccomplishmentsPage() {
               <div className="mt-6 max-w-3xl space-y-5 text-[1.0625rem] leading-8 text-slate-600">
                 <p>
                   Every flight in this book starts the same way — a tow off the field at Gorham,
-                  New Hampshire, roughly 900 feet above sea level, under the ridge line of the
+                  New Hampshire, roughly 835 feet above sea level, under the ridge line of the
                   Presidential Range. What the record book measures is everything gained above it:
                   gold climbs, diamond climbs, and the Lennie Pins past 25,000 feet.
                 </p>
@@ -306,7 +306,7 @@ export default function AccomplishmentsPage() {
             <Band
               src="/images/scenic/ridge-yellow.webp"
               alt="A yellow glider working the ridge line below the summits"
-              altitude="900 – 9,843 ft"
+              altitude="835 – 9,843 ft"
               caption="Leaving the ridge line — the first thousands of feet are earned in ridge lift and the low, ragged edge of the wave."
             />
 
