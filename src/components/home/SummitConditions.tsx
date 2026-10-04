@@ -175,9 +175,21 @@ export function SummitConditions() {
         </div>
       </dl>
       <p className="mt-3 text-[11px] text-sky-200/70">
-        {summit.source === "station"
-          ? `Observatory station · ${observed}`
-          : `Model estimate · ${observed}`}
+        <a
+          href={
+            summit.source === "station"
+              ? "https://mountwashington.org/weather/current-summit-conditions/"
+              : "https://open-meteo.com/"
+          }
+          target="_blank"
+          rel="noreferrer"
+          className="underline decoration-sky-200/40 underline-offset-2 transition-colors hover:text-sky-100"
+        >
+          {summit.source === "station" ? "Observatory station" : "Model estimate"}
+        </a>{" "}
+        <span aria-hidden="true">↗</span>
+        {" · "}
+        {observed}
       </p>
     </div>
   );

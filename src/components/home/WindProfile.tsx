@@ -210,8 +210,16 @@ export function WindProfile() {
           </ul>
           <p className="mt-4 text-[11px] leading-5 text-slate-400">
             Arrows point the way the wind is blowing. Mount Washington&apos;s summit is 6,288 ft and
-            the Class A floor is 18,000 ft. Latest model run (GFS via Open-Meteo), refreshed hourly
-            —{" "}
+            the Class A floor is 18,000 ft. Latest model run (
+            <a
+              href="https://open-meteo.com/"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-sky-700 hover:text-sky-600"
+            >
+              GFS via Open-Meteo
+            </a>
+            ), refreshed hourly —{" "}
             <Link href="/links#weather" className="font-medium text-sky-700 hover:text-sky-600">
               more weather links
             </Link>
