@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
+import { flyingDocs } from "@/lib/flying";
 import { site } from "@/lib/site";
+import { stories } from "@/lib/stories";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -14,11 +16,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/links", priority: 0.5 },
     { path: "/contact", priority: 0.5 },
   ];
+  const readingPage = [...stories, ...flyingDocs].filter((doc) => doc.page);
 
-  return pages.map((page) => ({
-    url: `${site.url}${page.path}`,
-    lastModified: now,
-    changeFrequency: "monthly" as const,
-    priority: page.priority,
-  }));
+  return [
+    ...pages.map((page) => ({
+      url: `${site.url}${page.path}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: page.priority,
+    })),
+    ...readingPage.map((doc) => ({
+      url: `${site.url}${doc.page}`,
+      lastModified: now,
+      changeFrequency: "yearly" as const,
+      priority: 0.4,
+    })),
+  ];
 }

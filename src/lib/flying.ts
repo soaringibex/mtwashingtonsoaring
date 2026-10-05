@@ -1,6 +1,8 @@
 export type DocLink = {
   title: string;
   href: string;
+  /** Web edition of the document, when one exists (the PDF stays as the download). */
+  page?: string;
   description?: string;
   meta?: string;
   external?: boolean;
@@ -18,12 +20,14 @@ export const required: DocLink[] = [
   {
     title: "Oxygen Talk",
     href: "/files/oxygen-talk-1995.pdf",
+    page: "/flying/oxygen-talk-1995",
     description: "The talk on oxygen systems given by Steele Lipe at the 1995 SSA Convention.",
     meta: "PDF",
   },
   {
     title: "2026 Letter of Authorization (LOA)",
     href: "/files/2026-loa.pdf",
+    page: "/flying/2026-loa",
     description:
       "The current Certificate of Waiver or Authorization issued to the Mt Washington Soaring Association — all attendees review and sign it before flying. A copy is hosted here for convenience; the signed original is kept at the field.",
     meta: "PDF",
@@ -63,12 +67,14 @@ export const legal: DocLink[] = [
   {
     title: "Class A airspace waivers — Northcraft 2024 legal interpretation",
     href: "/files/2024-northcraft-legal-interpretation.pdf",
+    page: "/flying/2024-northcraft-legal-interpretation",
     description: "FAA Office of the Chief Counsel. Re: 14 CFR 91.135 — operations in Class A airspace.",
     meta: "PDF",
   },
   {
     title: "Rescinding the Kortokrax legal interpretation",
     href: "/files/2024-memo-rescinding-kortokrax.pdf",
+    page: "/flying/2024-memo-rescinding-kortokrax",
     description:
       "Memorandum, August 16, 2024 — the Kortokrax interpretation (August 22, 2006) was rescinded as of July 23, 2023.",
     meta: "PDF",
@@ -76,6 +82,7 @@ export const legal: DocLink[] = [
   {
     title: "Rescinding the Fretwell legal interpretation",
     href: "/files/2024-memo-rescinding-fretwell.pdf",
+    page: "/flying/2024-memo-rescinding-fretwell",
     description:
       "Memorandum, August 16, 2024 — the Fretwell interpretation (September 18, 1995) was rescinded as of July 23, 2023.",
     meta: "PDF",
@@ -83,6 +90,7 @@ export const legal: DocLink[] = [
   {
     title: "Rescinding the Olshock legal interpretation",
     href: "/files/2024-memo-rescinding-olshock.pdf",
+    page: "/flying/2024-memo-rescinding-olshock",
     description:
       "Memorandum, August 16, 2024 — the Olshock interpretation (May 4, 2007) was rescinded as of July 23, 2023.",
     meta: "PDF",
@@ -90,6 +98,7 @@ export const legal: DocLink[] = [
   {
     title: "Rescinding the Schaffner legal interpretation",
     href: "/files/2024-memo-rescinding-schaffner.pdf",
+    page: "/flying/2024-memo-rescinding-schaffner",
     description:
       "Memorandum, August 16, 2024 — the Schaffner interpretation (May 5, 2014) was rescinded as of July 23, 2023.",
     meta: "PDF",
@@ -101,6 +110,7 @@ export const gorham: DocLink[] = [
   {
     title: "Gorham (2G8) pattern procedures (2023)",
     href: "/files/gorham-pattern-procedures-2023.pdf",
+    page: "/flying/gorham-pattern-procedures-2023",
     description:
       "Airport procedures for all wave campers. Print a copy and study it before the first launch — they are briefed at the daily pilots' meetings.",
     meta: "PDF",
@@ -108,6 +118,7 @@ export const gorham: DocLink[] = [
   {
     title: "Unofficial list of Gorham landing sites (May 2, 2013)",
     href: "/files/gorham-landing-sites-2013.pdf",
+    page: "/flying/gorham-landing-sites-2013",
     description:
       "Worldwide Soaring Turnpoint Exchange coordinates for Gorham control points and landmarks, courtesy of Evan Ludeman.",
     meta: "PDF",
@@ -127,6 +138,7 @@ export const campDocs: DocLink[] = [
   {
     title: "Mount Washington wave camp information (2016)",
     href: "/files/2016-wave-camp-information.pdf",
+    page: "/flying/2016-wave-camp-information",
     description: "Camp information package from the 2016 encampment — still useful background.",
     meta: "PDF",
   },
@@ -175,4 +187,14 @@ export const navFiles: DocLink[] = [
     href: "/files/allusa-with-mwsa-glider-area.txt",
     meta: "TXT",
   },
+];
+
+/** Every flying-here document, for the reading routes and the sitemap. */
+export const flyingDocs: DocLink[] = [
+  ...required,
+  ...oxygen,
+  ...legal,
+  ...gorham,
+  ...campDocs,
+  ...navFiles,
 ];

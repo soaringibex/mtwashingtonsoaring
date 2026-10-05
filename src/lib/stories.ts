@@ -16,6 +16,7 @@ export const storyGroups: StoryGroup[] = [
       {
         title: "The Mountains Win Again",
         href: "/files/the-mountains-win-again-2015.pdf",
+        page: "/stories/the-mountains-win-again-2015",
         description:
           "Chris Giacomo's account of his 2015 bailout, with lessons learned — required reading in spirit as much as in fact.",
         meta: "PDF",
@@ -23,6 +24,7 @@ export const storyGroups: StoryGroup[] = [
       {
         title: "Greenhorn in the White Mountains",
         href: "/files/greenhorn-in-the-white-mountains.pdf",
+        page: "/stories/greenhorn-in-the-white-mountains",
         description:
           "A novice's preparation and experience at the 2013 encampment.",
         meta: "PDF",
@@ -37,6 +39,7 @@ export const storyGroups: StoryGroup[] = [
       {
         title: "Recollections of the wave camps: 1979–1984",
         href: "/files/recollections-of-the-wave-camps-1979-1984.pdf",
+        page: "/stories/recollections-of-the-wave-camps-1979-1984",
         description:
           "Wayne Knapp, November 29, 2018 — wave camps at White Mountain Airport, North Conway.",
         meta: "PDF",

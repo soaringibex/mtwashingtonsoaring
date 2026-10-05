@@ -189,7 +189,7 @@ const history: SearchEntry[] = [
 const flying: SearchEntry[] = [
   ...required.map((doc) => ({
     title: doc.title,
-    href: doc.href,
+    href: doc.page ?? doc.href,
     kind: "flying" as const,
     section: "Required reading",
     text: doc.description,
@@ -197,7 +197,7 @@ const flying: SearchEntry[] = [
   })),
   ...oxygen.map((doc) => ({
     title: doc.title,
-    href: doc.href,
+    href: doc.page ?? doc.href,
     kind: "flying" as const,
     section: "Safety at altitude",
     text: doc.description,
@@ -205,7 +205,7 @@ const flying: SearchEntry[] = [
   })),
   ...legal.map((doc) => ({
     title: doc.title,
-    href: doc.href,
+    href: doc.page ?? doc.href,
     kind: "flying" as const,
     section: "Legal & airspace",
     text: doc.description,
@@ -213,7 +213,7 @@ const flying: SearchEntry[] = [
   })),
   ...gorham.map((doc) => ({
     title: doc.title,
-    href: doc.href,
+    href: doc.page ?? doc.href,
     kind: "flying" as const,
     section: "Gorham (2G8)",
     text: doc.description,
@@ -221,7 +221,7 @@ const flying: SearchEntry[] = [
   })),
   ...campDocs.map((doc) => ({
     title: doc.title,
-    href: doc.href,
+    href: doc.page ?? doc.href,
     kind: "flying" as const,
     section: "Camp paperwork",
     text: doc.description,
@@ -229,7 +229,7 @@ const flying: SearchEntry[] = [
   })),
   ...navFiles.map((doc) => ({
     title: doc.title,
-    href: doc.href,
+    href: doc.page ?? doc.href,
     kind: "flying" as const,
     section: "Electronic files",
     text: doc.description,
@@ -256,7 +256,7 @@ const flying: SearchEntry[] = [
 const stories: SearchEntry[] = storyGroups.flatMap((group) =>
   group.stories.map((story) => ({
     title: story.title,
-    href: story.href,
+    href: story.page ?? story.href,
     kind: "story" as const,
     section: group.title,
     text: story.description,
