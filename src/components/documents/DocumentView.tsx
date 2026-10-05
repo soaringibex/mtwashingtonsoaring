@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/ui/Container";
@@ -45,6 +46,19 @@ export function DocumentView({
 
         <Prose className="mt-10">
           {text.blocks.map((block, index) => {
+            if (block.type === "img") {
+              return (
+                <figure key={index} className="mx-auto" style={{ maxWidth: `${block.width}px` }}>
+                  <Image
+                    src={block.src}
+                    alt=""
+                    width={block.width}
+                    height={block.height}
+                    className="w-full rounded-2xl ring-1 ring-slate-900/5"
+                  />
+                </figure>
+              );
+            }
             if (block.type === "h") {
               return <h2 key={index}>{block.text}</h2>;
             }

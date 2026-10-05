@@ -5,7 +5,8 @@ export type DocBlock =
   | { type: "h"; text: string }
   | { type: "p"; text: string }
   | { type: "ul"; items: string[] }
-  | { type: "ol"; items: string[] };
+  | { type: "ol"; items: string[] }
+  | { type: "img"; src: string; width: number; height: number };
 
 export type DocumentText = {
   pages: number;
@@ -154,7 +155,23 @@ export const documentTexts: Record<string, DocumentText> = {
       },
       {
         "type": "p",
-        "text": "Giacomo 2 that Dan Reagan from Caesar Creek Club in Ohio generously made for my front and rear canopies. The November 2013 SOARING magazine article describes exactly how he went about making the set for his glider. Even at 27,000 feet, I had no icing at all on my canopies where the panels were installed."
+        "text": "Giacomo 2"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p003-3984.jpg",
+        "width": 222,
+        "height": 296
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p003-3985.jpg",
+        "width": 222,
+        "height": 296
+      },
+      {
+        "type": "p",
+        "text": "that Dan Reagan from Caesar Creek Club in Ohio generously made for my front and rear canopies. The November 2013 SOARING magazine article describes exactly how he went about making the set for his glider. Even at 27,000 feet, I had no icing at all on my canopies where the panels were installed."
       },
       {
         "type": "p",
@@ -171,6 +188,24 @@ export const documentTexts: Record<string, DocumentText> = {
       {
         "type": "p",
         "text": "Giacomo 3"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p004-3986.jpg",
+        "width": 265,
+        "height": 199
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p004-3987.jpg",
+        "width": 149,
+        "height": 198
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p004-3988.jpg",
+        "width": 476,
+        "height": 357
       },
       {
         "type": "p",
@@ -191,6 +226,18 @@ export const documentTexts: Record<string, DocumentText> = {
       {
         "type": "p",
         "text": "Giacomo 4"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p005-3989.jpg",
+        "width": 180,
+        "height": 230
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p005-3990.jpg",
+        "width": 161,
+        "height": 209
       },
       {
         "type": "p",
@@ -225,6 +272,12 @@ export const documentTexts: Record<string, DocumentText> = {
         "text": "Giacomo 6"
       },
       {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p007-3991.jpg",
+        "width": 550,
+        "height": 343
+      },
+      {
         "type": "p",
         "text": "Figure 7 - See-You Analysis"
       },
@@ -245,6 +298,18 @@ export const documentTexts: Record<string, DocumentText> = {
         "text": "Giacomo 7"
       },
       {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p008-3992.jpg",
+        "width": 566,
+        "height": 267
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p008-3993.jpg",
+        "width": 861,
+        "height": 647
+      },
+      {
         "type": "p",
         "text": "The first flight that I took to the summit of Mount Washington was a sled ride in the middle of the week, and occurred completely by happenstance, and will remain one of the most memorable flights of my life. My ship’s previous owner, Mac Windsor, passed away this past year, and unbeknownst to me asked to have his ashes scattered over the MW Valley. As fate would have it, this was also the first year that I was able to attend the camp, so we just happened to have both Mac, some of his close friends and family, and his glider all in one place for his last flight. As a result, I had the opportunity to fly N102MW (re-named with his initials back in 1993) in formation with Rick Roelke and Mac’s son Jonathan in the GBSC Puchacz. It was truly an honor to be there for that flight, and made the trip and previous 4 days of sitting on the ground completely worthwhile."
       },
@@ -259,6 +324,12 @@ export const documentTexts: Record<string, DocumentText> = {
       {
         "type": "p",
         "text": "Giacomo 8"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p009-3994.jpg",
+        "width": 621,
+        "height": 466
       },
       {
         "type": "p",
@@ -278,7 +349,17 @@ export const documentTexts: Record<string, DocumentText> = {
       },
       {
         "type": "p",
-        "text": "Giacomo 9 just seen him an hour or so before traveling in the opposite direction of the wave, towards a mountain that wasn’t working, and he still managed to beat me to 18k after I landed and towed to the primary. In a juvenile gesture to alleviate my wounded ego, I at least ensured that I made the highest climb of the day-to 17,996 ft!"
+        "text": "Giacomo 9"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p010-3995.jpg",
+        "width": 483,
+        "height": 362
+      },
+      {
+        "type": "p",
+        "text": "just seen him an hour or so before traveling in the opposite direction of the wave, towards a mountain that wasn’t working, and he still managed to beat me to 18k after I landed and towed to the primary. In a juvenile gesture to alleviate my wounded ego, I at least ensured that I made the highest climb of the day-to 17,996 ft!"
       },
       {
         "type": "p",
@@ -291,6 +372,12 @@ export const documentTexts: Record<string, DocumentText> = {
       {
         "type": "p",
         "text": "Giacomo 10"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p011-3996.jpg",
+        "width": 336,
+        "height": 252
       },
       {
         "type": "p",
@@ -314,7 +401,23 @@ export const documentTexts: Record<string, DocumentText> = {
       },
       {
         "type": "p",
-        "text": "Giacomo 11 that the show stopped there, due to my hesitancy to disconnect without climbing at 10+ knots when over mountains. I was relieved to find that within a minute of releasing I was climbing up the face of the well-formed lenticular cloud at an average of about 11 knots, and was crossing through FL180 after only 10 minutes in the wave. After 18k, my climb slowed down to a relatively steady 2-4 knots, which I was able to ride up to the 27,000 ft FAA limit we had been given for the day. As I passed 26k ft, I attempted to call Boston Center to request up to 35k, but apparently 150 miles is more than a 1980’s handheld radio can clearly transmit, so I had to relay through a Diamond motorglider that had joined us for the day. In the time it took to relay the message and wait for a response, I had climbed to 27k ft, and was desperately attempting to stay below the limit, on a ship with no airbrakes."
+        "text": "Giacomo 11"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p012-3997.jpg",
+        "width": 542,
+        "height": 406
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p012-3998.jpg",
+        "width": 445,
+        "height": 334
+      },
+      {
+        "type": "p",
+        "text": "that the show stopped there, due to my hesitancy to disconnect without climbing at 10+ knots when over mountains. I was relieved to find that within a minute of releasing I was climbing up the face of the well-formed lenticular cloud at an average of about 11 knots, and was crossing through FL180 after only 10 minutes in the wave. After 18k, my climb slowed down to a relatively steady 2-4 knots, which I was able to ride up to the 27,000 ft FAA limit we had been given for the day. As I passed 26k ft, I attempted to call Boston Center to request up to 35k, but apparently 150 miles is more than a 1980’s handheld radio can clearly transmit, so I had to relay through a Diamond motorglider that had joined us for the day. In the time it took to relay the message and wait for a response, I had climbed to 27k ft, and was desperately attempting to stay below the limit, on a ship with no airbrakes."
       },
       {
         "type": "p",
@@ -330,7 +433,17 @@ export const documentTexts: Record<string, DocumentText> = {
       },
       {
         "type": "p",
-        "text": "Giacomo 12 your body time to re-adjust to a more compressed environment can significantly decrease your chances of negative side effects after being at altitude. Likewise, the rapid warming of a sailplanes skin and components can crack and destroy gel-coats, pop paint and rivets, not to mention the high potential for frozen controls. The risk of these things occurring is very real, as indicated by the 2013 Mt. Washington group experiencing instances of both frozen flight controls and paint popping off after flying over 17k feet. Despite taking my time on the way down, I still managed to pop off the clear-coat paint on my checkered tail, making a red and black tail now a red and gray one. I suppose that at least next year if I do come down a little bit faster I can shake the rest of it off…."
+        "text": "Giacomo 12"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p013-3999.jpg",
+        "width": 360,
+        "height": 270
+      },
+      {
+        "type": "p",
+        "text": "your body time to re-adjust to a more compressed environment can significantly decrease your chances of negative side effects after being at altitude. Likewise, the rapid warming of a sailplanes skin and components can crack and destroy gel-coats, pop paint and rivets, not to mention the high potential for frozen controls. The risk of these things occurring is very real, as indicated by the 2013 Mt. Washington group experiencing instances of both frozen flight controls and paint popping off after flying over 17k feet. Despite taking my time on the way down, I still managed to pop off the clear-coat paint on my checkered tail, making a red and black tail now a red and gray one. I suppose that at least next year if I do come down a little bit faster I can shake the rest of it off…."
       },
       {
         "type": "p",
@@ -346,7 +459,17 @@ export const documentTexts: Record<string, DocumentText> = {
       },
       {
         "type": "p",
-        "text": "Giacomo 13 your time to prepare correctly. My two small flights into the wave were mostly relaxing, and technically speaking, quite easy. I believe that they were “easy” in part due to the mild conditions for the day, but in a much larger part to my dedication to personal preparation and the guidance by the many experienced pilots I met that make the pilgrimage each year to the greatest soaring site in America."
+        "text": "Giacomo 13"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p014-4000.jpg",
+        "width": 476,
+        "height": 319
+      },
+      {
+        "type": "p",
+        "text": "your time to prepare correctly. My two small flights into the wave were mostly relaxing, and technically speaking, quite easy. I believe that they were “easy” in part due to the mild conditions for the day, but in a much larger part to my dedication to personal preparation and the guidance by the many experienced pilots I met that make the pilgrimage each year to the greatest soaring site in America."
       },
       {
         "type": "p",
@@ -363,6 +486,12 @@ export const documentTexts: Record<string, DocumentText> = {
       {
         "type": "p",
         "text": "Giacomo 14"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/greenhorn-in-the-white-mountains/p015-4001.jpg",
+        "width": 938,
+        "height": 628
       }
     ]
   },
@@ -453,6 +582,12 @@ export const documentTexts: Record<string, DocumentText> = {
       {
         "type": "p",
         "text": "Below, I have attached the Tow Card from the 1980 wave camp along with the back of a post card I sent home to document my flight. I have no pictures of the wave camp - sorry for that!"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/recollections-of-the-wave-camps-1979-1984/p005-000.jpg",
+        "width": 406,
+        "height": 599
       }
     ]
   },
@@ -795,11 +930,51 @@ export const documentTexts: Record<string, DocumentText> = {
       },
       {
         "type": "p",
-        "text": "Welcome ladies and gentlemen. You’ve come to hear about one of my favorite subjects and I know it’s yours also, but you don't realize it because JUDGMENT COMES FROM EXPERIENCE without oxygen we and most of the BUT earth’s species couldn’t exist. EXPERIENCE COMES FROM POOR First of all, I know the statement JUDGMENT on the left is true and if you think about it rationally you will agree with me. If you doubt me just look OR back on your early days of soaring. EXPERIENCE IS SOMETHING YOU DON’T Unfortunately, this is a never ending circle for there are numerous GET UNTIL JUST AFTER YOU NEED IT. times in our lives when we close our eyes and blindly go where we have never before trod. This talk will be divided into three phases: physiology, physics, and experiences and data. - - - - - -*** - - - - - Oxygen and its use while at altitude is one of those areas that was called witchcraft many years ago but is based soundly on physiologic principles. Now why do we need oxygen? Our bodies metabolize nutrients, for instance, the peanut butter and jelly sandwich you may have eaten during your last lunch provides the energy our cells need to function, our muscles to push the rudder pedals and manipulate the stick, our hearts to circulate the blood (which is the freight system of our bodies), and our brains so that we can think and make decisions. Making decisions is all what soaring is about and without sufficient oxygen, our brains will make sloppy (poor) decisions or none at all. The illustration to the right crudely represents the respiratory (breathing) and circulatory systems of our bodies. Oxygen is drawn into our lungs and crosses the alveolar membrane into the blood stream where it is carried as part of the hemoglobin molecule to very distant capillaries. There, the oxygen transverses other tissues and eventually enters the cell. Within the cell, it finally enters the mitochondria where it is used to oxidize sugars, thus producing the energy we use. At many points along this system, the process of oxygenation may be interrupted or embarrassed. Concentrating more heavily on breathing and how we get the oxygen into our bodies may get a little bit complicated for some, but I’m sure that you will get the general idea of what I’m trying to accomplish. The three color drawing (right) while looking like a bell shaped curve represents the normal person’s breathing pattern. On the left side the darker stippled area represents the first portion of each breath we take. I have colored it dark green because that portion of the breath goes deepest into the lungs, right out to the alveolar walls where the air-blood interchange takes place. This represents approximately 1/3 of our breath. The second portion, colored lighter with dashes, represents the volume of air that we breathe in that follows the first third, but generally speaking, does not take part in air-blood exchange. The lightest area (right) is the exhaled gases which plotted against time, bring us back again to the next breath after a compensatory pause. To reinforce the idea that the first portion of the breath represents the majority of our oxygen delivery, let’s use the model on the right. On the left is a column of air, which represents a breath and is divided into thirds. On the right is the nose, wind pipe, and lung system. What I want you to picture is that there already is a volume of air in the wind pipe and lungs equal to the last 1/3 of the previous breath, which contains carbon dioxide, water vapor, and less oxygen. The left column represents the next breath and the arrows show how I want you to visualize the air flow. During the first third of the breath, the top portion of the column is sucked in and chases the residual volume deeper into the lungs. The volume, now out in the lungs at the air-blood interface is the residual portion of the last breath. It will end up diluting the first portion of this new breath. The second third of the breath on the left is now sucked in and pushes the residual volume and the first third deeper into the lungs. The last third is what we might call the chaser because it only fills the larger spaces like the major wind pipes. Thus, the residual air left over from the previous breath and the first third of this new breath are deepest in the lungs and are at the air-blood interface. The second third is not as deep and doesn’t really participate much in gas exchange. The last third is air which is known as \"wasted\" because it doesn’t participate at all in gas exchange. Based on this model where would you expect to add additional oxygen? Where would it do the most good and not be wasted? The first third is the place because it goes the deepest into the lungs and participates in gas exchange."
+        "text": "Welcome ladies and gentlemen. You’ve come to hear about one of my favorite subjects and I know it’s yours also, but you don't realize it because JUDGMENT COMES FROM EXPERIENCE without oxygen we and most of the BUT earth’s species couldn’t exist. EXPERIENCE COMES FROM POOR First of all, I know the statement JUDGMENT on the left is true and if you think about it rationally you will agree with me. If you doubt me just look OR back on your early days of soaring. EXPERIENCE IS SOMETHING YOU DON’T Unfortunately, this is a never ending circle for there are numerous GET UNTIL JUST AFTER YOU NEED IT. times in our lives when we close our eyes and blindly go where we have never before trod. This talk will be divided into three phases: physiology, physics, and experiences and data. - - - - - -*** - - - - - Oxygen and its use while at altitude is one of those areas that was called witchcraft many years ago but is based soundly on physiologic principles. Now why do we need oxygen? Our bodies metabolize nutrients, for instance, the peanut butter and jelly sandwich you may have eaten during your last lunch provides the energy our cells need to function, our muscles to push the rudder pedals and manipulate the stick, our hearts to circulate the blood (which is the freight system of our bodies), and our brains so that we can think and make decisions. Making decisions is all what soaring is about and without sufficient oxygen, our brains will make sloppy (poor) decisions or none at all. The illustration to the right crudely represents the respiratory (breathing) and circulatory systems of our bodies. Oxygen is drawn into our lungs and crosses the alveolar membrane into the blood stream where it is carried as part of the hemoglobin molecule to very distant capillaries. There, the oxygen transverses other tissues and eventually enters the cell. Within the cell, it finally enters the mitochondria where it is used to oxidize sugars, thus producing the energy we use. At many points along this system, the process of oxygenation may be interrupted or embarrassed. Concentrating more heavily on breathing and how we get the oxygen into our bodies may get a little bit complicated for some, but I’m sure that you will get the general idea of what I’m trying to accomplish. The three color drawing (right) while looking like a"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p002-000.jpg",
+        "width": 280,
+        "height": 373
+      },
+      {
+        "type": "p",
+        "text": "bell shaped curve represents the normal person’s breathing pattern. On the left side the darker stippled area represents the first portion of each breath we take. I have colored it dark green because that portion of the breath goes deepest into the lungs, right out to the alveolar walls where the air-blood interchange takes place. This represents approximately 1/3 of our breath. The second portion, colored lighter with dashes, represents the volume of air that we breathe in that follows the first third, but generally speaking, does not take part in air-blood exchange. The lightest area (right) is the exhaled gases which plotted against time, bring us back again to the next breath after a compensatory pause. To reinforce the idea that the first portion of the breath represents the majority of our oxygen delivery, let’s use the model on the right. On the left is a column of air, which represents a breath and is divided into thirds. On the right is the nose, wind pipe, and lung system. What I want you to picture is that there already is a volume of air in the wind pipe and lungs equal to the last 1/3 of the previous breath, which contains carbon dioxide, water vapor, and less oxygen. The left column represents the next breath and the arrows show how I want you to visualize the air flow. During the first third of the breath, the top portion of the column is sucked in and chases the residual volume deeper into the lungs. The volume, now out in the lungs at the air-blood interface is the residual portion of the last breath. It will end up diluting the first portion of this new breath. The second third of the breath on the left is now sucked in and pushes the residual volume and the first third deeper into the lungs. The last third is what we might call the chaser because it only fills the larger spaces like the major wind pipes. Thus, the residual air left over from the previous breath and the first third of this new breath are deepest in the lungs and are at the air-blood interface. The second third is not as deep and doesn’t really participate much in gas exchange. The last third is air which is known as \"wasted\" because it doesn’t participate at all in gas exchange. Based on this model where would you expect to add additional oxygen? Where would it do the most good and not be wasted? The first third is the place because it goes the deepest into the lungs and participates in gas exchange."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p003-001.jpg",
+        "width": 350,
+        "height": 263
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p003-002.jpg",
+        "width": 350,
+        "height": 345
       },
       {
         "type": "p",
         "text": "Here you see a model of the alveolus (air blood exchange unit of the lung), it’s capillaries, and gases as represented by green for oxygen molecules and yellow for carbon dioxide. Of all the air that enters the lung only the air adjacent to the alveolar-capillary wall participates in gas exchange. Unfortunately, the lung and pulmonary circulation are not perfect. There are differences in the amount of blood and air going to different areas of the lung as seen on the left. These may be physiologic, meaning normal or pathologic (due to disease). As an example, while you are sitting in your seats, more blood is going to the bases of your lungs and more air is going to the tops or apices just because of gravity. This produces a relative mismatch of air and blood. But on the average it works out fine. Shown are four variations of a constant spectrum. From left to right are normal, lots of air and very little blood, very little air and finally lots of blood, and no air at all where the blood already somewhat depleted of oxygen, and darker red which essentially bypasses the lung. This is called a shunt. Various disease states, including the more common ones of asthma and smoking, cause such changes. What has to be considered is that the lung is an inefficient organ at best, but is wonderfully efficient in that it keeps us living for many years. In essence, it does a job of self regulation providing oxygen to the blood stream to nourish our bodies. Compared to the concentration of oxygen we breathe, the concentration of oxygen in the blood stream lags that in the lungs by approximately 10%. Some of the factors causing this are listed in the right hand panel. The residual gas left in the lungs and airway before the next breath causes some oxygen dilution as does humidification (addition of water vapor), and carbon dioxide excretion. For oxygen to get into the bloodstream, it has to cross several membranes. That is not particularly easy for an insoluble gas. Certain diseases increase the amount of shunting (bypassing); that is, allowing unoxygenated blood to bypass the lung. Lastly, smoking has a tremendous effect upon the normal lung by causing constriction of the airways, destruction of alveolar, walls and gas exchange surface drastically increasing the shunting mentioned before."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p004-003.jpg",
+        "width": 300,
+        "height": 400
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p004-004.jpg",
+        "width": 300,
+        "height": 270
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p004-005.jpg",
+        "width": 250,
+        "height": 333
       },
       {
         "type": "p",
@@ -854,6 +1029,12 @@ export const documentTexts: Record<string, DocumentText> = {
         "text": "I enlisted my helper, probably familiar to many of you as Resussi Annie, (a CPR manikin) to demonstrate the various systems."
       },
       {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p006-006.jpg",
+        "width": 620,
+        "height": 413
+      },
+      {
         "type": "p",
         "text": "Here you see Annie sitting in the cockpit with a simple tube in her mouth and a ball flow regulator on her chest. This simple system is fairly good at levels below 18,000 (5,500m) feet but should use flows of 1 l/min/10,000 feet (3,000m) or almost 2 l/min at the maximum legal altitude of 18,000 feet (5,500m)."
       },
@@ -864,6 +1045,24 @@ export const documentTexts: Record<string, DocumentText> = {
       {
         "type": "p",
         "text": "In my experience, the conservation cannula, is the most commonly used oxygen unit that my friends and I have used. It is approved by the FAA to use oxygen flows of only 30-50% of that required by other systems up to an altitude of 18,000 feet (5,500m). Its magic will be discussed shortly"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p007-007.jpg",
+        "width": 439,
+        "height": 656
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p007-008.jpg",
+        "width": 665,
+        "height": 1000
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p007-009.jpg",
+        "width": 428,
+        "height": 639
       },
       {
         "type": "p",
@@ -878,12 +1077,48 @@ export const documentTexts: Record<string, DocumentText> = {
         "text": "Here is a mask and bag, it is much cheaper than a Sierra mask system. But, while Carl Maulden says in his American Express commercial, “don’t leave home without it,” I’ll tell you don’t even think about using it! In the cold of altitude the bag will be so stiff it won’t fill because there is no valve on it. The mask fits very poorly and the holes in the sides effectively make this system very inefficient. This mask is designed for hospital use where flows of 10-15 l/min can be given without much thought of cost or availability, its maximum oxygen concentration is near 50% unless flows of 20 l/min or higher are used."
       },
       {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p008-010.jpg",
+        "width": 350,
+        "height": 263
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p008-011.jpg",
+        "width": 350,
+        "height": 345
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p008-012.jpg",
+        "width": 371,
+        "height": 560
+      },
+      {
         "type": "p",
         "text": "Now lets go back and revisit the standard cannula. This is a very inexpensive item which can be obtained very easily. In order to be effective it needs an oxygen flow of 1 l/min/10,000 (3,000m) feet in order to provide adequate oxygenation up to 18,000 feet. Refer back to the respiratory volume time curve a few slides before and imagine the waste of oxygen when given during the later part of the inspiratory (breathing in) phase and the exhalation (breathing out) phase of breathing."
       },
       {
         "type": "p",
         "text": "Mountain High of Salt Lake City to the rescue. Patrick McLaughlin has developed this handy dandy EDS (Electronic Delivery system) oxygen regulator for use with the standard cannula. Basically, it monitors your breathing by measuring pressure changes at your nostril and when it determines the beginning of inspiration, gives a blast of oxygen, the volume determined by an altitude sensor. It is quite efficient according to reports I have received. The conserving cannula, as I said, has been quite popular around here. In essence, it has two small reservoirs totaling about 15 ml in the cheek pouches that fill during exhalation from a constant flow of oxygen. Please notice that the nasal prongs are larger than those of the standard cannula. This effectively acts as a valve so the first portion of the inspiratory (breathing in) phase empties the reservoirs before entraining much ambient air. Thus, compared to the standard cannula, its effect has been tested up to 18,000 (5,500m) feet at significantly lower oxygen flows resulting in adequate oxygenation."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p009-013.jpg",
+        "width": 439,
+        "height": 656
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p009-014.jpg",
+        "width": 525,
+        "height": 921
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p009-015.jpg",
+        "width": 401,
+        "height": 600
       },
       {
         "type": "p",
@@ -894,12 +1129,36 @@ export const documentTexts: Record<string, DocumentText> = {
         "text": "This graph below, colored for good (green), caution (yellow) and danger (red) represents the mathematically derived blood oxygen delivered at altitude from ambient air and from a conserve cannula. The ordinate is essentially the percentage of sea level oxygen delivered at respective altitudes. Without extra oxygen your oxygenation would be marginal at 9-10,000 feet (2,700- 3,000m) and dangerous above 12,500 feet (3,750m). While using the conservation cannula the safe zone is above 20,000 feet (6,000m)."
       },
       {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p010-016.jpg",
+        "width": 670,
+        "height": 1000
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p010-017.jpg",
+        "width": 938,
+        "height": 628
+      },
+      {
         "type": "p",
         "text": "The next step up in efficiency is the Sierra mask system. This is a tight fitting mask with a head strap and a reservoir bag. Notice the pale rings at the mask bag juncture. Located there are valves that require the deflation of the bag prior to entrainment (adding in) of outside air. Additionally, exhaled air is prevented from filling the bag and there is slight resistance to venting exhaled air. One note of caution, don’t expect the bag to fill visibly. Below 20,000 feet (6,000m) the oxygen flow does not seem to expand the bag. At higher altitudes, 30,000 feet (9,000m) and above, it becomes quite obvious that the bag is filling. This mask system is useful up to the high 30 thousands."
       },
       {
         "type": "p",
         "text": "This picture shows the Nelson A4 flow regulator. Notice the two scales, the right is 0-25 or 25,000 feet (7,500m) and is calibrated for a flow of 1 l/min/10,000 feet (3,000m). The left scale is similar to that used with the conservation cannula. The sierra mask system is as efficient as the conservation cannula, probably even more so, but is designed to be used above 18,000 feet (5,500m)."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p011-018.jpg",
+        "width": 666,
+        "height": 1000
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p011-019.jpg",
+        "width": 427,
+        "height": 638
       },
       {
         "type": "p",
@@ -914,12 +1173,42 @@ export const documentTexts: Record<string, DocumentText> = {
         "text": "10,000 feet (2,700-3,000m) and the red range at 12,500 feet (3,750m). In contrast, the sierra mask when used correctly, enters the caution range about 36,000 feet (11,000m) and the danger area at about 39,000 feet (12,000m). I have personally used this system over 37,000 feet (11,500m)."
       },
       {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p012-020.jpg",
+        "width": 477,
+        "height": 580
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p012-021.jpg",
+        "width": 938,
+        "height": 640
+      },
+      {
         "type": "p",
         "text": "This interesting system is called the Altox system. It uses a pressurized supply between 20 and 60 pounds per square inch. The black body attached to the nose of the mask is a regulator which is sensitive to mask pressures produced by breathing. It is not very efficient in that it requires constant oxygen except for a small blend hole on the side by the silver lever. I am interested in paperwork and documentation on this unit. Unfortunately, to this date I have not been able to locate any. If any one has the documentation I would appreciate meeting you after the talk. This is the venerable A14 system. As I mentioned before, surplus military units. On the face is a dial to change the oxygen concentration and back pressures so that it can be used to 44-45,000 feet (13,500m). Above 39,000 feet (12,000m) the unit produces resistance to exhalation so that in the low 40 thousands it is somewhat difficult to breath. It is like trying to breath with an air compressor in one's mouth."
       },
       {
         "type": "p",
         "text": "For those of you who know the insides of gliders this is a Glaser-Dirks model 600 which has been equipped with a dual oxygen system. There are two bottles and each has its primary regulator adjusted so that they will work in a cascade system. In addition, there are secondary regulators for constant flow systems, regulators for higher pressure systems such as the Altox and EDS from mountain high and an A14 system. Essentially each system can work off of either tank automatically. I have been using this as my fun ship and test bed. See the end of the article for a schematic of this oxygen system."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p013-022.jpg",
+        "width": 582,
+        "height": 384
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p013-023.jpg",
+        "width": 800,
+        "height": 658
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p013-024.jpg",
+        "width": 424,
+        "height": 639
       },
       {
         "type": "p",
@@ -930,12 +1219,42 @@ export const documentTexts: Record<string, DocumentText> = {
         "text": "This resulted in my loss of consciousness. Previously I had been to 24,000 (7,250m) feet without added oxygen in altitude chambers without effect. The last event I remember was 22,000 feet(6,750m). After reaching 24,000 feet (7,250m) the pilot started down and I woke up at about 19,000 feet(5,750m). According to Jerry Nelson, I still acted normally, although my speech was a little slurred. Maybe this is why I accepted the RENO95 job I did (chairman of exhibits). I was a little slow to say no! The middle curve was accomplished using a conserve cannula and an early A3 flow regulator to 18,000 (5,500m) and then switching to an A4 regulator above that. The top curve was a standard cannula using an A4 regulator to 18,000 (5,500m) and then a Sierra mask above that. Obviously the top curve is best. It was felt the middle curve was marginal. Based on this data, the A3 flow regulator was modified to increase delivery volume at higher altitudes about 25% before it was put on the market."
       },
       {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p014-025.jpg",
+        "width": 1000,
+        "height": 750
+      },
+      {
         "type": "p",
         "text": "Today the measurement of oxygen saturation and altitude is much easier. This little oximeter on the left can be put in a pocket and the barograph on the right is of similar size. Each will record into memory the flight data. The data only needs to be down loaded and matched for time As mentioned before oxygen saturation is not linearly related to oxygen tension but instead represents directly the amount of oxygen that is carried by the blood cells. This is because the hemoglobin molecule has a changing affinity for oxygen. The equipment I use to measure oxygen, measures saturation. This needs to be converted into oxygen tension for the use you will see shortly. Essentially, the steepness of the curve corresponds to hemoglobin’s changing ability to release oxygen. For instance, between the oxygen tensions of 20 and 30 more oxygen is released than between 60 and 70. Incidentally, contrary to advertised opinion, at sea level, the use of 100% oxygen only increases oxygen carried by the blood three tenths of one percent. At altitude when our saturation is lower extra oxygen is very beneficial."
       },
       {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p015-026.jpg",
+        "width": 851,
+        "height": 662
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p015-027.jpg",
+        "width": 610,
+        "height": 458
+      },
+      {
         "type": "p",
         "text": "Here I have plotted several flights below 18,000 feet (5,500m) using the ordinate for blood oxygen tension and the abscissa for altitude. Included is a trend analysis line. Please note the relationship of the trend line to altitude. It crosses the danger level, that level where thought and decision processes begin to be compromised, about 12,500 feet (3,000m). Also the line crosses what I consider to be the top of the yellow caution area about 10,000 feet (3,000m). This data is in support of the mathematical model without oxygen. This next graph also shows oxygen vs. altitude but this time I used a nasal cannula and a nelson A3, flow regulator to 24,000 feet (6,000m). The trend line shows a bimodal curve which distressed me when I first saw it. This data was collected during a 3 1/2 hour flight from Truckee, CA and into wave just west of Minden, NV. The wave provided three separate climbs from 10,000 feet to 24,000 feet (3,000-7,600m) before I returned to Truckee. The A3 flow regulator was set according to the altitude except above 18,000 feet (5,500m) when it was set to just less than flush. Notice that the system behaves very similarly to the mathematical model for the conserve cannula showing it is effective to the middle 20 thousand foot (6,000m) level. As I mentioned before, I was bothered by the bimodal trend line. A little investigation revealed that all 16 points in the lower left group were made during the last 16 minutes of the flight. You will also notice that they are all below 12,500 feet (3,750m) in altitude. For one reason or another I had removed the oxygen system passing through 12,500 feet (3,750m) while returning to home base."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p016-028.jpg",
+        "width": 1000,
+        "height": 750
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p016-029.jpg",
+        "width": 846,
+        "height": 701
       },
       {
         "type": "p",
@@ -944,6 +1263,18 @@ export const documentTexts: Record<string, DocumentText> = {
       {
         "type": "p",
         "text": "In the following diagram the offending last 16 points, all below 12,500 (3,750m) are marked with red centers. As I said these points represent all the data during the final 16 minutes of the flight, during which the altitude was less than 12,500, feet (3,750m) and during which time I was entering the traffic pattern making my approach to landing. I do not remember feeling different, although I am usually quite aware of my individual hypoxic symptoms. The real question arises, had I known of my relative hypoxia should I have been on added oxygen? The answer is a definite YES! But the question still remains, why are all these data, without exception, aberrant, when for all rightful purposes they should not have been? My only explanation is that although I was apparently well oxygenated at altitude, might my bodily oxygen stores have been compromised? Did the removal of extra oxygen passing through 12,500 feet (3,750m) suddenly expose me to the decreased stores and allow my arterial oxygen to fall to what I consider a dangerous level. The only caveat is to do what was advocated many years ago, that is, once using oxygen continue it until roll out stops."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p017-030.jpg",
+        "width": 948,
+        "height": 727
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p017-031.jpg",
+        "width": 857,
+        "height": 724
       },
       {
         "type": "p",
@@ -958,8 +1289,20 @@ export const documentTexts: Record<string, DocumentText> = {
         "text": "Experience is a Wonderful thing It allows you to recognize a mistake When you make it again!"
       },
       {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p018-032.jpg",
+        "width": 650,
+        "height": 488
+      },
+      {
         "type": "p",
         "text": "Belowt is a schematic of the oxygen system that I have used to develop the data and test the apparatus described in this article. This is the one pictured in my DG-600 earlier."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/oxygen-talk-1995/p019-033.jpg",
+        "width": 600,
+        "height": 694
       }
     ]
   },
