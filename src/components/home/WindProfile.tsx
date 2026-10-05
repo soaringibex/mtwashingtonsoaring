@@ -286,10 +286,10 @@ export function WindProfile() {
               ))}
             </ul>
             {/* Mount Washington drawn the way the western-slope panoramas show it: the bench
-                below the summit cone, the steep west face with the Cog Railway climbing it
-                and Burt and Ammonoosuc ravines shaded into the slopes, then the drop to the
-                Monroe col. Outlying relief (Madison north, Monroe south) is left off so the
-                summit stays centered at its true proportions against the row heights. */}
+                below the summit cone, the steep west face with Burt and Ammonoosuc ravines
+                shaded into the slopes, then the drop to the Monroe col. Outlying relief
+                (Madison north, Monroe south) is left off so the summit stays centered at its
+                true proportions against the row heights. */}
             <div className="pointer-events-none absolute bottom-0 left-[6.125rem] right-[4.75rem] h-40 sm:left-[7.25rem] sm:right-[6.125rem]">
               <svg
                 viewBox="0 0 100 100"
@@ -301,8 +301,7 @@ export function WindProfile() {
                   d="M0 52 L16.2 44.8 L32.4 23.1 L41.9 11.1 L50 4 L55 12 L63 22 L73 37 L82 48 L88 53 L100 49 L100 100 L0 100 Z"
                   className="fill-slate-300/80"
                 />
-                {/* Burt Ravine, west of the Cog alignment — soft-shaded hollow with its
-                    channel crease */}
+                {/* Burt Ravine, on the west face */}
                 <path
                   d="M33 19 C27 31 19 45 13 59 C8 73 5.5 87 4.5 100 L27 100 C27.5 84 29.5 68 33 52 C35.5 39 37 29 37.5 23 C36 20.4 34.6 19.4 33 19 Z"
                   className="fill-slate-400/25"
@@ -324,16 +323,6 @@ export function WindProfile() {
                   fill="none"
                   className="stroke-slate-500/30"
                   strokeWidth={0.8}
-                  vectorEffect="non-scaling-stroke"
-                />
-                {/* The Cog Railway climbing the west face to the summit */}
-                <path
-                  d="M47.5 9 L43.5 26 L39.5 43 L35 61 L31 79 L28.5 100"
-                  fill="none"
-                  className="stroke-slate-900"
-                  strokeWidth={1.3}
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
                   vectorEffect="non-scaling-stroke"
                 />
               </svg>
