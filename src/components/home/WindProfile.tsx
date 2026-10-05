@@ -147,10 +147,17 @@ async function fetchProfile(): Promise<Profile> {
 
 type TemperaturePoint = { x: number; y: number; tempF: number; altFt: number };
 
+type TemperatureProfile = {
+  points: string;
+  dots: TemperaturePoint[];
+  height: number;
+  top: TemperaturePoint;
+  bottom: TemperaturePoint;
+  summit: TemperaturePoint | null;
+};
+
 /** Map each row's temperature across the central column — a °F curve drawn over the bars. */
-function buildTemperatureProfile(
-  rows: ProfileRow[],
-): { points: string; dots: TemperaturePoint[]; height: number } | null {
+function buildTemperatureProfile(rows: ProfileRow[]): TemperatureProfile | null {
   const present = rows
     .map((row) => row.tempF)
     .filter((value): value is number => value !== null);
@@ -173,7 +180,33 @@ function buildTemperatureProfile(
     )
     .filter((dot): dot is TemperaturePoint => dot !== null);
 
-  return { points: dots.map((dot) => `${dot.x},${dot.y}`).join(" "), dots, height };
+  // The summit (6,288 ft) almost always falls between two pressure levels — interpolate
+  // along that segment so the label sits at summit height, not at a nearby row.
+  const SUMMIT_FT = 6288;
+  let summit: TemperaturePoint | null = null;
+  for (let i = 0; i < dots.length - 1; i += 1) {
+    const a = dots[i];
+    const b = dots[i + 1];
+    if (a.altFt >= SUMMIT_FT && b.altFt <= SUMMIT_FT) {
+      const t = (a.altFt - SUMMIT_FT) / (a.altFt - b.altFt);
+      summit = {
+        x: a.x + (b.x - a.x) * t,
+        y: a.y + (b.y - a.y) * t,
+        tempF: a.tempF + (b.tempF - a.tempF) * t,
+        altFt: SUMMIT_FT,
+      };
+      break;
+    }
+  }
+
+  return {
+    points: dots.map((dot) => `${dot.x},${dot.y}`).join(" "),
+    dots,
+    height,
+    top: dots[0],
+    bottom: dots[dots.length - 1],
+    summit,
+  };
 }
 
 export function WindProfile() {
@@ -309,6 +342,47 @@ export function WindProfile() {
                     </circle>
                   ))}
                 </svg>
+                {/* The three readings worth calling out without a hover: the top of the
+                    profile, the summit height on the curve, and the ground-level start. */}
+                <span
+                  className="absolute -translate-x-1/2 -translate-y-[calc(100%_+_0.375rem)] whitespace-nowrap rounded-full bg-white/95 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-red-600 shadow-sm ring-1 ring-slate-900/5"
+                  style={{
+                    left: `${Math.min(Math.max(temperature.top.x, 14), 86)}%`,
+                    top: `${(temperature.top.y / temperature.height) * 100}%`,
+                  }}
+                >
+                  {Math.round(temperature.top.tempF)}°F
+                </span>
+                {temperature.summit ? (
+                  <span
+                    className={`absolute -translate-y-1/2 whitespace-nowrap rounded-full bg-white/95 px-1.5 py-0.5 text-[10px] tabular-nums shadow-sm ring-1 ring-slate-900/5 ${
+                      temperature.summit.x <= 66
+                        ? "translate-x-[0.5rem]"
+                        : "-translate-x-[calc(100%_+_0.5rem)]"
+                    }`}
+                    style={{
+                      left: `${temperature.summit.x}%`,
+                      top: `${(temperature.summit.y / temperature.height) * 100}%`,
+                    }}
+                  >
+                    <span className="font-medium text-slate-500">summit</span>{" "}
+                    <span className="font-semibold text-red-600">
+                      {Math.round(temperature.summit.tempF)}°F
+                    </span>
+                  </span>
+                ) : null}
+                <span
+                  className="absolute -translate-x-1/2 translate-y-[0.375rem] whitespace-nowrap rounded-full bg-white/95 px-1.5 py-0.5 text-[10px] tabular-nums shadow-sm ring-1 ring-slate-900/5"
+                  style={{
+                    left: `${Math.min(Math.max(temperature.bottom.x, 14), 86)}%`,
+                    top: `${(temperature.bottom.y / temperature.height) * 100}%`,
+                  }}
+                >
+                  <span className="font-medium text-slate-500">surface</span>{" "}
+                  <span className="font-semibold text-red-600">
+                    {Math.round(temperature.bottom.tempF)}°F
+                  </span>
+                </span>
               </div>
             ) : null}
           </div>
