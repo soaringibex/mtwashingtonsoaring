@@ -44,7 +44,7 @@ export default function HistoryPage() {
       />
 
       <section className="py-16 sm:py-24">
-        <Container className="max-w-4xl">
+        <Container width="3xl">
           <Prose>
             <h2>Beginnings</h2>
             <p>

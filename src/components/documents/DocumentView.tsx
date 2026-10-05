@@ -21,7 +21,7 @@ export function DocumentView({
 
   return (
     <article className="py-16 sm:py-20">
-      <Container className="max-w-3xl">
+      <Container width="2xl">
         <Link
           href={backHref}
           className="text-sm font-medium text-sky-700 transition-colors hover:text-sky-600"
@@ -57,6 +57,51 @@ export function DocumentView({
                     className="w-full rounded-2xl ring-1 ring-slate-900/5"
                   />
                 </figure>
+              );
+            }
+            if (block.type === "table") {
+              return (
+                // Data tables break out of the prose measure (they need the room for all
+                // their columns); below lg they stay in-column and scroll sideways.
+                <div
+                  key={index}
+                  className="overflow-x-auto rounded-2xl ring-1 ring-slate-900/5 lg:-mx-28 xl:-mx-32"
+                >
+                  <table className="w-full border-collapse text-[0.8125rem] leading-5">
+                    {block.caption ? (
+                      <caption className="px-4 pb-1 pt-5 text-center font-display text-[0.9375rem] font-semibold tracking-tight text-slate-900">
+                        {block.caption}
+                      </caption>
+                    ) : null}
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-900">
+                        {block.headers.map((header, column) => (
+                          <th
+                            key={header}
+                            scope="col"
+                            className={`px-2.5 py-3 align-bottom font-semibold ${column === 0 ? "text-left" : "text-right"}`}
+                          >
+                            {header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {block.rows.map((row) => (
+                        <tr key={row[0]} className="border-t border-slate-100">
+                          {row.map((cell, column) => (
+                            <td
+                              key={column}
+                              className={`px-2.5 py-2.5 align-top ${column === 0 ? "whitespace-nowrap font-medium text-slate-900" : "text-right tabular-nums text-slate-700"}`}
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               );
             }
             if (block.type === "h") {

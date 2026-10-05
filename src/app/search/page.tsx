@@ -20,7 +20,7 @@ export default function SearchPage() {
       />
 
       <section className="py-16 sm:py-20">
-        <Container className="max-w-3xl">
+        <Container width="3xl">
           <SearchForm />
         </Container>
       </section>

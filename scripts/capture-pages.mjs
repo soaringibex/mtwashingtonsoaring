@@ -114,7 +114,9 @@ async function main() {
         await sleep(250);
       }
 
-      // Scroll through the page so lazy-loaded images actually load.
+      // Scroll through the page so lazy-loaded images actually load, then wait for them to
+      // finish: scrolling to a selector before images settle lands the crop in the wrong
+      // place when late arrivals shift the layout.
       await send(
         ws,
         "Runtime.evaluate",
@@ -122,9 +124,20 @@ async function main() {
           expression: `(async () => {
             const step = window.innerHeight;
             for (let y = 0; y <= document.body.scrollHeight; y += step) {
-              window.scrollTo(0, y);
+              window.scrollTo({ top: y, behavior: "instant" });
               await new Promise((resolve) => setTimeout(resolve, 150));
             }
+            await Promise.race([
+              Promise.all([...document.images].map((img) =>
+                img.complete
+                  ? null
+                  : new Promise((resolve) => {
+                      img.addEventListener("load", resolve, { once: true });
+                      img.addEventListener("error", resolve, { once: true });
+                    }),
+              )),
+              new Promise((resolve) => setTimeout(resolve, 5000)),
+            ]);
           })()`,
           awaitPromise: true,
         },
@@ -137,11 +150,11 @@ async function main() {
           target.scrollTo !== undefined
             ? `(async () => {
               const el = document.querySelector(${JSON.stringify(target.scrollTo)});
-              if (el) el.scrollIntoView({ block: "start" });
+              if (el) el.scrollIntoView({ block: "start", behavior: "instant" });
               await new Promise((resolve) => setTimeout(resolve, 800));
             })()`
             : `(async () => {
-              window.scrollTo(0, ${Number(target.scrollY)});
+              window.scrollTo({ top: ${Number(target.scrollY)}, behavior: "instant" });
               await new Promise((resolve) => setTimeout(resolve, 800));
             })()`;
         await send(
@@ -156,7 +169,7 @@ async function main() {
           "Runtime.evaluate",
           {
             expression: `(async () => {
-              window.scrollTo(0, 0);
+              window.scrollTo({ top: 0, behavior: "instant" });
               await new Promise((resolve) => setTimeout(resolve, 300));
               // Render the sticky header at its document position for the full-page capture.
               const header = document.querySelector("header");

@@ -20,7 +20,7 @@ export default function ContactPage() {
       />
 
       <section className="py-16 sm:py-20">
-        <Container className="max-w-5xl">
+        <Container width="5xl">
           <div className="grid gap-4 md:grid-cols-3">
             <div className="flex flex-col rounded-3xl bg-white p-7 shadow-sm ring-1 ring-slate-900/5">
               <h2 className="font-display text-lg font-semibold text-slate-900">

@@ -6,7 +6,8 @@ export type DocBlock =
   | { type: "p"; text: string }
   | { type: "ul"; items: string[] }
   | { type: "ol"; items: string[] }
-  | { type: "img"; src: string; width: number; height: number };
+  | { type: "img"; src: string; width: number; height: number }
+  | { type: "table"; caption?: string; headers: string[]; rows: string[][] };
 
 export type DocumentText = {
   pages: number;
@@ -1504,31 +1505,79 @@ export const documentTexts: Record<string, DocumentText> = {
       },
       {
         "type": "p",
-        "text": "Let’s now leave physiology and investigate some of the physical world around us. I’m sorry for the busy chart below. But first turn your attention to the atmosphere in which we fly. Depicted on the left, are altitude and the percent of the atmosphere remaining above our heads. Altitude vs. Blood Oxygen"
+        "text": "Let’s now leave physiology and investigate some of the physical world around us. I’m sorry for the busy chart below. But first turn your attention to the atmosphere in which we fly. Depicted on the left, are altitude and the percent of the atmosphere remaining above our heads."
       },
       {
-        "type": "p",
-        "text": "Atmosphere Barometric Water Carbon Oxygen Arterial Blood Altitude Above Pressure Tension at Dioxide Remainder Tension Oxygen Saturation Body Temp Tension in Air “Tension”"
-      },
-      {
-        "type": "p",
-        "text": "Sea Level 100% 760 47 40 673 140 100 96%"
-      },
-      {
-        "type": "p",
-        "text": "12,000 ft 75% 570 47 40 483 100 75 94%"
-      },
-      {
-        "type": "p",
-        "text": "18,000 ft 50% 380 47 40 300 62 46 80%"
-      },
-      {
-        "type": "p",
-        "text": "24,000 ft 40% 300 47 40 210 45 33 65%"
-      },
-      {
-        "type": "p",
-        "text": "36,000 ft 25% 190 47 40 103 21 16 20%"
+        "type": "table",
+        "caption": "Altitude vs. Blood Oxygen",
+        "headers": [
+          "Altitude",
+          "Atmosphere Above",
+          "Barometric Pressure",
+          "Water Tension at Body Temp",
+          "Carbon Dioxide Tension",
+          "Oxygen Remainder",
+          "Oxygen Tension in Air",
+          "Arterial Blood Oxygen Tension",
+          "Oxygen Saturation"
+        ],
+        "rows": [
+          [
+            "Sea Level",
+            "100%",
+            "760",
+            "47",
+            "40",
+            "673",
+            "140",
+            "100",
+            "96%"
+          ],
+          [
+            "12,000 ft",
+            "75%",
+            "570",
+            "47",
+            "40",
+            "483",
+            "100",
+            "75",
+            "94%"
+          ],
+          [
+            "18,000 ft",
+            "50%",
+            "380",
+            "47",
+            "40",
+            "300",
+            "62",
+            "46",
+            "80%"
+          ],
+          [
+            "24,000 ft",
+            "40%",
+            "300",
+            "47",
+            "40",
+            "210",
+            "45",
+            "33",
+            "65%"
+          ],
+          [
+            "36,000 ft",
+            "25%",
+            "190",
+            "47",
+            "40",
+            "103",
+            "21",
+            "16",
+            "20%"
+          ]
+        ]
       },
       {
         "type": "p",

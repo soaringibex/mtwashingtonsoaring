@@ -24,7 +24,7 @@ export default function StoriesPage() {
       />
 
       <section className="py-16 sm:py-20">
-        <Container className="max-w-4xl">
+        <Container width="4xl">
           <div className="space-y-16">
             {storyGroups.map((group) => (
               <section key={group.id} id={group.id}>

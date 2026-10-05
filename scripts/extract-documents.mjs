@@ -35,7 +35,32 @@ const DOCS = [
   { slug: "gorham-pattern-procedures-2023", pdf: "public/files/gorham-pattern-procedures-2023.pdf" },
   { slug: "gorham-landing-sites-2013", pdf: "public/files/gorham-landing-sites-2013.pdf" },
   { slug: "2016-wave-camp-information", pdf: "public/files/2016-wave-camp-information.pdf" },
-  { slug: "oxygen-talk-1995", pdf: "public/files/oxygen-talk-1995.pdf", figures: true },
+  {
+    slug: "oxygen-talk-1995",
+    pdf: "public/files/oxygen-talk-1995.pdf",
+    figures: true,
+    tables: [
+      {
+        // The altitude/oxygen table on page 5. Its own header lines are ragged
+        // multi-line fragments, so the columns are named here; every row must split into
+        // this many cells or the run fails rather than publishing a mangled table.
+        start: /^Atmosphere\s+Barometric/,
+        end: /^All Pressures are in Torr/,
+        caption: /^Altitude vs\. Blood Oxygen$/,
+        headers: [
+          "Altitude",
+          "Atmosphere Above",
+          "Barometric Pressure",
+          "Water Tension at Body Temp",
+          "Carbon Dioxide Tension",
+          "Oxygen Remainder",
+          "Oxygen Tension in Air",
+          "Arterial Blood Oxygen Tension",
+          "Oxygen Saturation",
+        ],
+      },
+    ],
+  },
   { slug: "2026-loa", pdf: "public/files/2026-loa.pdf" },
   { slug: "2024-northcraft-legal-interpretation", pdf: "public/files/2024-northcraft-legal-interpretation.pdf" },
   { slug: "2024-memo-rescinding-kortokrax", pdf: "public/files/2024-memo-rescinding-kortokrax.pdf" },
@@ -143,6 +168,69 @@ function toBlocks(raw) {
   return blocks;
 }
 
+/** A per-document table spec parsed from the -layout text into one {type:"table"} block. */
+function parseTable(spec, region, caption) {
+  const rows = [];
+  for (const line of region) {
+    if (!line.trim() || !/\d/.test(line)) continue; // blank lines and ragged header fragments
+    const cells = line.trim().split(/ {2,}/);
+    if (cells.length !== spec.headers.length) {
+      throw new Error(
+        `table row has ${cells.length} cells, expected ${spec.headers.length}: ${line.trim()}`,
+      );
+    }
+    rows.push(cells);
+  }
+  if (!rows.length) throw new Error(`table "${spec.headers[0]}" parsed to zero rows`);
+  return caption
+    ? { type: "table", caption, headers: spec.headers, rows }
+    : { type: "table", headers: spec.headers, rows };
+}
+
+/** Like toBlocks, but a page carrying tables gets them pulled out as table blocks. */
+function pageBlocks(pageText, tables) {
+  if (!tables?.length) return toBlocks(pageText);
+  const lines = pageText.split("\n");
+  const blocks = [];
+  let buffer = [];
+  const flush = () => {
+    if (buffer.some((line) => line.trim())) blocks.push(...toBlocks(buffer.join("\n")));
+    buffer = [];
+  };
+  let index = 0;
+  while (index < lines.length) {
+    const spec = tables.find((table) => table.start.test(lines[index].trim()));
+    if (!spec) {
+      buffer.push(lines[index]);
+      index += 1;
+      continue;
+    }
+    const startLine = lines[index].trim();
+    // The table's title sometimes trails the paragraph above it in the layout
+    // ("Altitude vs. Blood Oxygen"); it is the table's caption, not a sentence.
+    let caption;
+    if (spec.caption) {
+      const lastText = buffer.findLastIndex((line) => line.trim());
+      if (lastText !== -1 && spec.caption.test(buffer[lastText].trim())) {
+        caption = buffer[lastText].trim();
+        buffer.splice(lastText, 1);
+      }
+    }
+    flush();
+    const region = [];
+    index += 1;
+    while (index < lines.length && !spec.end.test(lines[index].trim())) {
+      region.push(lines[index]);
+      index += 1;
+    }
+    if (index >= lines.length) throw new Error(`unterminated table: ${startLine}`);
+    blocks.push(parseTable(spec, region, caption));
+    // The end line stays in the stream — it is the table's caption paragraph.
+  }
+  flush();
+  return blocks;
+}
+
 const pad3 = (value) => String(value).padStart(3, "0");
 
 /** Pull the figures out of a slide-deck PDF, page by page, into public/images/reading/<slug>. */
@@ -197,18 +285,18 @@ function extractFigures(pdf, slug) {
 }
 
 const records = {};
-for (const { slug, pdf, stripPrefix, figures } of DOCS) {
+for (const { slug, pdf, stripPrefix, figures, tables } of DOCS) {
   const raw = execFileSync("pdftotext", ["-layout", pdf, "-"], {
     maxBuffer: 64 * 1024 * 1024,
   }).toString("utf8");
 
   let blocks;
-  if (figures) {
-    const byPage = extractFigures(pdf, slug);
+  if (figures || tables) {
+    const byPage = figures ? extractFigures(pdf, slug) : null;
     blocks = [];
     raw.split("\f").forEach((pageText, index) => {
-      blocks.push(...toBlocks(pageText));
-      for (const figure of byPage.get(index + 1) ?? []) {
+      blocks.push(...pageBlocks(pageText, tables));
+      for (const figure of byPage?.get(index + 1) ?? []) {
         blocks.push({ type: "img", ...figure });
       }
     });
@@ -264,7 +352,8 @@ export type DocBlock =
   | { type: "p"; text: string }
   | { type: "ul"; items: string[] }
   | { type: "ol"; items: string[] }
-  | { type: "img"; src: string; width: number; height: number };
+  | { type: "img"; src: string; width: number; height: number }
+  | { type: "table"; caption?: string; headers: string[]; rows: string[][] };
 
 export type DocumentText = {
   pages: number;
