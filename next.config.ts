@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
       { source: "/important-reading", destination: "/flying", permanent: true },
       { source: "/documents", destination: "/flying", permanent: true },
       { source: "/documents/:year", destination: "/flying", permanent: true },
+      { source: "/press", destination: "/more", permanent: true },
+      { source: "/links", destination: "/more", permanent: true },
     ];
   },
 };

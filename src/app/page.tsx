@@ -140,7 +140,7 @@ export default function HomePage() {
                 </p>
               </div>
               <div className="mt-8">
-                <ButtonLink href="/links#weather" variant="secondary">
+                <ButtonLink href="/more#weather" variant="secondary">
                   Weather links
                 </ButtonLink>
               </div>

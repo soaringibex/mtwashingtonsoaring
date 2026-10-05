@@ -19,8 +19,7 @@ export const site = {
     { href: "/history", label: "History" },
     { href: "/accomplishments", label: "Accomplishments" },
     { href: "/gallery", label: "Photos" },
-    { href: "/press", label: "Press" },
-    { href: "/links", label: "Links" },
+    { href: "/more", label: "More" },
   ],
 } as const;
 

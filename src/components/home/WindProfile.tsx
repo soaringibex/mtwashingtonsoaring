@@ -325,7 +325,7 @@ export function WindProfile() {
               GFS via Open-Meteo
             </a>
             ), refreshed hourly —{" "}
-            <Link href="/links#weather" className="font-medium text-sky-700 hover:text-sky-600">
+            <Link href="/more#weather" className="font-medium text-sky-700 hover:text-sky-600">
               more weather links
             </Link>
             .
@@ -334,7 +334,7 @@ export function WindProfile() {
       ) : error ? (
         <p className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600 ring-1 ring-slate-900/5">
           The wind profile is unavailable right now.{" "}
-          <Link href="/links#weather" className="font-medium text-sky-700 hover:text-sky-600">
+          <Link href="/more#weather" className="font-medium text-sky-700 hover:text-sky-600">
             Weather links
           </Link>
         </p>

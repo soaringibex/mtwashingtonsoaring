@@ -84,11 +84,12 @@ const pages: SearchEntry[] = [
     keywords: "gallery pictures images albums wave camp",
   },
   {
-    title: "Press",
-    href: "/press",
+    title: "More — press & links",
+    href: "/more",
     kind: "page",
-    text: "Articles about the Mount Washington wave camps, from Soaring, Windswept, WMUR and more.",
-    keywords: "media newspaper magazine articles clippings",
+    text: "Pieces published about the wave camps, plus the founding clubs, weather, videos and background reading.",
+    keywords:
+      "press links media newspaper magazine articles clippings clubs videos weather education external sites",
   },
   {
     title: "Stories",
@@ -103,13 +104,6 @@ const pages: SearchEntry[] = [
     kind: "page",
     text: "Everything for pilots who come to fly — required reading, safety, airspace and the LOA, the airport, and the moving-map files.",
     keywords: "required reading brief oxygen loa waiver documents paperwork airport gorham charts signup files",
-  },
-  {
-    title: "Links",
-    href: "/links",
-    kind: "page",
-    text: "Founding clubs, member videos, educational and weather links.",
-    keywords: "clubs videos weather education external sites",
   },
   {
     title: "Contact",
@@ -266,7 +260,7 @@ const stories: SearchEntry[] = storyGroups.flatMap((group) =>
 
 const pressEntries: SearchEntry[] = press.map((item) => ({
   title: item.title,
-  href: item.unavailable ? "/press" : (item.href ?? "/press"),
+  href: item.unavailable ? "/more" : (item.href ?? "/more"),
   kind: "press",
   section: `${item.source} · ${item.date}`,
   text: item.description,

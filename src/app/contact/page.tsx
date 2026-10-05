@@ -82,7 +82,7 @@ export default function ContactPage() {
               <ButtonLink href="/flying" variant="light">
                 Required reading
               </ButtonLink>
-              <ButtonLink href="/links" variant="light">
+              <ButtonLink href="/more" variant="light">
                 Founding clubs
               </ButtonLink>
             </div>

@@ -49,12 +49,12 @@ export default function StoriesPage() {
             <h2 className="font-display text-lg font-semibold text-slate-900">More to read</h2>
             <p className="mt-3 text-sm leading-7 text-slate-600">
               For the full sweep — from Lewin Barringer in 1938 to today&apos;s Gorham camps — see
-              the history page, and for pieces published about the wave camps, the press page.
+              the history page; press cuttings and the links we keep live on the More page.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <ButtonLink href="/history">The full history</ButtonLink>
-              <ButtonLink href="/press" variant="secondary">
-                Press
+              <ButtonLink href="/more" variant="secondary">
+                More
               </ButtonLink>
             </div>
           </div>
