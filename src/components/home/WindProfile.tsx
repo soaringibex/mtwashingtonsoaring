@@ -285,10 +285,11 @@ export function WindProfile() {
                 </li>
               ))}
             </ul>
-            {/* A north-to-south profile of the Presidential Range — Madison, Adams, Jefferson,
-                Washington, Monroe, Eisenhower, Pierce — traced from the topographic
-                cross-section, drawn behind the bars so the wind at mountain heights reads
-                against the ridge itself. */}
+            {/* Mount Washington drawn the way the western-slope panoramas show it: the bench
+                below the summit cone, the steep west face with the Cog Railway climbing it
+                and Burt and Ammonoosuc ravines shaded into the slopes, then the drop to the
+                Monroe col. Outlying relief (Madison north, Monroe south) is left off so the
+                summit stays centered at its true proportions against the row heights. */}
             <div className="pointer-events-none absolute bottom-0 left-[6.125rem] right-[4.75rem] h-40 sm:left-[7.25rem] sm:right-[6.125rem]">
               <svg
                 viewBox="0 0 100 100"
@@ -297,8 +298,43 @@ export function WindProfile() {
                 className="h-full w-full"
               >
                 <path
-                  d="M0 61 L5 57 L10 50 L14 42 L17 33 L19.5 24 L21 21 L23 26 L24.5 28 L26 22 L27.5 14 L29.5 19 L32 32 L34.5 27 L36.5 20 L38.5 15 L41 23 L43.5 29 L45.5 26 L47.5 24 L50 17 L52.5 9 L55 5 L57 10 L59.5 24 L61.5 24 L63.5 21 L66 21 L68.5 27 L71.5 38 L73.5 35 L76.5 31 L78.5 36 L80 41 L81.5 39 L83 39 L85 42 L87.5 46 L90 49 L92.5 53 L95 55 L100 57 L100 100 L0 100 Z"
+                  d="M0 52 L16.2 44.8 L32.4 23.1 L41.9 11.1 L50 4 L55 12 L63 22 L73 37 L82 48 L88 53 L100 49 L100 100 L0 100 Z"
                   className="fill-slate-300/80"
+                />
+                {/* Burt Ravine, west of the Cog alignment — soft-shaded hollow with its
+                    channel crease */}
+                <path
+                  d="M33 19 C27 31 19 45 13 59 C8 73 5.5 87 4.5 100 L27 100 C27.5 84 29.5 68 33 52 C35.5 39 37 29 37.5 23 C36 20.4 34.6 19.4 33 19 Z"
+                  className="fill-slate-400/25"
+                />
+                <path
+                  d="M34.5 21 C28 40 20 62 13 100"
+                  fill="none"
+                  className="stroke-slate-500/30"
+                  strokeWidth={0.8}
+                  vectorEffect="non-scaling-stroke"
+                />
+                {/* Ammonoosuc Ravine, hollow below the Washington–Monroe col */}
+                <path
+                  d="M79 45 C75.5 54 71 64 67 74 C63.5 84 61 93 60 100 L75 100 C75.5 92 77.5 83 80 74 C83 63 85 54 86 48.5 C84 46 81.6 45.2 79 45 Z"
+                  className="fill-slate-400/25"
+                />
+                <path
+                  d="M82 47.5 C78 60 72.5 77 67 100"
+                  fill="none"
+                  className="stroke-slate-500/30"
+                  strokeWidth={0.8}
+                  vectorEffect="non-scaling-stroke"
+                />
+                {/* The Cog Railway climbing the west face to the summit */}
+                <path
+                  d="M47.5 9 L43.5 26 L39.5 43 L35 61 L31 79 L28.5 100"
+                  fill="none"
+                  className="stroke-slate-900"
+                  strokeWidth={1.3}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
                 />
               </svg>
             </div>
