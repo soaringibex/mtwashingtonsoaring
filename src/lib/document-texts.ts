@@ -591,6 +591,532 @@ export const documentTexts: Record<string, DocumentText> = {
       }
     ]
   },
+  "2021-wave-camp-logbook-glen-kelley": {
+    "pages": 8,
+    "bytes": 4388960,
+    "blocks": [
+      {
+        "type": "p",
+        "text": "Wave Camp 2021 Glen Kelley"
+      },
+      {
+        "type": "h",
+        "text": "Saturday 9 October"
+      },
+      {
+        "type": "p",
+        "text": "We had a beautiful sunny day today but the soaring forecast was accurate - low convection and no wave."
+      },
+      {
+        "type": "p",
+        "text": "We had 9 flights with several first timers and 5 flights in the Puch."
+      },
+      {
+        "type": "p",
+        "text": "The day ended with a pleasant chicken barbecue grilled by Karl Strassberger of PMSC."
+      },
+      {
+        "type": "p",
+        "text": "Sunday and Monday continue to offer weak conditions, with an overcast thrown in the mix."
+      },
+      {
+        "type": "h",
+        "text": "Sunday 10 October"
+      },
+      {
+        "type": "p",
+        "text": "Well today’s weather forecast appeared accurate."
+      },
+      {
+        "type": "p",
+        "text": "Steve Waitekaitis had our one flight for the day and reported the air dead from Mt Washington summit to the surface."
+      },
+      {
+        "type": "p",
+        "text": "Fortunately, weather conditions were perfect for hiking, biking, or whatever other outside activity appealed. The foliage is stunning."
+      },
+      {
+        "type": "p",
+        "text": "Monday should be slightly better from a convective standpoint - still pretty low and weak. Wave does not appear likely until Wednesday, but stand by for news."
+      },
+      {
+        "type": "h",
+        "text": "Monday 11 October"
+      },
+      {
+        "type": "p",
+        "text": "We flew 10 flights today (3 in the Puch)."
+      },
+      {
+        "type": "p",
+        "text": "The weather was much better than predicted. Where we thought we would have a couple hours of weak climbs to 3K or so, we had a slow start, but then widespread good lift topping at 5.4K or so. There was good streeting and well marked thermals."
+      },
+      {
+        "type": "p",
+        "text": "Folks had a chance to fly up and down the Moriah-Carter range, fly into the great gulf, run North to Berlin and Northeast to Bethel."
+      },
+      {
+        "type": "p",
+        "text": "We topped the day off with a delicious spaghetti dinner cooked by Karl Strassberger."
+      },
+      {
+        "type": "p",
+        "text": "Tuesday looks like another weak day with overcast. We continue to hope for wave Wednesday and Thursday."
+      },
+      {
+        "type": "h",
+        "text": "Tuesday 12 October"
+      },
+      {
+        "type": "p",
+        "text": "The weather has continued to be unseasonably warm, clear, stable, and pretty much unsuitable for soaring."
+      },
+      {
+        "type": "p",
+        "text": "We had 3 flights on the Puch today and Bill Batesole explored the local area in his Carat."
+      },
+      {
+        "type": "p",
+        "text": "It appears Rick Roelke and Maury Gault (from Mohawk Soaring) were the big \"winners\" today as they were able to eke out a 500' gain in weak lift over Mt Hayes."
+      },
+      {
+        "type": "p",
+        "text": "Tomorrow appears to be more of the same, although conflicting reports on summit winds may make wave possible."
+      },
+      {
+        "type": "p",
+        "text": "Thursday looks better from a convective standpoint and the same mixed outlook for wave."
+      },
+      {
+        "type": "h",
+        "text": "Wednesday 13 October"
+      },
+      {
+        "type": "p",
+        "text": "We had and interesting day, which began as forecast: weak, barely convective, but clear and warm."
+      },
+      {
+        "type": "p",
+        "text": "By the time the late afternoon arrived, we had good lift to over 6000' MSL."
+      },
+      {
+        "type": "p",
+        "text": "Pieter Schwartzenbach flew over 4 hours, so he appears to have had the big flight."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/2021-wave-camp-logbook-glen-kelley/p002-000.jpg",
+        "width": 4608,
+        "height": 2184
+      },
+      {
+        "type": "p",
+        "text": "Unfortunately, Thursday appears to forecast weak convection and unlikely wave."
+      },
+      {
+        "type": "p",
+        "text": "Friday and Saturday look to be rainy. Sunday looks like wave conditions, but the high moisture may make wave flight difficult."
+      },
+      {
+        "type": "h",
+        "text": "Thursday 14 October"
+      },
+      {
+        "type": "p",
+        "text": "We had another pleasant surprise today. The forecast called for extensive low overcast, poor convection, and little sign of wave."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/2021-wave-camp-logbook-glen-kelley/p003-001.jpg",
+        "width": 1440,
+        "height": 1440
+      },
+      {
+        "type": "p",
+        "text": "This was not completely incorrect. However yours truly launched @1340 to 3.0 AGL over the north end of the Moriah-Carter range (Mt Moriah) to find workable ridge lift and two bald eagles to play with. After a few minutes Rick and Maury arrived in the Puch to take over the Carters and I went to Mt Hayes - a mistake."
+      },
+      {
+        "type": "p",
+        "text": "A little while later, Brian Zander, Jess Pauley, and Dan MacMonagle launched. Brian found wave east of Mt Hayes and was able to climb to over 6K' MSL. Jess, Dan, and I worked this for a while and the day eventually weakened. Dan made one attempt to run the Carters and try for the horn, but was unsuccessful."
+      },
+      {
+        "type": "p",
+        "text": "As so often happens, if you are here to fly, conditions often prove better and/or different than expected. Certainly, we all felt rewarded today."
+      },
+      {
+        "type": "p",
+        "text": "The forecast for Friday does not look good - poor convection and a low overcast. Saturday looks like rain in the morning with a low overcast."
+      },
+      {
+        "type": "p",
+        "text": "Sunday does look like a wave day, but there is moisture evident, so it might prove challenging"
+      },
+      {
+        "type": "h",
+        "text": "Friday 15 October"
+      },
+      {
+        "type": "p",
+        "text": "We didn't do any flying today. We had a weak forecast, only a couple pilots on hand, and a tow pilot with a 3 hour drive each way. We gave the tow pilot a break."
+      },
+      {
+        "type": "p",
+        "text": "We have rain in the forecast tomorrow with the possibility of flying in the afternoon."
+      },
+      {
+        "type": "p",
+        "text": "Sunday looks like a good wave day."
+      },
+      {
+        "type": "h",
+        "text": "Saturday 16 October"
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/2021-wave-camp-logbook-glen-kelley/p005-002.jpg",
+        "width": 1440,
+        "height": 1440
+      },
+      {
+        "type": "p",
+        "text": "The dismal forecast for low ceilings and south winds were accurate today.There wasn't much rain, so that was nice.."
+      },
+      {
+        "type": "p",
+        "text": "We did not fly and Franconia didn't either."
+      },
+      {
+        "type": "p",
+        "text": "Tomorrow continues to look like the best (only?) wave day of this encampment. That being the case I asked for a raise of hands for attending pilots to manage our tow situation."
+      },
+      {
+        "type": "p",
+        "text": "The following pilots responded and said they would attend:"
+      },
+      {
+        "type": "p",
+        "text": "Stephen K. Brown Jess Pauley Glen Kelley Brian Xander Robert Zacharski Andy Kingswood Tom Orsini Jim David Mauri Gault"
+      },
+      {
+        "type": "p",
+        "text": "Given this turnout I am turning loose the GBSC Pawnee and Puch to return to Sterling. *If you show up tomorrow and you are not on this list, we will try to fit you in, but you are the back of the line.* Sorry, I gave it my best shot but I can only work with the information you provide me. If you feel you should be on this list, feel free to contact me, but have your ducks in line.."
+      },
+      {
+        "type": "p",
+        "text": "We plan to open the Wave Airspace and anyone wanting to go above 18000 will need to sign the form that Richard will have available - no exceptions."
+      },
+      {
+        "type": "p",
+        "text": "As mentioned, it should be a decent wave day with convection as well. Moisture is likely to be present, as well as rain showers, so there are challenges we need to discuss. I will see you at the 9:00 AM meeting."
+      },
+      {
+        "type": "h",
+        "text": "Sunday 17 October"
+      },
+      {
+        "type": "p",
+        "text": "Wave Camp 2021 is now a wrap."
+      },
+      {
+        "type": "p",
+        "text": "This morning actually felt like a wave day, with people donning their down jackets, hats and gloves."
+      },
+      {
+        "type": "p",
+        "text": "As expected, low clouds and moisture prevented an early start. Unfortunately, this situation continued until 1:30 PM, when the clouds lifted enough over the Crescent Range and Moriah Carter Range to consider a launch prudent. It was evident that wave conditions would be present and that the M-C range should provide lift, unless wave suppressed."
+      },
+      {
+        "type": "p",
+        "text": "It turned out that the run to Wildcat Mountain was fairly straightforward and pushing towards the parking lot provided strong wave lift. This wave lift was at times, very strong, but was also limited in area. At times it almost felt like a thermal. Yours truly, Tom Orsini, Dan MacMonagle and Robert Zacharski all climbed above 10K MSL, with Robert and Dan climbing to over 13K."
+      },
+      {
+        "type": "p",
+        "text": "We had the chance to exercise the newly approved Letter of Agreement to activate the airspace and that seemed to work pretty well, once some phone number issues were worked out."
+      },
+      {
+        "type": "p",
+        "text": "This event can only take place with the help of many volunteers, so our thanks to (in no particular order) to Jim David, Steven K. Brown, Rick Roelke, Richard Hart, Tim Chow, Don Graber, Brian Xander, Mauri Gault, and many others for their efforts."
+      },
+      {
+        "type": "p",
+        "text": "See you next year.."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/2021-wave-camp-logbook-glen-kelley/p007-003.jpg",
+        "width": 1950,
+        "height": 1463
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/2021-wave-camp-logbook-glen-kelley/p008-004.jpg",
+        "width": 1948,
+        "height": 922
+      }
+    ]
+  },
+  "2016-wave-camp-logbook-rick-roelke": {
+    "pages": 7,
+    "bytes": 38206,
+    "blocks": [
+      {
+        "type": "p",
+        "text": "2016 Camp Logbook Rick Roelke"
+      },
+      {
+        "type": "p",
+        "text": "This is the collection of the daily email reports from the leader of the 2016 wave camp."
+      },
+      {
+        "type": "h",
+        "text": "October 7"
+      },
+      {
+        "type": "p",
+        "text": "Well, for all the prognostication about the drought spoiling the fall color, I can say with certainty that they were all wrong!"
+      },
+      {
+        "type": "p",
+        "text": "The color this year is the best I have seen in the 16 years I have been coming."
+      },
+      {
+        "type": "p",
+        "text": "The weather was very nice for such viewing, with a little wave thrown in for good measure. While most were polishing the rocks and looking for thermals (and kind of happy to be close to the color, RR found a few small areas of wave in the Great Gulf and over by the Carters. The wind direction was \"wrong\" as it was out of the SE and light, but somehow the valley between Jefferson and Washington reinforced the light wind wave to make something I have never seen before."
+      },
+      {
+        "type": "p",
+        "text": "I looked at my computer, and saw 11 kts from 165 on the computer, just as the averager hit 11.5kts (up). Figure that out..."
+      },
+      {
+        "type": "p",
+        "text": "The lift was confined between 5.5 and 7k, at 7k it got turbulent and the lift stopped. Tomorrow looks like we may get good wave, up to what looks to become a solid overcast at or near 18k. SW winds but that can work well."
+      },
+      {
+        "type": "p",
+        "text": "We will have a pilots meeting at 9:00 unless we are hopelessly fogged in. In which case, we will convene as it starts to lift..."
+      },
+      {
+        "type": "h",
+        "text": "October 8"
+      },
+      {
+        "type": "p",
+        "text": "No diamonds from the mine today, but nice wave flights to 16,500 ft. The wind dummy was IF that self-launched late morning, and found light lift near the horn, and patiently took it to the high spot today."
+      },
+      {
+        "type": "p",
+        "text": "We had dense fog in the morning, so things were delayed a bit. After the fog had lifted, it was replaced by a very high overcast. The surface winds were very light, at times favoring 12. At altitude the wind was 40ish at 220. Strongest lift I saw was around 6tks, but mostly around 3kts."
+      },
+      {
+        "type": "p",
+        "text": "Not many folks up here yet, so it was a relaxing day. Again no diamonds yet, but two days of very nice soaring..."
+      },
+      {
+        "type": "p",
+        "text": "Tomorrow is tricky for two reasons. It looks like the hurricane penetrated a bit farther than expected, and is currently tossing some of its moisture our way. The soundings are not indicating this for tomorrow yet. It could all change at the last minute. With the information I have from the current soundings, it could be very good. The tricky part is the winds are light from the northwest down low, then a dramatic shear to the southwest at the mountain top. If that shift is at or below the peak, we will be swimming in gold and diamonds, if it is a bit higher, we could have nothing at all. The earlier the better, for a start, but I expect fog again..."
+      },
+      {
+        "type": "p",
+        "text": "October 9 - AM Hurricane Matthew, or his remnants, has again befuddled the forecasters and moved closer than expected. There is no concern about excessive wind, just excessive moisture. It is currently raining, and you can see on the radar that we are on the very edge of the rain shield, but when the rain moved out, we will be left with a low overcast. If I can trust the models, it looks like the first time we could safely break through is later in the afternoon. No pilots meeting this morning, perhaps we should have one at noon, in case the forecasters are wrong in a good direction..."
+      },
+      {
+        "type": "p",
+        "text": "October 9 – PM Well, Matthew’s new path, put a \"damper\" on our plans today. Rain in the morning, low clouds until late afternoon. We did launch a 1-26 for a local flight around 17:00 but that was it. Tomorrow will have wave, but the direction (due north) may make it difficult to use the big primary, but we will see. Pilots meeting at 9:30 in the morning, and we will see what the day brings..."
+      },
+      {
+        "type": "h",
+        "text": "October 10"
+      },
+      {
+        "type": "p",
+        "text": "Today felt much more like wave camp. Strong winds both aloft and on the ground, and the typical nip in the air. Not so typical was the northerly component that changed the nature of the wave in both good and bad ways. The good way was that there was a fairly strong (6 ish knots) wave behind Pine Mountain, that topped out around 8k. This wave was nicely in sight of the airport, and a great stepping stone to the primary. The bad way was much of the rest of the wave system was changed, and it could be hard to get home against the wind."
+      },
+      {
+        "type": "p",
+        "text": "The high man was Paul Villinski in his DG-400 who got above 21k, but his start was too high for a diamond, so he went back down, to get a lower notch on Mt Hayes, to try again. Unfortunately, after getting back up, he could not get above 16k. A valiant 6hr attempt."
+      },
+      {
+        "type": "p",
+        "text": "Yours truly, in fishing lingo, \"got the stink out of the boat\" by starting with a low tow onto Hayes, and climbing to 20 for the first diamond of camp. It was an interesting climb in ridge, to wave(ish) lift to transition to the north end of the Carters, (Mt Moriah) falling back to North Carter and then pushing out under cloud to find the aforementioned Pine Mountain wave. Climbing in this, I was able to fly to the \"primary.\" The \"primary\" was marked by the cap cloud from Jefferson, pouring down into the great gulf, and flowing back up the far side. On the upside, this was quite strong, with John Good reporting over 12kts. This climb would peter out around 12, and the next climb was to be found behind Wildcat. It appeared that this wave was formed by the northerly wind flowing over"
+      },
+      {
+        "type": "p",
+        "text": "Carter Dome. Not a place I would normally look for wave, but others told me about it, and you could see it in the clouds behind Wildcat. That one took me to 20k where I grabbed the diamond ring, and descended. I was still going up at 2kts, but I expect it would have topped out soon."
+      },
+      {
+        "type": "p",
+        "text": "There were several accounts of \"character\" building moments from the strong north wind, making egress from the valley more difficult than usual. That said, all made it back, and for the most part all had a great time."
+      },
+      {
+        "type": "p",
+        "text": "Tomorrow's forecast, unfortunately, is beautiful, clear perfect leaf peeping weather, meaning calm, dead calm. So I don't think we will see much in the way wave. There may be some survival thermal soaring in the afternoon, but no need for an early meeting. 10 am pilots meeting for Tuesday."
+      },
+      {
+        "type": "h",
+        "text": "October 11"
+      },
+      {
+        "type": "p",
+        "text": "Well... today was a perfect day for a Dick Johnson performance test. I don't know that I have flown in \"flatter\" air than today. That said, it was once again a delightful fall day, warm and still, and we continue to enjoy the fantastic color. But soarable, not."
+      },
+      {
+        "type": "p",
+        "text": "Even in the flat conditions we still had a bunch of flights today, and I must say, that I did enjoy my sled ride in the smooth air. Once down to about 2k there were a few bubbles that could extend your flight a bit. However, it should be noted that the hero of the day was Jess Pauley who eeked out better than an hour working the south side of Pine Mountain late in the afternoon working the light lift from the sun facing rocks."
+      },
+      {
+        "type": "p",
+        "text": "Tomorrow has a bit more of a chance, with at least some horizontal air movement, but not a lot (20ish predicted at the summit) but it shows a SSW direction. It seems likely that it may not work for soaring, but we will only know for sure after the first wind dummy launch."
+      },
+      {
+        "type": "p",
+        "text": "On the slight chance that we will see some lennies in the morning, that could produce some hope, will go for a 9:00 am pilots meeting."
+      },
+      {
+        "type": "h",
+        "text": "October 12"
+      },
+      {
+        "type": "p",
+        "text": "Surprise, surprise, surprise. Today was looking to be a carbon copy of yesterday, but no. Instead, there was wave all day. No high flights (13ish) but very interesting wave. The wind was 200 at 19kts in the morning, and as I thought there were some lennies, but I did not expect them to be working. The wind direction was constant, and the wind gradient was steadily increasing (but not strong), and the temperature followed the moist adiabat. Stable, but not super stable. But this did produce soarable wave, even with the severe crosswind."
+      },
+      {
+        "type": "p",
+        "text": "It was IL who flew as the wind dummy, and reported back three kts over the Horn. A bit of a scramble, and three more were rigged, including yours truly. All the tows to the Horn worked, and there was no opportunity to get in with a really low tow, but I had theorized that Madison would be producing wave. So as we got behind the spur of"
+      },
+      {
+        "type": "p",
+        "text": "Madison (the one that falls to Pine) I got off in light lift. I was able to find some wave, some rotor, and climb to 5.3."
+      },
+      {
+        "type": "p",
+        "text": "Once there I could not climb anymore, so my plan was to push forward, cross around to the upwind side of the spur, and climb in ridge lift. I sped to the top of the spur, turned into the gulf, and pulled up onto the face ... and sunk out. The ridge was suppressed. I thought I could penetrate into the wind, and get some lift, there was a little, but then more sink. I ran for home and with much less than I had started with from the tow, tucked back behind the spur, and coaxed a climb out of the rotor bits, then wave I could find. It is a counter intuitive thing to be staring into the downwind side of a mountain, that is much higher than you are, and expect to climb, but it did work."
+      },
+      {
+        "type": "p",
+        "text": "This time, I climbed a bit higher (5.5k) and dove towards the primary. I got to the horn at or slightly below the road level. Strong rotor was there, I could pull up for a climb or two, but as I fell below the road, the only safe thing to do is retreat."
+      },
+      {
+        "type": "p",
+        "text": "Again I was able to scratch back up behind the spur, but this time, as I got higher, I drifted back just a bit, to find good wave, and climbed in 6kts, circling like a thermal. I took this to 8.5k, flew to the primary, and all was good. We did some exploring, topped out at 12.5, and went in to land as I had a ride come up."
+      },
+      {
+        "type": "p",
+        "text": "The next fight was also interesting. Took a high tow, headed into the primary and got some nice smooth lift, but not strong. A bit later, we felt a surge, saw 8 kts, but then strong turbulence. We kept climbing, circling back and climbing, but the whole time in pretty rough air. When we got to 7k I thought for sure it would smooth out, but no, even up to 8k we would get nice surges, followed by sink and rotor."
+      },
+      {
+        "type": "p",
+        "text": "We had to come home, so we flew over Madison looking for wave behind there (the wind was still south) and did find some smooth lift, but needed to land so we called it a day."
+      },
+      {
+        "type": "p",
+        "text": "For a day that I thought it was going to be flat, it was very interesting, and challenging with the low(ish) start."
+      },
+      {
+        "type": "p",
+        "text": "If you have made it this far, tomorrow looks to be soarable. We might even open the airspace. HOWEVER the day will shut down from moisture in the afternoon, so we will need to be vigilant, and not greedy. Currently it looks to be shutdown at 16:00, but it could happen much sooner..."
+      },
+      {
+        "type": "p",
+        "text": "9:00 am pilots meeting"
+      },
+      {
+        "type": "h",
+        "text": "October 13"
+      },
+      {
+        "type": "p",
+        "text": "Another fine day at camp. As predicted it ended early with low overcast with rain following quickly. However, there were several that got to the top of the available airspace (18k). The wind was again SSW, making it a bit unusual in the primary. But once on top, it was predictable and nice. 3ish kts for the most of the climb above 12k."
+      },
+      {
+        "type": "p",
+        "text": "Tomorrow looks to be good, with the winds turning to the NW. It should be clear, perhaps with it getting weaker later in the day, but I don't have a good sounding out that far yet."
+      },
+      {
+        "type": "p",
+        "text": "We do not know if the airspace will be ours, but we do have Chris working to \"deconflict\" the area."
+      },
+      {
+        "type": "h",
+        "text": "October 14"
+      },
+      {
+        "type": "p",
+        "text": "Congratulations to our first \"new\" diamond of the camp. Glen Kelley truly earned his diamond today. After struggling with me on the Carters for literally hours, he found the opportunity to transition to the secondary (over the auto road parking lot) and then hopping to the primary, relocating to the Tuckerman wave, and finally moving the yet another location, to top out at 21k. Finally after all these years when he should have been here yesterday, he was!"
+      },
+      {
+        "type": "p",
+        "text": "The forecast looked far better than it turned out to be. So good in fact that T8 and I spent much time the night before planning a very ambitious 750km task. No one was willing to lay odds that we could actually do it, but it was all planned out, and good to go. However, when I launched, and got on the Carters, it was very marginal, the early clouds capped any climbs, and I was unable to get out to the edge of the clouds where very light wave existed. Evan took a slightly higher tow, and started on the edge of the clouds, and was able to connect with the wave, but even in the primary, it was slow, and difficult to climb above 8k."
+      },
+      {
+        "type": "p",
+        "text": "Eventually (like 2 hrs or more of scratching), we were able to get in the primary and do a slow climb to 18k. Evan got a head start, and was up at Grafton Notch, climbing again at 3kts. This is a usual stepping-stone to get north. The next one is Saddleback, perhaps the best-shaped wave generator around, and it too was working. This allowed Evan to turn Sugarloaf airport. However by now my feet were complaining, so I climbed at Saddleback and waited for his return, and we flew home. 7ish hr flights, but much less distance than we had hoped. That said, every trip up there is an education, and this was no exception. With the lightish winds (40kts at altitude) we were nearly over the terrain that was generating the wave. No markers, neither high or low cloud, but wonderful visibility made for a nice flight."
+      },
+      {
+        "type": "p",
+        "text": "I do believe a good time was had by all, as the later launches were much easier into the wave."
+      },
+      {
+        "type": "p",
+        "text": "I am thinking of retiring from prognosticating wave, after this most recent forecast was way off, or at least off by several hours. However, tomorrow does not look so great (for wave at least). We have been surprised by the light wind wave we have seen so far this trip, so we can hope, but I do not see a path to it other than a high tow."
+      },
+      {
+        "type": "p",
+        "text": "As such, we will have a 10 am pilots meeting."
+      },
+      {
+        "type": "h",
+        "text": "October 15"
+      },
+      {
+        "type": "p",
+        "text": "All, I am back home, but John Good will stand in for me at the morning meeting."
+      },
+      {
+        "type": "p",
+        "text": "The sounding could be good for wave, winds WSW and 30 to 40 at the summit. There are two factors that could be trouble. One the velocity does not increase all the way up, and two, it is not very stable. We have learned some things this year, and this may be one of those days that will teach us something new. My personal feeling is that stability is the most important factor, but the mix is complex."
+      },
+      {
+        "type": "p",
+        "text": "This will be a day of increasing moisture; it will start high, but close low later. We might get a full day in, but watch out starting in the afternoon."
+      },
+      {
+        "type": "p",
+        "text": "Pilots meeting at 9:00"
+      },
+      {
+        "type": "h",
+        "text": "October 16"
+      },
+      {
+        "type": "p",
+        "text": "A belated report from Saturday."
+      },
+      {
+        "type": "p",
+        "text": "Another record \"flat'' day at camp. Still air at the top and the bottom of the mountain. The hero of the day was Roy Bourgeois who eeked out 2+ hrs working the back side of Madison, in convection from the heated south facing rocks. Almost all others reported pretty but calm sled rides. Someone else will need to provide the closing report, as I am now back in Bedford."
+      },
+      {
+        "type": "h",
+        "text": "October 17"
+      },
+      {
+        "type": "p",
+        "text": "My ghost writer Bob Morehardt has closed the story on this year's camp in my absence."
+      },
+      {
+        "type": "p",
+        "text": "Mt Washington’s reputation for unpredictable, changing weather was in full swing on Sunday. The last of the wave camp Klingons were hoping to get one more chance to ride the wave before heading home. This morning we woke up to early morning mist, which burned off by 9:00, with a low lying cloud deck moving across NY expected to bring showers into the area by early afternoon. Winds were WSW at 24kts at the peak and calm on the ground. All of us kept an eye on the low overcast in view east of the Crescent range. It was clear to the east with wave clouds over the Carters extending to the north. Walter’s first tow found smooth air along the Carters continuing to a cloud covered Mt Washington peak. He said it was the smoothest ride he had given all week. On the third tow, I was dropped off at the secondary which started to form over Rt 16 and immediately climbed to 17,500 with 4kts. Unfortunately, there wasn’t anyone to open a wave window. The wave was working all day. As I flew north, I found pockets of wave, but nothing uniform. By 12:30 there was a low-lying mist starting to settle in the valleys so many of us landed. After we landed, this too changed and the mist burned off and stayed clear till 3:30 when I left and no it did not rain…. Sometimes, the weather is hard to predict....."
+      },
+      {
+        "type": "p",
+        "text": "It sounds like some may have left too soon (including me). Also, Bob sent me a great picture of a rainbow at altitude! First one I have seen."
+      },
+      {
+        "type": "p",
+        "text": "Another great year, and well behaved to my knowledge. However, in the interest in keeping or camp safe, please write me if you have any suggestions for future safety improvements or any issues that came up at camp that caused you any concern. Let's keep our clean record going in the future. See you next year."
+      }
+    ]
+  },
   "gorham-pattern-procedures-2023": {
     "pages": 2,
     "bytes": 349414,
@@ -1842,7 +2368,7 @@ export const documentTexts: Record<string, DocumentText> = {
         "text": "1 See Public Aircraft Logging of Flight Time, Training in Certain Aircraft Holding Special Airworthiness Certificates, and Flight Instructor Privileges, 88 FR 41194 (June 23, 2023). This Notice of Proposed Rulemaking (NPRM) rescinded the Fretwell Legal Interpretation 30 days after the NPRM’s publication in the Federal Register."
       },
       {
-        "type": "p",
+        "type": "h",
         "text": "September 18, 1995"
       },
       {
@@ -2022,7 +2548,7 @@ export const documentTexts: Record<string, DocumentText> = {
         "text": "Great Lakes Region U.S. Department Regional Counsel, of Transportation AGL-7 2300 East Devon Ave. Federal Aviation Des Plaines, IL 60018 Adminjstration (847) 294-7109"
       },
       {
-        "type": "p",
+        "type": "h",
         "text": "May 5, 2014"
       },
       {

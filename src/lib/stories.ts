@@ -61,11 +61,13 @@ export const storyGroups: StoryGroup[] = [
       {
         title: "2021 camp logbook — Glen Kelley",
         href: "/files/2021-wave-camp-logbook-glen-kelley.pdf",
+        page: "/stories/2021-wave-camp-logbook-glen-kelley",
         meta: "PDF",
       },
       {
         title: "2016 camp logbook — Rick Roelke",
         href: "/files/2016-wave-camp-logbook-rick-roelke.pdf",
+        page: "/stories/2016-wave-camp-logbook-rick-roelke",
         meta: "PDF",
       },
     ],

@@ -28,6 +28,9 @@ const DOCS = [
   },
   { slug: "greenhorn-in-the-white-mountains", pdf: "public/files/greenhorn-in-the-white-mountains.pdf", figures: true },
   { slug: "recollections-of-the-wave-camps-1979-1984", pdf: "public/files/recollections-of-the-wave-camps-1979-1984.pdf", figures: true },
+  // Logbooks
+  { slug: "2021-wave-camp-logbook-glen-kelley", pdf: "public/files/2021-wave-camp-logbook-glen-kelley.pdf", figures: true },
+  { slug: "2016-wave-camp-logbook-rick-roelke", pdf: "public/files/2016-wave-camp-logbook-rick-roelke.pdf" },
   // Flying here
   { slug: "gorham-pattern-procedures-2023", pdf: "public/files/gorham-pattern-procedures-2023.pdf" },
   { slug: "gorham-landing-sites-2013", pdf: "public/files/gorham-landing-sites-2013.pdf" },
@@ -54,6 +57,16 @@ function pageCount(pdf) {
   }
 }
 
+const WEEKDAY = "(?:mon|tues|wednes|thurs|fri|satur|sun)day";
+const MONTH = "(?:january|february|march|april|may|june|july|august|september|october|november|december)";
+const DATE_LINES = [
+  new RegExp(`^${WEEKDAY},? \\d{1,2}(?:st|nd|rd|th)?(?: ${MONTH})?(?:,? \\d{4})?$`, "i"),
+  new RegExp(`^${MONTH} \\d{1,2}(?:st|nd|rd|th)?(?:,? \\d{4})?$`, "i"),
+  new RegExp(`^\\d{1,2} ${MONTH}(?: \\d{4})?$`, "i"),
+];
+/** True for a line that is nothing but a date ("Saturday 9 October", "October 7, 2016"). */
+const looksLikeDateLine = (value) => DATE_LINES.some((pattern) => pattern.test(value));
+
 function toBlocks(raw) {
   const text = raw.replace(/\r/g, "").replace(/\f/g, "\n\n");
   const rawBlocks = text
@@ -71,6 +84,13 @@ function toBlocks(raw) {
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
+
+    // A dated entry ("Saturday 9 October", "October 7") heads its own section even when
+    // the paragraph below runs on from it in the layout with no blank line between.
+    if (lines.length > 1 && looksLikeDateLine(lines[0])) {
+      blocks.push({ type: "h", text: clean(lines[0]) });
+      lines.shift();
+    }
 
     // Numbered lists (as laid out by pdftotext -layout): "1. ..." / "1) ...".
     const numbered = lines.filter((line) => /^\d+[.)]\s/.test(line)).length;
@@ -117,7 +137,7 @@ function toBlocks(raw) {
     const looksLikeHeading =
       joined.length <= 80 &&
       !/[.;:!?]$/.test(joined) &&
-      (allCaps || /^(part|section|appendix|chapter)\b/i.test(joined));
+      (allCaps || looksLikeDateLine(joined) || /^(part|section|appendix|chapter)\b/i.test(joined));
     blocks.push({ type: looksLikeHeading ? "h" : "p", text: joined });
   }
   return blocks;
