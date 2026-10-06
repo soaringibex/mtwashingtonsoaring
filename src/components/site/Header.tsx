@@ -33,13 +33,18 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className={`rounded-full px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex flex-col items-center rounded-full px-3 py-2 text-sm font-medium leading-none transition-colors ${
                 isActive(item.href)
                   ? "bg-sky-50 text-sky-700"
                   : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               }`}
             >
-              {item.label}
+              <span>{item.label}</span>
+              {item.beta ? (
+                <span className="mt-0.5 text-[8px] font-bold uppercase tracking-[0.16em] text-sky-600">
+                  beta
+                </span>
+              ) : null}
             </Link>
           ))}
           <a
@@ -83,6 +88,11 @@ export function Header() {
                   }`}
                 >
                   {item.label}
+                  {item.beta ? (
+                    <span className="ml-2 rounded-full bg-sky-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-sky-700">
+                      beta
+                    </span>
+                  ) : null}
                 </Link>
               ))}
               <a

@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { WindProfile } from "@/components/home/WindProfile";
 import { DashboardHeader } from "@/components/weather/DashboardHeader";
 import { FieldReports } from "@/components/weather/FieldReports";
-import { SummitHourly } from "@/components/weather/SummitHourly";
 import { WaveForecast } from "@/components/weather/WaveForecast";
+import { WindPanel } from "@/components/weather/WindPanel";
 import { Container } from "@/components/ui/Container";
 
 export const metadata: Metadata = {
@@ -38,10 +37,7 @@ export default function WxPage() {
           <div className="grid gap-6">
             <WaveForecast />
 
-            <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-              <WindProfile />
-              <SummitHourly />
-            </div>
+            <WindPanel />
 
             <FieldReports />
 

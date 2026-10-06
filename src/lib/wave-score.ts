@@ -8,6 +8,8 @@ export type WaveLevel = {
   tempC: number;
   speedKt: number;
   dirDeg: number;
+  /** Cloud cover at the level, percent — used for the ceiling estimate. */
+  cloudCover?: number | null;
 };
 
 export type WaveScore = {
@@ -58,6 +60,91 @@ const potentialTemperature = (tempC: number, hPa: number) =>
 
 const mean = (values: number[]) =>
   values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+
+export type WaveTop = {
+  /** Estimated usable top of the wave, ft — the physical top, or the cloud ceiling. */
+  topFt: number;
+  /** The propagation/tropopause estimate before any cloud cap, ft. */
+  physicalTopFt: number;
+  /** Cloud ceiling that pulls the effective top below the physical top, ft. */
+  ceilingFt: number | null;
+  /** Top of that cloud layer, ft. */
+  cloudTopFt: number | null;
+};
+
+const RIDGE_FT = 6288;
+const FT_PER_M = 3.28084;
+
+/**
+ * The estimated top of the usable wave: the highest level the wave still reaches —
+ * the flow keeps crossing the ridge (≥ 5 kt eastward) and stays stable layer by layer,
+ * capped at the estimated tropopause — then pulled down to the base of the lowest
+ * significant cloud layer when that ceiling sits below.
+ */
+export function estimateWaveTop(levels: WaveLevel[]): WaveTop | null {
+  const sorted = [...levels].sort((a, b) => b.hPa - a.hPa); // ground first
+  if (sorted.length < 4) return null;
+
+  // Propagation: scan upward, stop when the flow stops crossing the ridge or an
+  // unstable layer interrupts the wave.
+  const ridgeM = RIDGE_FT / FT_PER_M;
+  let topM: number | null = null;
+  for (let i = 0; i < sorted.length - 1; i += 1) {
+    const lower = sorted[i];
+    const upper = sorted[i + 1];
+    if (upper.altM <= ridgeM) continue;
+    const u = eastwardKt(upper.speedKt, upper.dirDeg);
+    const stable = potentialTemperature(upper.tempC, upper.hPa) > potentialTemperature(lower.tempC, lower.hPa);
+    if (u < 5 || !stable) break;
+    topM = upper.altM;
+  }
+
+  // Tropopause estimate: the first layer above 400 hPa that is no longer cooling at a
+  // tropospheric rate. Waves effectively stop there.
+  let tropopauseM: number | null = null;
+  for (let i = 0; i < sorted.length - 1; i += 1) {
+    const lower = sorted[i];
+    const upper = sorted[i + 1];
+    if (upper.hPa > 400) continue;
+    const dz = upper.altM - lower.altM;
+    if (!(dz > 0)) continue;
+    const lapsePerKm = ((upper.tempC - lower.tempC) / dz) * 1000;
+    if (lapsePerKm > -1) {
+      tropopauseM = upper.altM;
+      break;
+    }
+  }
+
+  const modelTopM = sorted[sorted.length - 1].altM;
+  const physicalTopM = Math.min(topM ?? ridgeM, tropopauseM ?? modelTopM, modelTopM);
+  const physicalTopFt = Math.round((physicalTopM * FT_PER_M) / 100) * 100;
+
+  // The lowest significant cloud layer (≥ 65% cover), found from the ground up.
+  let ceilingM: number | null = null;
+  let cloudTopM: number | null = null;
+  let insideLayer = false;
+  for (const level of sorted) {
+    const cover = typeof level.cloudCover === "number" ? level.cloudCover : 0;
+    if (cover >= 65) {
+      if (ceilingM === null) ceilingM = level.altM;
+      cloudTopM = level.altM;
+      insideLayer = true;
+    } else if (insideLayer) {
+      break;
+    }
+  }
+
+  const ceilingFt = ceilingM === null ? null : Math.round((ceilingM * FT_PER_M) / 100) * 100;
+  const cloudTopFt = cloudTopM === null ? null : Math.round((cloudTopM * FT_PER_M) / 100) * 100;
+  const limiting = ceilingFt !== null && ceilingFt < physicalTopFt;
+
+  return {
+    topFt: limiting ? ceilingFt : physicalTopFt,
+    physicalTopFt,
+    ceilingFt: limiting ? ceilingFt : null,
+    cloudTopFt: limiting ? cloudTopFt : null,
+  };
+}
 
 export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
   const sorted = [...levels].sort((a, b) => b.hPa - a.hPa); // ground level first

@@ -14,13 +14,13 @@ export const site = {
     url: "https://www.data-minds.com",
   },
   nav: [
-    { href: "/flying", label: "Flying here" },
-    { href: "/wx", label: "Wx Brief" },
-    { href: "/stories", label: "Stories" },
-    { href: "/history", label: "History" },
-    { href: "/accomplishments", label: "Accomplishments" },
-    { href: "/gallery", label: "Photos" },
-    { href: "/more", label: "More" },
+    { href: "/flying", label: "Flying here", beta: false },
+    { href: "/wx", label: "Wx Brief", beta: true },
+    { href: "/stories", label: "Stories", beta: false },
+    { href: "/history", label: "History", beta: false },
+    { href: "/accomplishments", label: "Accomplishments", beta: false },
+    { href: "/gallery", label: "Photos", beta: false },
+    { href: "/more", label: "More", beta: false },
   ],
 } as const;
 

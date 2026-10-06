@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 import { FORECAST_MODELS, mergedSeries } from "@/lib/forecast-model";
-import { computeWaveScore, WAVE_LEVELS, type WaveLevel, type WaveScore } from "@/lib/wave-score";
+import { computeWaveScore, estimateWaveTop, WAVE_LEVELS, type WaveLevel, type WaveScore, type WaveTop } from "@/lib/wave-score";
 import { flyingWindow, hourLabel, inWindow } from "@/lib/wx-window";
 
 const LATITUDE = 44.3931;
@@ -48,7 +48,7 @@ function scoreBar(score: number): string {
   return "bg-slate-300";
 }
 
-type WaveHour = { time: string; hour: number; label: string } & WaveScore;
+type WaveHour = { time: string; hour: number; label: string; waveTop: WaveTop } & WaveScore;
 type WaveDay = {
   tomorrow: boolean;
   nowHour: number;
@@ -67,6 +67,7 @@ async function fetchWaveDayFrom(
     `wind_speed_${level}hPa`,
     `wind_direction_${level}hPa`,
     `temperature_${level}hPa`,
+    `cloud_cover_${level}hPa`,
   ]);
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}` +
@@ -109,13 +110,21 @@ async function fetchWaveDayFrom(
         complete = false;
         break;
       }
-      levels.push({ hPa, altM, speedKt, dirDeg, tempC });
+      levels.push({
+        hPa,
+        altM,
+        speedKt,
+        dirDeg,
+        tempC,
+        cloudCover: at(`cloud_cover_${hPa}hPa`, i),
+      });
     }
     if (!complete) continue;
 
     const score = computeWaveScore(levels);
-    if (!score) continue;
-    hours.push({ time, hour, label: hourLabel(hour), ...score });
+    const waveTop = estimateWaveTop(levels);
+    if (!score || !waveTop) continue;
+    hours.push({ time, hour, label: hourLabel(hour), waveTop, ...score });
   }
   if (hours.length === 0) throw new Error("empty wave window");
 
@@ -293,9 +302,153 @@ function ScorerProfile({
   );
 }
 
+/** The day's estimated climbing top, hour by hour, with any cloud ceiling shaded. */
+function WaveTopMeteogram({ hours }: { hours: WaveHour[] }) {
+  if (hours.length < 2) return null;
+  const tops = hours.map((hour) => hour.waveTop.topFt);
+  const yMax = Math.min(
+    55000,
+    Math.max(30000, Math.ceil((Math.max(...tops, 6288) + 1500) / 5000) * 5000),
+  );
+
+  const W = 980;
+  const H = 200;
+  const padL = 42;
+  const padR = 10;
+  const padT = 10;
+  const padB = 26;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  const x = (index: number) => padL + ((index + 0.5) / hours.length) * plotW;
+  const y = (altFt: number) => padT + (1 - Math.min(Math.max(altFt, 0), yMax) / yMax) * plotH;
+  const step = plotW / hours.length;
+
+  const altTicks: number[] = [];
+  for (let alt = 10000; alt <= yMax; alt += 10000) altTicks.push(alt);
+
+  const areaPath = [
+    ...hours.map(
+      (hour, index) =>
+        `${index === 0 ? "M" : "L"} ${x(index).toFixed(1)} ${y(hour.waveTop.topFt).toFixed(1)}`,
+    ),
+    `L ${x(hours.length - 1).toFixed(1)} ${y(6288).toFixed(1)}`,
+    `L ${x(0).toFixed(1)} ${y(6288).toFixed(1)}`,
+    "Z",
+  ].join(" ");
+  const linePath = hours
+    .map(
+      (hour, index) =>
+        `${index === 0 ? "M" : "L"} ${x(index).toFixed(1)} ${y(hour.waveTop.topFt).toFixed(1)}`,
+    )
+    .join(" ");
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="mt-3 w-full"
+      role="img"
+      aria-label="Estimated top of the usable wave, hour by hour"
+    >
+      {altTicks.map((alt) => (
+        <g key={alt}>
+          <line
+            x1={padL}
+            x2={W - padR}
+            y1={y(alt)}
+            y2={y(alt)}
+            className="stroke-slate-200"
+            vectorEffect="non-scaling-stroke"
+          />
+          <text
+            x={padL - 6}
+            y={y(alt) + 3}
+            textAnchor="end"
+            className="fill-slate-400 text-[9px] tabular-nums"
+          >
+            {alt / 1000}k
+          </text>
+        </g>
+      ))}
+
+      {hours.map((hour, index) =>
+        hour.waveTop.ceilingFt !== null && hour.waveTop.cloudTopFt !== null ? (
+          <rect
+            key={`cloud-${hour.time}`}
+            x={x(index) - step / 2}
+            y={y(hour.waveTop.cloudTopFt)}
+            width={step}
+            height={Math.max(1.5, y(hour.waveTop.ceilingFt) - y(hour.waveTop.cloudTopFt))}
+            className="fill-slate-400/50"
+          />
+        ) : null,
+      )}
+
+      <line
+        x1={padL}
+        x2={W - padR}
+        y1={y(6288)}
+        y2={y(6288)}
+        className="stroke-slate-300"
+        strokeDasharray="4 4"
+        vectorEffect="non-scaling-stroke"
+      />
+      <text
+        x={W - padR}
+        y={y(6288) - 4}
+        textAnchor="end"
+        className="fill-slate-400 text-[9px]"
+      >
+        summit 6,288 ft
+      </text>
+
+      <path d={areaPath} className="fill-sky-500/10" />
+      <path
+        d={linePath}
+        fill="none"
+        className="stroke-sky-600"
+        strokeWidth={1.8}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+
+      {hours.map((hour, index) => (
+        <circle key={hour.time} cx={x(index)} cy={y(hour.waveTop.topFt)} r={2.4} className="fill-sky-600">
+          <title>
+            {hour.label} · top {hour.waveTop.topFt.toLocaleString("en-US")} ft
+            {hour.waveTop.ceilingFt !== null
+              ? ` · cloud ceiling ${hour.waveTop.ceilingFt.toLocaleString("en-US")} ft`
+              : ""}
+          </title>
+        </circle>
+      ))}
+
+      {hours.map((hour, index) =>
+        index % 2 === 0 ? (
+          <text
+            key={`label-${hour.time}`}
+            x={x(index)}
+            y={H - 8}
+            textAnchor="middle"
+            className="fill-slate-400 text-[9px]"
+          >
+            {hour.label}
+          </text>
+        ) : null,
+      )}
+
+      <text x={padL - 6} y={padT + 8} textAnchor="end" className="fill-slate-400 text-[9px]">
+        ft
+      </text>
+    </svg>
+  );
+}
+
 export function WaveForecast() {
   const [day, setDay] = useState<WaveDay | null>(null);
   const [error, setError] = useState(false);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -305,6 +458,7 @@ export function WaveForecast() {
           if (!cancelled) {
             setDay(next);
             setError(false);
+            setSelectedTime((current) => current ?? next.peak.time);
           }
         })
         .catch(() => {
@@ -319,7 +473,9 @@ export function WaveForecast() {
     };
   }, []);
 
-  const peakLift = day ? Math.max(...day.hours.map((hour) => hour.liftFpm)) : 0;
+  const selected = day
+    ? (day.hours.find((hour) => hour.time === selectedTime) ?? day.peak)
+    : null;
 
   return (
     <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
@@ -335,68 +491,108 @@ export function WaveForecast() {
         </p>
       </div>
 
-      {day ? (
+      {day && selected ? (
         <>
-          <div className="mt-6 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-            <span className="font-display text-5xl font-bold leading-none tabular-nums text-sky-800">
-              {day.peak.score}
-            </span>
-            <span className="flex flex-col leading-tight">
-              <span className="font-display text-base font-semibold text-slate-900">
-                {signalLabel(day.peak.score)}
-              </span>
-              <span className="text-xs text-slate-500">
-                peak around {day.peak.label}
-                {peakLift >= 300
-                  ? ` · lift up to ~${peakLift.toLocaleString("en-US")} fpm`
-                  : " · lift marginal"}
-              </span>
-            </span>
+          <div className="mt-6 grid items-start gap-x-10 gap-y-6 xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+            <div>
+              <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                <span className="font-display text-5xl font-bold leading-none tabular-nums text-sky-800">
+                  {selected.score}
+                </span>
+                <span className="flex flex-col leading-tight">
+                  <span className="font-display text-base font-semibold text-slate-900">
+                    {signalLabel(selected.score)}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    {selected.label}
+                    {selected.liftFpm >= 300
+                      ? ` · lift up to ~${selected.liftFpm.toLocaleString("en-US")} fpm`
+                      : " · lift marginal"}
+                  </span>
+                </span>
+              </div>
+
+              <div className="mt-5 flex flex-wrap items-start gap-x-10 gap-y-5">
+                <ScorerProfile levels={selected.scorerLevels} />
+                <p className="max-w-sm text-[11px] leading-5 text-slate-400">
+                  At {selected.label} — from 1,000 hPa at the station end to 100 hPa aloft. Falling
+                  with height is what lets the wave propagate; negative values are unstable layers
+                  that cannot carry it.
+                </p>
+              </div>
+
+              <p className="mt-4 text-[11px] leading-5 text-slate-400">
+                Cross-ridge wind {selected.ridgeKt} kt ({directionLetters(selected.ridgeDirDeg)}) at
+                ridge-top, {selected.aloftKt} kt aloft · Scorer {scorer(selected.lowScorer)} →{" "}
+                {scorer(selected.highScorer)} (×10⁻⁷ m⁻²) · N{" "}
+                {(selected.bruntLow * 100).toFixed(1)}×10⁻² s⁻¹.
+              </p>
+            </div>
+
+            <div className="order-first xl:order-none">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  By hour
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  peak {day.peak.score} · {day.peak.label}
+                </p>
+              </div>
+              <div className="mt-2 grid gap-1">
+                {day.hours.map((hour) => {
+                  const isSelected = hour.time === selected.time;
+                  const isNow = !day.tomorrow && hour.hour === day.nowHour;
+                  return (
+                    <button
+                      key={hour.time}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => setSelectedTime(hour.time)}
+                      className={`grid grid-cols-[3.5rem_2.25rem_minmax(0,1fr)_4.5rem] items-center gap-2.5 rounded-xl px-3 py-2 text-left transition-colors ${
+                        isSelected ? "bg-sky-50 ring-1 ring-sky-200" : "hover:bg-slate-50"
+                      }`}
+                    >
+                      <span
+                        className={`text-xs font-medium ${isSelected ? "text-sky-700" : "text-slate-500"}`}
+                      >
+                        {hour.label}
+                        {isNow ? " · now" : ""}
+                      </span>
+                      <span className="font-display text-sm font-bold tabular-nums text-slate-900">
+                        {hour.score}
+                      </span>
+                      <span className="relative block h-1.5 overflow-hidden rounded-full bg-slate-100">
+                        <span
+                          className={`absolute inset-y-0 left-0 rounded-full ${scoreBar(hour.score)}`}
+                          style={{ width: `${Math.max(4, hour.score)}%` }}
+                        />
+                      </span>
+                      <span className="text-right text-[11px] tabular-nums text-slate-400">
+                        {hour.liftFpm >= 300 ? `~${hour.liftFpm.toLocaleString("en-US")} fpm` : "—"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-3 text-[11px] leading-5 text-slate-400">
+                Click an hour to read its Scorer profile on the left.
+              </p>
+            </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8">
-            {day.hours.map((hour) => {
-              const isNow = !day.tomorrow && hour.hour === day.nowHour;
-              return (
-                <div
-                  key={hour.time}
-                  title={`${hour.score} — ${signalLabel(hour.score)}`}
-                  className={`rounded-2xl px-2 py-3 text-center ring-1 ${
-                    isNow ? "bg-sky-50 ring-sky-200" : "bg-slate-50 ring-slate-900/5"
-                  }`}
-                >
-                  <p
-                    className={`text-[11px] font-medium ${isNow ? "text-sky-700" : "text-slate-500"}`}
-                  >
-                    {hour.label}
-                  </p>
-                  <p className="mt-1 font-display text-lg font-bold leading-none tabular-nums text-slate-900">
-                    {hour.score}
-                  </p>
-                  <p className="mt-1 text-[10px] tabular-nums text-slate-400">
-                    {hour.liftFpm >= 300 ? `~${hour.liftFpm.toLocaleString("en-US")} fpm` : "—"}
-                  </p>
-                  <span className={`mt-2 block h-1.5 rounded-full ${scoreBar(hour.score)}`} />
-                </div>
-              );
-            })}
+          <div className="mt-6 border-t border-slate-100 pt-5">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                Usable wave top · by hour
+              </p>
+              <p className="text-[11px] text-slate-400">
+                estimated climbing top · cloud layer shaded where it caps the climb
+              </p>
+            </div>
+            <WaveTopMeteogram hours={day.hours} />
           </div>
 
           <p className="mt-4 text-[11px] leading-5 text-slate-400">
-            At the peak: cross-ridge wind {day.peak.ridgeKt} kt (
-            {directionLetters(day.peak.ridgeDirDeg)}) at ridge-top, {day.peak.aloftKt} kt aloft ·
-            Scorer {scorer(day.peak.lowScorer)} → {scorer(day.peak.highScorer)} (×10⁻⁷ m⁻²) · N{" "}
-            {(day.peak.bruntLow * 100).toFixed(1)}×10⁻² s⁻¹.
-          </p>
-          <div className="mt-5 flex flex-wrap items-start gap-x-10 gap-y-5">
-            <ScorerProfile levels={day.peak.scorerLevels} />
-            <p className="max-w-sm text-[11px] leading-5 text-slate-400">
-              At the peak hour ({day.peak.label}) — from 1,000 hPa at the station end to 100 hPa
-              aloft. Falling with height is what lets the wave propagate; negative values are
-              unstable layers that cannot carry it.
-            </p>
-          </div>
-          <p className="mt-2 text-[11px] leading-5 text-slate-400">
             Lift is the N·h scale — the low-level stability over the height of the range — an upper
             bound, not a promise. An indicator from{" "}
             {day.source === "hrrr"
@@ -418,10 +614,19 @@ export function WaveForecast() {
           </a>
         </p>
       ) : (
-        <div className="mt-6 grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8" aria-hidden="true">
-          {Array.from({ length: 16 }).map((_, index) => (
-            <div key={index} className="h-20 animate-pulse rounded-2xl bg-slate-100" />
-          ))}
+        <div
+          className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]"
+          aria-hidden="true"
+        >
+          <div className="grid content-start gap-3">
+            <div className="h-12 w-44 animate-pulse rounded-2xl bg-slate-100" />
+            <div className="h-64 animate-pulse rounded-2xl bg-slate-100" />
+          </div>
+          <div className="grid content-start gap-2">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div key={index} className="h-9 animate-pulse rounded-xl bg-slate-100" />
+            ))}
+          </div>
         </div>
       )}
     </div>
