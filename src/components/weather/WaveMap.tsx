@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 import { flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellRgb, wMs, WaveLegend } from "@/components/weather/wave-field";
-import { buildWaveColumn, solveLinearWave } from "@/lib/linear-wave";
+import { buildWaveColumn, divideStreamline, saturateWave, solveLinearWave } from "@/lib/linear-wave";
 import { fetchRoadLines, type RoadLine } from "@/lib/roads";
 import {
   columnLevelsAt,
@@ -39,6 +39,7 @@ import {
 } from "@/lib/terrain-tiles";
 
 const REFRESH_MS = 45 * 60 * 1000;
+const FT_PER_M = 3.28084;
 
 /** The world (canvas) size — the map's true projected aspect, ~32 m per pixel. */
 const W = 1500;
@@ -294,6 +295,8 @@ export function WaveMap({
 
     const transects: number[][][] = [];
     let zM: number[] = [];
+    let centreDivider: { launchM: number; froude: number } | null = null;
+    const transectAzimuthDeg = (radians * 180) / Math.PI;
     for (let i = 0; i < TRANSECT_COUNT; i += 1) {
       const offsetKm = (i - (TRANSECT_COUNT - 1) / 2) * TRANSECT_SPACING_KM;
       const anchorLat = MAP_CENTER.lat + (crossN * offsetKm) / 111;
@@ -305,15 +308,27 @@ export function WaveMap({
         const lon = anchorLon + (alongE * dKm) / centreKmPerDegLon;
         terrain.push(sampleMosaic(solveMosaic, lat, lon));
       }
-      const baseM = terrain.reduce((sum, h) => sum + h, 0) / terrain.length;
-      const waveColumn = buildWaveColumn(levels, (radians * 180) / Math.PI, baseM);
+      // Each transect launches from its own dividing streamline; the blocked air
+      // below it is clipped away so only the obstacle above z_d forces the wave.
+      const meanM = terrain.reduce((sum, h) => sum + h, 0) / terrain.length;
+      const crestM = Math.max(...terrain);
+      const divider = divideStreamline(levels, transectAzimuthDeg, meanM, crestM);
+      const waveColumn = buildWaveColumn(levels, transectAzimuthDeg, divider.zD);
       if (!waveColumn) return null;
-      const solve = solveLinearWave({ terrainM: terrain, dxM: TRANSECT_DX_M, column: waveColumn });
-      if (!solve) return null;
+      const raw = solveLinearWave({
+        terrainM: terrain.map((h) => Math.max(h, divider.zD)),
+        dxM: TRANSECT_DX_M,
+        column: waveColumn,
+      });
+      if (!raw) return null;
+      const solve = saturateWave(raw, waveColumn, divider.froude);
       zM = solve.zM;
       transects.push(solve.w);
+      if (i === (TRANSECT_COUNT - 1) / 2) {
+        centreDivider = { launchM: divider.zD, froude: divider.froude };
+      }
     }
-    return { zM, transects, alongE, alongN, crossE, crossN, centreKmPerDegLon };
+    return { zM, transects, alongE, alongN, crossE, crossN, centreKmPerDegLon, centreDivider };
   }, [solveMosaic, column, selectedTime, upwind]);
 
   // Inputs arrived but the solver came back empty — a data problem, not a pending one.
@@ -505,6 +520,14 @@ export function WaveMap({
   };
 
   const ready = mosaic !== null && (mode === "linear" ? nodeValues !== null : data !== null);
+
+  // The caption carries the launch plane the solve actually used (1a).
+  const mapLaunchNote =
+    mode === "linear" && solvedField?.centreDivider
+      ? `launched from the dividing streamline at ${(
+          Math.round((solvedField.centreDivider.launchM * FT_PER_M) / 100) * 100
+        ).toLocaleString("en-US")} ft (Fr ${solvedField.centreDivider.froude.toFixed(2)}) at the map centre, with the amplitude Fr-scaled and capped at half the carrying flow`
+      : "";
 
   return (
     <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
@@ -750,7 +773,7 @@ export function WaveMap({
           <WaveLegend scale={mode === "linear" ? "linear" : "hrrr"} />
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
             {mode === "linear"
-              ? `Linear-theory estimate at ${definition.ft.toLocaleString("en-US")} ft — long terrain transects run along this hour's wind and are solved with the HRRR column, anchored at the range's mean height with the flow there doing the forcing. `
+              ? `Linear-theory estimate at ${definition.ft.toLocaleString("en-US")} ft — long terrain transects run along this hour's wind and are solved with the HRRR column, ${mapLaunchNote || "anchored at the range's mean height with the flow there doing the forcing"}. `
               : `Vertical velocity at ${definition.ft.toLocaleString("en-US")} ft over the Gorham country. `}
             The dashed circle is the LOA&apos;s Mount Washington Glider Area — a 10 NM radius around its
             centre — and the solid line is the cross-section above, this hour&apos;s wind line through

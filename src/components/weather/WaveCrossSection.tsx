@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 import { compassName, flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellFill, wMs, WaveLegend } from "@/components/weather/wave-field";
-import { buildWaveColumn, solveLinearWave, type SolveResult } from "@/lib/linear-wave";
+import { buildWaveColumn, divideStreamline, saturateWave, solveLinearWave, type SolveResult } from "@/lib/linear-wave";
 import {
   columnLevelsAt,
   fetchUpwindColumnRaw,
@@ -206,6 +206,8 @@ export function WaveCrossSection({
 
   // The linear solve for the selected hour — pure math (~0.1 ms), so it runs in render.
   let solve: SolveResult | null = null;
+  let launchM = 0;
+  let froude = 1;
   if (column && terrainLine && levels.length > 0) {
     // Only a sounding for THIS bucket is usable — a stale one would solve on the
     // previous direction until the new fetch resolves.
@@ -213,14 +215,30 @@ export function WaveCrossSection({
     const solveLevels = upwindColumn
       ? columnLevelsAt(upwindColumn.hourly, waveColumnHour(upwindColumn, selectedTime))
       : levels;
-    const baseM =
+    const meanM =
       terrainLine.elevationsM.reduce((sum, h) => sum + h, 0) / terrainLine.elevationsM.length;
-    const waveColumn = buildWaveColumn(solveLevels, transectAzimuth, baseM);
+    const crestM = Math.max(...terrainLine.elevationsM);
+    // Sheppard's dividing streamline: the blocked air below it does not force the
+    // wave, so the obstacle is the terrain above z_d and the column is anchored there.
+    const divider = divideStreamline(solveLevels, transectAzimuth, meanM, crestM);
+    launchM = divider.zD;
+    froude = divider.froude;
+    const terrainAbove = terrainLine.elevationsM.map((h) => Math.max(h, divider.zD));
+    const waveColumn = buildWaveColumn(solveLevels, transectAzimuth, divider.zD);
     if (waveColumn) {
-      solve = solveLinearWave({ terrainM: terrainLine.elevationsM, dxM: SOLVE_DX_M, column: waveColumn });
+      const raw = solveLinearWave({ terrainM: terrainAbove, dxM: SOLVE_DX_M, column: waveColumn });
+      if (raw) solve = saturateWave(raw, waveColumn, divider.froude);
     }
   }
   const linearUnavailable = linearError || (!solve && Boolean(terrainLine && column));
+
+  // The caption carries the launch plane the solve actually used (1a).
+  const launchNote =
+    solve && launchM > 0
+      ? `, launched from the dividing streamline at ${(
+          Math.round((launchM * FT_PER_M) / 100) * 100
+        ).toLocaleString("en-US")} ft (Fr ${froude.toFixed(2)})`
+      : "";
 
   const data = field?.data ?? null;
   const staleField = field !== null && bucket !== null && field.bucket !== bucket;
@@ -519,7 +537,7 @@ export function WaveCrossSection({
           {content}
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
             {mode === "linear"
-              ? `Linear-theory estimate: the steady wave equation solved from the terrain profile and the HRRR column, on this hour's wind line (${windLabel}) through the LOA's Glider Area centre — the chart is the slice inside the 10 NM circle. The model's own pressure-level vertical velocity is much smoother; switch the field to HRRR for comparison.`
+              ? `Linear-theory estimate: the steady wave equation solved from the terrain profile and the HRRR column${launchNote}, on this hour's wind line (${windLabel}) through the LOA's Glider Area centre — the chart is the slice inside the 10 NM circle. The amplitude is Fr-scaled below 1 and capped at half the carrying flow. The model's own pressure-level vertical velocity is much smoother; switch the field to HRRR for comparison.`
               : `The model's own vertical velocity along this hour's wind line (${windLabel}) through the LOA's Glider Area centre, grey being the terrain.`}{" "}
             Warm colours are lift, blue is sink — pick any hour above; the wave panel shares the
             selection.

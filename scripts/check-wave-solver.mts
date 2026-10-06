@@ -12,7 +12,14 @@
 //    independently written reference. This guards the real-field factor of 2 (missing it
 //    halves every value — a linear error that split-invariance cannot see) and the
 //    density amplification's direction and power.
-import { buildWaveColumn, solveLinearWave, type WaveColumnLayer } from "../src/lib/linear-wave.ts";
+import {
+  buildWaveColumn,
+  dominantWavelengthKm,
+  saturateWave,
+  solveLinearWave,
+  type WaveColumn,
+  type WaveColumnLayer,
+} from "../src/lib/linear-wave.ts";
 import type { WaveColumnLevel } from "../src/lib/linear-wave.ts";
 
 const G = 9.81;
@@ -51,7 +58,13 @@ const split = (column: NonNullable<typeof baseline>, n: number) => {
   for (const layer of column.layers) {
     const span = (layer.zTopM - previousTop) / n;
     for (let i = 1; i <= n; i += 1) {
-      layers.push({ zTopM: previousTop + span * i, l2: layer.l2, amp: layer.amp });
+      layers.push({
+        zTopM: previousTop + span * i,
+        n2: layer.n2,
+        uMs: layer.uMs,
+        l2: layer.l2,
+        amp: layer.amp,
+      });
     }
     previousTop = layer.zTopM;
   }
@@ -187,3 +200,109 @@ for (const targetZ of [1500, 1200 + 7000]) {
   );
 }
 if (failed) throw new Error("wave solver amplitude reference failed — check the factor 2 and the density factor");
+
+// ------------------------------------------------------------- saturation rules
+//
+// Fr ≥ 1: the solve passes through unscaled, still capped at half each layer's flow.
+// Fr < 1: scaled by Fr (pinned p = 1), so Fr = 0.5 keeps half.
+const layerStub = (uMs: number, amp: number): WaveColumnLayer => ({ zTopM: 1000, n2: 1e-4, uMs, l2: 1e-7, amp });
+const satColumn: WaveColumn = {
+  layers: [layerStub(20, 1), layerStub(10, 1)],
+  uSurfaceMs: 20,
+  baseM: 0,
+};
+const satSolve = { zM: [1000, 2000], w: [[40, -40, 4], [4, -4, 0]] };
+const satHalf = saturateWave(satSolve, satColumn, 0.5);
+const satOne = saturateWave(satSolve, satColumn, 1.2);
+const expectHalf = [[10, -10, 2], [2, -2, 0]]; // ×0.5, then capped at 0.5·U (10, 5)
+const expectOne = [[10, -10, 4], [4, -4, 0]]; // uncapped except level0's 40 → 10
+const close = (a: number[], b: number[]) => a.every((value, i) => Math.abs(value - b[i]) < 1e-12);
+if (!close(satHalf.w[0], expectHalf[0]) || !close(satHalf.w[1], expectHalf[1]) || !close(satOne.w[0], expectOne[0]) || !close(satOne.w[1], expectOne[1])) {
+  throw new Error(`saturation failed: half=${JSON.stringify(satHalf.w)}, one=${JSON.stringify(satOne.w)}`);
+}
+console.log("wave solver: saturation ok (Fr<1 halves and caps at 0.5·U; Fr≥1 only caps)");
+
+// --------------------------------------------- two-layer trapped resonance (Scorer)
+//
+// A lower layer of depth H (Scorer l1²) over a lid (l2²), with l2² < k² < l1², traps
+// the mode whose k solves
+//
+//     tan(m1 H) = −m1/|m2|,   m1² = l1² − k²,   |m2|² = k² − l2².
+//
+// A broad Gaussian ridge carries energy at every k, so the solved line's dominant
+// wavelength must sit on that resonance. This is the regression that pins the launch
+// plane reference, the Rayleigh damping and the shared verticalResponse together.
+const TWO_N1 = 2.5e-4; // lower-layer N², s⁻²
+const TWO_N2 = 4e-5; // lid N², s⁻²
+const TWO_U = 20; // along-transect wind, m/s
+const TWO_BASE = 400;
+const TWO_LID_ASL = 3400; // the N² step, metres ASL — 3000 m above the base
+
+const twoLevels: WaveColumnLevel[] = [];
+for (let zM = 200; zM <= 20000; zM += 200) {
+  const theta =
+    zM < TWO_LID_ASL
+      ? 300 * Math.exp((TWO_N1 * (zM - TWO_BASE)) / G)
+      : 300 * Math.exp((TWO_N1 * (TWO_LID_ASL - TWO_BASE)) / G) *
+        Math.exp((TWO_N2 * (zM - TWO_LID_ASL)) / G);
+  const hPa = 1000 * Math.exp(-zM / 8000);
+  twoLevels.push({ hPa, zM, tempC: theta * Math.pow(hPa / 1000, 0.2854) - 273.15, speedMs: TWO_U, dirDeg: 285 });
+}
+
+const TWO_N = 1024;
+const TWO_DX = 500;
+const twoRidge = Array.from({ length: TWO_N }, (_, i) => {
+  const x = (i - (TWO_N - 1) / 2) * TWO_DX;
+  return TWO_BASE + 500 * Math.exp(-(x * x) / (2 * 4000 * 4000));
+});
+const twoColumn = buildWaveColumn(twoLevels, 105, TWO_BASE);
+if (!twoColumn) throw new Error("two-layer column failed");
+const twoSolve = solveLinearWave({ terrainM: twoRidge, dxM: TWO_DX, column: twoColumn, damping: 1e-6 });
+if (!twoSolve) throw new Error("two-layer solve failed");
+
+const l1sq = twoColumn.layers[0].l2;
+const isLid = (layer: WaveColumnLayer) => layer.n2 < (TWO_N1 + TWO_N2) / 2;
+const lidLayer = twoColumn.layers.find(isLid);
+if (!lidLayer) throw new Error("two-layer column has no lid");
+let H = 0;
+for (const layer of twoColumn.layers) if (!isLid(layer)) H = layer.zTopM;
+const l2sq = lidLayer.l2;
+
+// Solve tan(m1 H) = −m1/|m2| for k by bisection on the first (π/2, π) branch:
+// g(k) = tan(m1 H)·|m2| + m1 is positive at the k where |m2| → 0 and negative as
+// m1 H → π/2 from above.
+const gOf = (k: number) => {
+  const m1 = Math.sqrt(Math.max(l1sq - k * k, 0));
+  const m2 = Math.sqrt(Math.max(k * k - l2sq, 0));
+  return Math.tan(m1 * H) * m2 + m1;
+};
+let loK = Math.sqrt(l2sq) + 1e-8;
+let hiK = Math.sqrt(Math.max(l1sq - (Math.PI / (2 * H)) ** 2, 0)) - 1e-9;
+if (!(gOf(loK) > 0 && gOf(hiK) < 0)) {
+  throw new Error(`two-layer bracket failed: g(lo)=${gOf(loK)}, g(hi)=${gOf(hiK)}`);
+}
+for (let i = 0; i < 100; i += 1) {
+  const mid = (loK + hiK) / 2;
+  if (gOf(mid) > 0) loK = mid;
+  else hiK = mid;
+}
+const analyticK = (loK + hiK) / 2;
+const analyticWavelengthKm = (2 * Math.PI) / analyticK / 1000;
+
+let twoLi = 0;
+for (let i = 1; i < twoSolve.zM.length; i += 1) {
+  if (Math.abs(twoSolve.zM[i] - 2000) < Math.abs(twoSolve.zM[twoLi] - 2000)) twoLi = i;
+}
+const measuredKm = dominantWavelengthKm(twoSolve.w[twoLi], TWO_DX);
+if (measuredKm === null) throw new Error("dominantWavelengthKm returned null");
+const wavelengthError = Math.abs(measuredKm - analyticWavelengthKm) / analyticWavelengthKm;
+console.log(
+  `wave solver: two-layer duct (l1²=${l1sq.toExponential(3)}, l2²=${l2sq.toExponential(3)}, H=${H} m): ` +
+    `analytic λ=${analyticWavelengthKm.toFixed(3)} km, measured λ=${measuredKm.toFixed(3)} km ` +
+    `(error ${(100 * wavelengthError).toFixed(2)}%) ${wavelengthError <= 0.05 ? "ok" : "FAILED"}`,
+);
+if (wavelengthError > 0.05) {
+  throw new Error(
+    `two-layer resonance wavelength off by ${(100 * wavelengthError).toFixed(1)}% — the layered integration or the wavelength diagnostic has drifted`,
+  );
+}
