@@ -20,6 +20,13 @@ const nextConfig: NextConfig = {
       { source: "/documents/:year", destination: "/flying", permanent: true },
       { source: "/press", destination: "/more", permanent: true },
       { source: "/links", destination: "/more", permanent: true },
+      // The LOA revalidation memo stays in its original format — no web edition; the
+      // brief-lived reading URL points at the signed PDF.
+      {
+        source: "/flying/2027-2028-loa-revalidation",
+        destination: "/files/2027-2028-loa-revalidation.pdf",
+        permanent: true,
+      },
     ];
   },
 };

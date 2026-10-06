@@ -2248,60 +2248,6 @@ export const documentTexts: Record<string, DocumentText> = {
       }
     ]
   },
-  "2027-2028-loa-revalidation": {
-    "pages": 1,
-    "bytes": 160446,
-    "blocks": [
-      {
-        "type": "p",
-        "text": "Memorandum Date: October 6, 2026 To: James David, Soaring Society of America From: Shelly L Fogarty, Boston District Support Manager, SHELLY L Digitally signed by SHELLY L FOGARTY"
-      },
-      {
-        "type": "p",
-        "text": "Airspace and Procedures, Boston ARTCC, ZBW-530 FOGARTY Date: 2026.10.06 06:37:38 -04'00'"
-      },
-      {
-        "type": "p",
-        "text": "Subject: 2027-2028 LOA Revalidation: Boston ARTCC and Soaring Society of America"
-      },
-      {
-        "type": "p",
-        "text": "This memo acknowledges that Boston Air Route Traffic Control Center (ARTCC) accepts that Soaring Society of America declared that they wish to continue the joint LOA dated October 14, 2021."
-      },
-      {
-        "type": "p",
-        "text": "Boston ARTCC will continue to honor this agreement for one year with no changes to the document. The next revalidation will be due by September 22, 2028"
-      },
-      {
-        "type": "p",
-        "text": "The Soaring Society of America provided the following information, as per the LOA:"
-      },
-      {
-        "type": "p",
-        "text": "Company: Soaring Society of America"
-      },
-      {
-        "type": "p",
-        "text": "POC Name: James David"
-      },
-      {
-        "type": "p",
-        "text": "Address: P.O. Box 898, Franconia, NH 03580"
-      },
-      {
-        "type": "p",
-        "text": "Phone: 603-921-1588"
-      },
-      {
-        "type": "p",
-        "text": "Email: tangofour@protonmail.com"
-      },
-      {
-        "type": "p",
-        "text": "Statement of The Soaring Society of America wishes to continue this airspace Use: relationship with Boston ZBW ARTCC. They request to extend the LOA until September 22, 2028 to coincide with their Class A waiver."
-      }
-    ]
-  },
   "2024-northcraft-legal-interpretation": {
     "pages": 2,
     "bytes": 246616,

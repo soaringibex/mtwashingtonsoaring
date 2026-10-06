@@ -41,7 +41,7 @@ export function Header() {
             >
               {item.label}
               {item.beta ? (
-                <span className="ml-0.5 align-sub text-[9px] font-semibold tracking-wide text-sky-600">
+                <span className="ml-1 inline-block align-sub rounded-full bg-slate-100 px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">
                   beta
                 </span>
               ) : null}
@@ -89,7 +89,7 @@ export function Header() {
                 >
                   {item.label}
                   {item.beta ? (
-                    <span className="ml-1 align-sub text-[10px] font-semibold tracking-wide text-sky-600">
+                    <span className="ml-1.5 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
                       beta
                     </span>
                   ) : null}
