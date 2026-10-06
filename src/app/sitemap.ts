@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "", priority: 1 },
     { path: "/history", priority: 0.8 },
     { path: "/flying", priority: 0.8 },
+    { path: "/wx", priority: 0.7 },
     { path: "/stories", priority: 0.6 },
     { path: "/gallery", priority: 0.7 },
     { path: "/accomplishments", priority: 0.6 },

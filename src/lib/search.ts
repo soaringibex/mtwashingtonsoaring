@@ -63,6 +63,14 @@ const pages: SearchEntry[] = [
     keywords: "current conditions wind live weather profile sounding gorham heights speeds",
   },
   {
+    title: "Wx Brief — the day's wave forecast",
+    href: "/wx",
+    kind: "page",
+    text: "The day's wave forecast for Mount Washington — the live column of wind aloft, the summit forecast hour by hour, and the forecasts to read before you fly.",
+    keywords:
+      "weather wx brief forecast briefing wind summit wave conditions column aloft gfs open-meteo nws observatory hourly",
+  },
+  {
     title: "History",
     href: "/history",
     kind: "page",
