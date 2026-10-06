@@ -156,18 +156,19 @@ function ScorerProfile({
   levels: { hPa: number; altM: number; scorer: number | null }[];
 }) {
   const points = levels.filter(
-    (level): level is { hPa: number; altM: number; scorer: number } => level.scorer !== null,
+    (level): level is { hPa: number; altM: number; scorer: number } =>
+      level.scorer !== null && level.hPa <= 850,
   );
   if (points.length < 2) return null;
 
   const FT_PER_M = 3.28084;
   const values = points.map((point) => point.scorer * 1e7);
-  // The surface layers can spike hard (unstable air, or near-calm winds); clip the
-  // display to a window where the wave-relevant structure is still readable.
+  // The lowest levels can still spike (unstable air, near-calm winds); clip the display
+  // to a window where the wave-relevant structure is readable.
   const xMin = Math.max(Math.min(0, Math.floor(Math.min(...values))), -10);
   const xMax = Math.max(Math.min(Math.ceil(Math.max(...values)), 15), xMin + 10);
   const alts = points.map((point) => point.altM * FT_PER_M);
-  const yMin = Math.max(0, Math.floor(Math.min(...alts) / 5000) * 5000);
+  const yMin = Math.max(0, Math.floor((Math.min(...alts) - 500) / 1000) * 1000);
   const yMax = Math.ceil(Math.max(...alts) / 5000) * 5000;
 
   const W = 300;
@@ -192,7 +193,9 @@ function ScorerProfile({
   const altSpan = yMax - yMin;
   const altStep = altSpan <= 12000 ? 5000 : 10000;
   const altTicks: number[] = [];
-  for (let alt = yMin; alt <= yMax; alt += altStep) altTicks.push(alt);
+  for (let alt = Math.ceil(yMin / altStep) * altStep; alt <= yMax; alt += altStep) {
+    altTicks.push(alt);
+  }
 
   const path = points
     .map((point) => `${x(point.scorer * 1e7).toFixed(1)},${y(point.altM * FT_PER_M).toFixed(1)}`)
@@ -515,9 +518,9 @@ export function WaveForecast() {
               <div className="mt-5 flex flex-wrap items-start gap-x-10 gap-y-5">
                 <ScorerProfile levels={selected.scorerLevels} />
                 <p className="max-w-sm text-[11px] leading-5 text-slate-400">
-                  At {selected.label} — from 1,000 hPa at the station end to 100 hPa aloft. Falling
-                  with height is what lets the wave propagate; negative values are unstable layers
-                  that cannot carry it.
+                  At {selected.label} — the ridge-height band (850 hPa) up to 100 hPa aloft.
+                  Falling with height is what lets the wave propagate; negative values are
+                  unstable layers that cannot carry it.
                 </p>
               </div>
 
