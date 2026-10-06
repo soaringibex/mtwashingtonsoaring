@@ -99,8 +99,9 @@ export function estimateWaveTop(levels: WaveLevel[]): WaveTop | null {
     topM = upper.altM;
   }
 
-  // Tropopause estimate: the first layer above 400 hPa that is no longer cooling at a
-  // tropospheric rate. Waves effectively stop there.
+  // Tropopause estimate: the first layer above 400 hPa that is no longer cooling at the
+  // standard tropopause rate (WMO: lapse under 2 K/km), read at its lower level. Waves
+  // effectively stop there.
   let tropopauseM: number | null = null;
   for (let i = 0; i < sorted.length - 1; i += 1) {
     const lower = sorted[i];
@@ -109,8 +110,8 @@ export function estimateWaveTop(levels: WaveLevel[]): WaveTop | null {
     const dz = upper.altM - lower.altM;
     if (!(dz > 0)) continue;
     const lapsePerKm = ((upper.tempC - lower.tempC) / dz) * 1000;
-    if (lapsePerKm > -1) {
-      tropopauseM = upper.altM;
+    if (lapsePerKm > -2) {
+      tropopauseM = lower.altM;
       break;
     }
   }
