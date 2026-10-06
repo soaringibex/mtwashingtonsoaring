@@ -187,8 +187,9 @@ export function WaveCrossSection({
   // The linear solve for the selected hour — pure math (~0.1 ms), so it runs in render.
   let solve: SolveResult | null = null;
   if (column && terrainLine && levels.length > 0) {
-    const crestM = Math.max(...terrainLine.elevationsM);
-    const waveColumn = buildWaveColumn(levels, transectAzimuth, crestM);
+    const baseM =
+      terrainLine.elevationsM.reduce((sum, h) => sum + h, 0) / terrainLine.elevationsM.length;
+    const waveColumn = buildWaveColumn(levels, transectAzimuth, baseM);
     if (waveColumn) {
       solve = solveLinearWave({ terrainM: terrainLine.elevationsM, dxM: SOLVE_DX_M, column: waveColumn });
     }

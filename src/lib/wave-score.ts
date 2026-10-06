@@ -51,8 +51,16 @@ export const WAVE_LEVELS = [
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 /** Eastward wind component in knots — positive is a westerly (cross-ridge) wind. */
-export function eastwardKt(speedKt: number, dirDeg: number): number {
-  return -speedKt * Math.sin((dirDeg * Math.PI) / 180);
+/** The ridge's lee side — the Presidential crest runs ~40°/220°, so the normal is 305°/125°. */
+const RIDGE_LEE_DEG = 125;
+
+/**
+ * The wind's component across the ridge (positive toward the SE lee side). A wind along
+ * the range (SW/NE) correctly scores near zero; a pure eastward projection cannot see
+ * that, and over-scores along-range days.
+ */
+export function crossRidgeKt(speedKt: number, dirDeg: number): number {
+  return speedKt * Math.cos(((dirDeg + 180 - RIDGE_LEE_DEG) * Math.PI) / 180);
 }
 
 const potentialTemperature = (tempC: number, hPa: number) =>
@@ -108,22 +116,23 @@ export function estimateWaveTop(
     const lower = sorted[i];
     const upper = sorted[i + 1];
     if (upper.altM <= ridgeM) continue;
-    const u = eastwardKt(upper.speedKt, upper.dirDeg);
+    const u = crossRidgeKt(upper.speedKt, upper.dirDeg);
     const stable = potentialTemperature(upper.tempC, upper.hPa) > potentialTemperature(lower.tempC, lower.hPa);
     if (u < 5 || !stable) break;
     topM = upper.altM;
   }
 
-  // Tropopause estimate: the first layer above 400 hPa that is no longer cooling at the
-  // standard tropopause rate (WMO: lapse under 2 K/km), read at its lower level. Waves
-  // effectively stop there.
+  // Tropopause estimate (WMO): the first level above 400 hPa whose lapse rate over the
+  // NEXT TWO KILOMETRES is under 2 K/km — a single thin warm layer is not enough.
   let tropopauseM: number | null = null;
   for (let i = 0; i < sorted.length - 1; i += 1) {
     const lower = sorted[i];
-    const upper = sorted[i + 1];
-    if (upper.hPa > 400) continue;
+    if (lower.hPa > 400) continue;
+    let j = i + 1;
+    while (j < sorted.length - 1 && sorted[j].altM - lower.altM < 2000) j += 1;
+    const upper = sorted[j];
     const dz = upper.altM - lower.altM;
-    if (!(dz > 0)) continue;
+    if (dz < 2000) break; // not enough column left to confirm the criterion
     const lapsePerKm = ((upper.tempC - lower.tempC) / dz) * 1000;
     if (lapsePerKm > -2) {
       tropopauseM = lower.altM;
@@ -203,7 +212,7 @@ export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
     const thetaUpper = potentialTemperature(upper.tempC, upper.hPa);
     const brunt = (G / ((thetaLower + thetaUpper) / 2)) * ((thetaUpper - thetaLower) / dz); // N²
     const u =
-      ((eastwardKt(lower.speedKt, lower.dirDeg) + eastwardKt(upper.speedKt, upper.dirDeg)) / 2) *
+      ((crossRidgeKt(lower.speedKt, lower.dirDeg) + crossRidgeKt(upper.speedKt, upper.dirDeg)) / 2) *
       KT_TO_MS;
     const valid = u > 0 && brunt > 0;
     layers.push({
@@ -240,8 +249,8 @@ export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
     );
   const ridgeLevel = nearest(800);
   const aloftLevel = nearest(500);
-  const ridgeKt = eastwardKt(ridgeLevel.speedKt, ridgeLevel.dirDeg);
-  const aloftKt = eastwardKt(aloftLevel.speedKt, aloftLevel.dirDeg);
+  const ridgeKt = crossRidgeKt(ridgeLevel.speedKt, ridgeLevel.dirDeg);
+  const aloftKt = crossRidgeKt(aloftLevel.speedKt, aloftLevel.dirDeg);
 
   const ridge = clamp01((ridgeKt - 8) / 32); // 8 kt → 0, 40 kt → 1
   const aloft = clamp01((aloftKt - 15) / 45); // 15 kt → 0, 60 kt → 1

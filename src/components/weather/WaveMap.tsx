@@ -53,30 +53,25 @@ const TERRAIN_BOUNDS = {
 };
 
 /**
- * The solves run from a wider, coarser tile set — every cell's terrain profile reaches
- * beyond the display, and z10 (110 m) is far finer than the profiles' 1.6 km sampling.
+ * The solves run as long parallel transects across the map, then the nodes sample them.
+ * A per-node 48-km profile tapered the range away for the lee rows — a crest 16 km
+ * upwind was scaled to 81% and 24 km to zero, suppressing the wave train exactly where
+ * it matters — so each transect now spans 120 km of terrain along the flow, at z10's
+ * ~110 m resolution, sampled at 1.2 km.
  */
 const SOLVE_BOUNDS = {
-  west: MAP_LON_MIN - 0.32,
-  south: MAP_LAT_MIN - 0.24,
-  east: MAP_LON_MIN + MAP_LON_SPAN + 0.32,
-  north: MAP_LAT_MIN + MAP_LAT_SPAN + 0.24,
+  west: MAP_LON_MIN - 0.85,
+  south: MAP_LAT_MIN - 0.62,
+  east: MAP_LON_MIN + MAP_LON_SPAN + 0.85,
+  north: MAP_LAT_MIN + MAP_LAT_SPAN + 0.62,
 };
 const SOLVE_ZOOM = 10;
 
-/**
- * Every model node is solved: the day's trapped mode runs ~10 km, so solving every
- * second node (5.3 km) under-sampled it and smeared the bands — at 2.7 km the field is
- * resolved (≈3.7 samples per wavelength).
- */
-const SOLVE_STEP = 1;
-const SOLVE_NODES = MAP_GRID.filter(
-  (_, i) => Math.floor(i / MAP_COLS) % SOLVE_STEP === 0 && (i % MAP_COLS) % SOLVE_STEP === 0,
-);
-
-const SOLVE_DX_M = 1600;
-const PROFILE_DISTANCES = Array.from({ length: 31 }, (_, i) => (i - 15) * 1.6);
-const PROFILE_CENTER = 15;
+const TRANSECT_COUNT = 21;
+const TRANSECT_SPACING_KM = 2.4;
+const TRANSECT_DX_M = 1200;
+const TRANSECT_SAMPLES = 101; // ±60 km
+const MAP_CENTER = { lat: MAP_LAT_MIN + MAP_LAT_SPAN / 2, lon: MAP_LON_MIN + MAP_LON_SPAN / 2 };
 
 const PLACES = [
   { name: "Gorham · 2G8", lat: 44.393, lon: -71.196, primary: true },
@@ -271,28 +266,41 @@ export function WaveMap({
     };
   }, []);
 
-  // Solve every second node's wind-line transect once per hour (the level pick is free
-  // after that). Pure math, so it rides a memo rather than an effect.
+  // Solve the transects once per hour (the level pick is free after that). Pure math,
+  // so it rides a memo rather than an effect.
   const solvedField = useMemo(() => {
     if (!solveMosaic || !column) return null;
     const hour = waveColumnHour(column, selectedTime);
     const levels = columnLevelsAt(column.hourly, hour);
-    const transectAzimuth = (waveAzimuth(levels) + 180) % 360;
-    const center: number[][] = [];
+    const radians = (((waveAzimuth(levels) + 180) % 360) * Math.PI) / 180;
+    const alongE = Math.sin(radians);
+    const alongN = Math.cos(radians);
+    const crossE = Math.sin(radians + Math.PI / 2);
+    const crossN = Math.cos(radians + Math.PI / 2);
+    const centreKmPerDegLon = 111 * Math.cos((MAP_CENTER.lat * Math.PI) / 180);
+
+    const transects: number[][][] = [];
     let zM: number[] = [];
-    for (const cell of SOLVE_NODES) {
-      const terrain = PROFILE_DISTANCES.map((d) => {
-        const point = alongTransect(cell, transectAzimuth, d);
-        return sampleMosaic(solveMosaic, point.lat, point.lon);
-      });
-      const waveColumn = buildWaveColumn(levels, transectAzimuth, Math.max(...terrain));
+    for (let i = 0; i < TRANSECT_COUNT; i += 1) {
+      const offsetKm = (i - (TRANSECT_COUNT - 1) / 2) * TRANSECT_SPACING_KM;
+      const anchorLat = MAP_CENTER.lat + (crossN * offsetKm) / 111;
+      const anchorLon = MAP_CENTER.lon + (crossE * offsetKm) / centreKmPerDegLon;
+      const terrain: number[] = [];
+      for (let j = 0; j < TRANSECT_SAMPLES; j += 1) {
+        const dKm = (j - (TRANSECT_SAMPLES - 1) / 2) * (TRANSECT_DX_M / 1000);
+        const lat = anchorLat + (alongN * dKm) / 111;
+        const lon = anchorLon + (alongE * dKm) / centreKmPerDegLon;
+        terrain.push(sampleMosaic(solveMosaic, lat, lon));
+      }
+      const baseM = terrain.reduce((sum, h) => sum + h, 0) / terrain.length;
+      const waveColumn = buildWaveColumn(levels, (radians * 180) / Math.PI, baseM);
       if (!waveColumn) return null;
-      const solve = solveLinearWave({ terrainM: terrain, dxM: SOLVE_DX_M, column: waveColumn });
+      const solve = solveLinearWave({ terrainM: terrain, dxM: TRANSECT_DX_M, column: waveColumn });
       if (!solve) return null;
       zM = solve.zM;
-      center.push(solve.w.map((line) => line[PROFILE_CENTER]));
+      transects.push(solve.w);
     }
-    return { zM, center };
+    return { zM, transects, alongE, alongN, crossE, crossN, centreKmPerDegLon };
   }, [solveMosaic, column, selectedTime]);
 
   // Inputs arrived but the solver came back empty — a data problem, not a pending one.
@@ -319,7 +327,26 @@ export function WaveMap({
           levelIndex = i;
         }
       }
-      return solvedField.center.map((levelsAtNode) => levelsAtNode[levelIndex]);
+      // Each node samples the transect pair nearest its cross-flow position, at its own
+      // along-flow distance.
+      const { alongE, alongN, crossE, crossN, centreKmPerDegLon } = solvedField;
+      return MAP_GRID.map((node) => {
+        const dE = (node.lon - MAP_CENTER.lon) * centreKmPerDegLon;
+        const dN = (node.lat - MAP_CENTER.lat) * 111;
+        const alongKm = dE * alongE + dN * alongN;
+        const crossKm = dE * crossE + dN * crossN;
+        const tPos = crossKm / TRANSECT_SPACING_KM + (TRANSECT_COUNT - 1) / 2;
+        const t0 = Math.min(Math.max(Math.floor(tPos), 0), TRANSECT_COUNT - 2);
+        const tFrac = Math.min(Math.max(tPos - t0, 0), 1);
+        const sPos = alongKm / (TRANSECT_DX_M / 1000) + (TRANSECT_SAMPLES - 1) / 2;
+        const s0 = Math.min(Math.max(Math.floor(sPos), 0), TRANSECT_SAMPLES - 2);
+        const sFrac = Math.min(Math.max(sPos - s0, 0), 1);
+        const at = (t: number) => {
+          const line = solvedField.transects[t][levelIndex];
+          return line[s0] * (1 - sFrac) + line[s0 + 1] * sFrac;
+        };
+        return at(t0) * (1 - tFrac) + at(t0 + 1) * tFrac;
+      });
     }
     const series = data?.w[level];
     if (!series) return null;
@@ -691,7 +718,7 @@ export function WaveMap({
           <WaveLegend scale={mode === "linear" ? "linear" : "hrrr"} />
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
             {mode === "linear"
-              ? `Linear-theory estimate at ${definition.ft.toLocaleString("en-US")} ft — each node's terrain profile runs along this hour's wind and is solved with the HRRR column, the ridge-top flow doing the forcing. `
+              ? `Linear-theory estimate at ${definition.ft.toLocaleString("en-US")} ft — long terrain transects run along this hour's wind and are solved with the HRRR column, anchored at the range's mean height with the flow there doing the forcing. `
               : `Vertical velocity at ${definition.ft.toLocaleString("en-US")} ft over the Gorham country. `}
             The dashed circle is the LOA&apos;s Mount Washington Glider Area — a 10 NM radius around its
             centre — and the solid line is the cross-section above, this hour&apos;s wind line through
