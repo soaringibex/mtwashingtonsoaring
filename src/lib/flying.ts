@@ -32,6 +32,14 @@ export const required: DocLink[] = [
       "The current Certificate of Waiver or Authorization issued to the Mt Washington Soaring Association — all attendees review and sign it before flying. A copy is hosted here for convenience; the signed original is kept at the field.",
     meta: "PDF",
   },
+  {
+    title: "2027–2028 LOA revalidation — Boston ARTCC memo",
+    href: "/files/2027-2028-loa-revalidation.pdf",
+    page: "/flying/2027-2028-loa-revalidation",
+    description:
+      "Boston ARTCC's acknowledgment that the Society wishes to continue the joint LOA dated October 14, 2021 — the agreement continues unchanged, with the next revalidation due by September 22, 2028.",
+    meta: "PDF",
+  },
 ];
 
 /** Staying sharp at altitude. */

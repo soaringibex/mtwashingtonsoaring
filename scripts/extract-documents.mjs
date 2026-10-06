@@ -62,6 +62,7 @@ const DOCS = [
     ],
   },
   { slug: "2026-loa", pdf: "public/files/2026-loa.pdf" },
+  { slug: "2027-2028-loa-revalidation", pdf: "public/files/2027-2028-loa-revalidation.pdf" },
   { slug: "2024-northcraft-legal-interpretation", pdf: "public/files/2024-northcraft-legal-interpretation.pdf" },
   { slug: "2024-memo-rescinding-kortokrax", pdf: "public/files/2024-memo-rescinding-kortokrax.pdf" },
   { slug: "2024-memo-rescinding-fretwell", pdf: "public/files/2024-memo-rescinding-fretwell.pdf" },
