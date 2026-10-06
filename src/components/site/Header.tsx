@@ -33,7 +33,7 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className={`rounded-full px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
                 isActive(item.href)
                   ? "bg-sky-50 text-sky-700"
                   : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -41,7 +41,7 @@ export function Header() {
             >
               {item.label}
               {item.beta ? (
-                <span className="ml-1 inline-block align-sub rounded-full bg-slate-100 px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                <span className="translate-y-[2.5px] rounded-full bg-slate-100 px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">
                   beta
                 </span>
               ) : null}
