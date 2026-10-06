@@ -63,7 +63,7 @@ export default function WxPage() {
           <SectionHeading
             eyebrow="The day's wave"
             title="Wave signal"
-            lede="A model-based reading of the day's wave potential, built on the Scorer parameter — the atmosphere's stability against the wind, written N²/U², and the way it falls with height. A falling Scorer over a steady cross-ridge flow is what lets Mount Washington's lee wave reach the flight levels."
+            lede="A model-based reading of the day's wave potential, built on the Scorer parameter — the atmosphere's stability against the wind, written N²/U², and the way it falls with height. A falling Scorer over a steady cross-ridge flow is what lets Mount Washington's lee wave reach the flight levels — and the score runs beside an estimate of the lift the wave can make."
           />
           <div className="mt-10">
             <WaveForecast />

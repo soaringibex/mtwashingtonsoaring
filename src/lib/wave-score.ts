@@ -24,10 +24,19 @@ export type WaveScore = {
   ridgeDirDeg: number;
   /** Cross-ridge component at 500 hPa, kt. */
   aloftKt: number;
+  /** Low-layer Brunt–Väisälä frequency, s⁻¹. */
+  bruntLow: number;
+  /** Estimated strongest wave lift, ft/min — the N·h scale, tapered by the cross-ridge flow. */
+  liftFpm: number;
 };
 
 const KT_TO_MS = 0.514444;
 const G = 9.81;
+/**
+ * The Presidential Range rises roughly 4,000 ft (1,200 m) above the valleys the
+ * wave-making flow crosses — the h in the N·h vertical-velocity scale.
+ */
+const WAVE_RELIEF_M = 1200;
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
@@ -48,7 +57,7 @@ export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
 
   // l² per layer between neighbouring levels. Only layers with a stable lapse and a
   // westerly component count — otherwise the ratio below would read a decline that isn't.
-  const layers: { midHPa: number; scorer: number; valid: boolean }[] = [];
+  const layers: { midHPa: number; scorer: number; brunt: number; valid: boolean }[] = [];
   for (let i = 0; i < sorted.length - 1; i += 1) {
     const lower = sorted[i];
     const upper = sorted[i + 1];
@@ -64,6 +73,7 @@ export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
     layers.push({
       midHPa: (lower.hPa + upper.hPa) / 2,
       scorer: valid ? brunt / (u * u) : 0,
+      brunt,
       valid,
     });
   }
@@ -95,6 +105,14 @@ export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
   const ridge = clamp01((ridgeKt - 8) / 32); // 8 kt → 0, 40 kt → 1
   const aloft = clamp01((aloftKt - 15) / 45); // 15 kt → 0, 60 kt → 1
 
+  // The wave's lift scale: w ≈ N·h over the lower layers — the standard upper scale for
+  // hydrostatic mountain-wave vertical velocity — tapered when the flow is only marginal.
+  const bruntLow = Math.sqrt(
+    Math.max(0, mean(lowLayers.filter((layer) => layer.valid).map((layer) => layer.brunt))),
+  );
+  const crossFactor = clamp01((ridgeKt - 5) / 15); // 5 kt → 0, 20 kt → 1
+  const liftFpm = Math.round((bruntLow * WAVE_RELIEF_M * 196.85 * crossFactor) / 100) * 100;
+
   const score = Math.round(100 * (0.4 * stability + 0.35 * ridge + 0.25 * aloft));
 
   return {
@@ -107,5 +125,7 @@ export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
     ridgeKt: Math.round(ridgeKt),
     ridgeDirDeg: ridgeLevel.dirDeg,
     aloftKt: Math.round(aloftKt),
+    bruntLow,
+    liftFpm,
   };
 }

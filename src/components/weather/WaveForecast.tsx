@@ -141,6 +141,8 @@ export function WaveForecast() {
     };
   }, []);
 
+  const peakLift = day ? Math.max(...day.hours.map((hour) => hour.liftFpm)) : 0;
+
   return (
     <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -162,7 +164,12 @@ export function WaveForecast() {
               <span className="font-display text-base font-semibold text-slate-900">
                 {signalLabel(day.peak.score)}
               </span>
-              <span className="text-xs text-slate-500">peak around {day.peak.label}</span>
+              <span className="text-xs text-slate-500">
+                peak around {day.peak.label}
+                {peakLift >= 300
+                  ? ` · lift up to ~${peakLift.toLocaleString("en-US")} fpm`
+                  : " · lift marginal"}
+              </span>
             </span>
           </div>
 
@@ -185,6 +192,9 @@ export function WaveForecast() {
                   <p className="mt-1 font-display text-lg font-bold leading-none tabular-nums text-slate-900">
                     {hour.score}
                   </p>
+                  <p className="mt-1 text-[10px] tabular-nums text-slate-400">
+                    {hour.liftFpm >= 300 ? `~${hour.liftFpm.toLocaleString("en-US")} fpm` : "—"}
+                  </p>
                   <span className={`mt-2 block h-1.5 rounded-full ${scoreBar(hour.score)}`} />
                 </div>
               );
@@ -194,12 +204,13 @@ export function WaveForecast() {
           <p className="mt-4 text-[11px] leading-5 text-slate-400">
             At the peak: cross-ridge wind {day.peak.ridgeKt} kt (
             {directionLetters(day.peak.ridgeDirDeg)}) at ridge-top, {day.peak.aloftKt} kt aloft ·
-            Scorer {scorer(day.peak.lowScorer)} → {scorer(day.peak.highScorer)} (×10⁻⁷ m⁻²).
+            Scorer {scorer(day.peak.lowScorer)} → {scorer(day.peak.highScorer)} (×10⁻⁷ m⁻²) · N{" "}
+            {(day.peak.bruntLow * 100).toFixed(1)}×10⁻² s⁻¹.
           </p>
           <p className="mt-2 text-[11px] leading-5 text-slate-400">
-            An indicator from the GEM-HRDPS model via Open-Meteo, not a promise — the wave still
-            has to line up on the day. The Observatory&apos;s higher-summits forecast is the one to
-            read before committing.
+            Lift is the N·h scale — the low-level stability over the height of the range — an upper
+            bound, not a promise. An indicator from the GEM-HRDPS model via Open-Meteo; the
+            Observatory&apos;s higher-summits forecast is the one to read before committing.
           </p>
         </>
       ) : error ? (
