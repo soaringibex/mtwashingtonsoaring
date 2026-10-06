@@ -3,6 +3,7 @@
 
 import { fetchJson } from "@/lib/fetch-json";
 import { FORECAST_MODELS, mergedSeries } from "@/lib/forecast-model";
+import { localStampFrom } from "@/lib/wx-window";
 
 const LATITUDE = 44.3931;
 const LONGITUDE = -71.1996;
@@ -36,19 +37,6 @@ export type WindDay = {
   hours: WindHour[];
   maxSpeedKt: number;
 };
-
-/** "2026-10-06T14:00" + offset −14400 → "Oct 6, 2:00 PM EDT". */
-function labelFrom(time: string, offsetSeconds: number): string {
-  const instantMs = Date.parse(`${time}:00Z`) - offsetSeconds * 1000;
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/New_York",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZoneName: "short",
-  }).format(new Date(instantMs));
-}
 
 export async function fetchWindDay(): Promise<WindDay> {
   const variables = [
@@ -123,7 +111,7 @@ export async function fetchWindDay(): Promise<WindDay> {
       time: times[index],
       instantMs: Date.parse(`${times[index]}:00Z`) - offset * 1000,
       rows,
-      hourLabel: labelFrom(times[index], offset),
+      hourLabel: localStampFrom(times[index], offset),
     });
   }
   if (hours.length === 0) throw new Error("empty wind forecast");

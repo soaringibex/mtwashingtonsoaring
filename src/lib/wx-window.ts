@@ -40,3 +40,16 @@ export function hourLabel(hour: number): string {
   if (hour === 12) return "12 PM";
   return `${hour - 12} PM`;
 }
+
+/** "2026-10-06T14:00" + offset −14400 → "Oct 6, 2:00 PM EDT". */
+export function localStampFrom(time: string, offsetSeconds: number): string {
+  const instantMs = Date.parse(`${time}:00Z`) - offsetSeconds * 1000;
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(new Date(instantMs));
+}

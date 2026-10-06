@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 import { FORECAST_MODELS, mergedSeries } from "@/lib/forecast-model";
 import { computeWaveScore, estimateWaveTop, WAVE_LEVELS, type WaveLevel, type WaveScore, type WaveTop } from "@/lib/wave-score";
@@ -493,20 +493,31 @@ function WaveTopMeteogram({ hours }: { hours: WaveHour[] }) {
   );
 }
 
-export function WaveForecast() {
+export function WaveForecast({ onSelectTime }: { onSelectTime?: (time: string) => void } = {}) {
   const [day, setDay] = useState<WaveDay | null>(null);
   const [error, setError] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const selectedRef = useRef<string | null>(null);
+
+  /** Selection lives here; the parent is notified so the cross-section can follow. */
+  const selectHour = (time: string) => {
+    selectedRef.current = time;
+    setSelectedTime(time);
+    onSelectTime?.(time);
+  };
 
   useEffect(() => {
     let cancelled = false;
     const load = () => {
       fetchWaveDay()
         .then((next) => {
-          if (!cancelled) {
-            setDay(next);
-            setError(false);
-            setSelectedTime((current) => current ?? next.peak.time);
+          if (cancelled) return;
+          setDay(next);
+          setError(false);
+          if (selectedRef.current === null) {
+            selectedRef.current = next.peak.time;
+            setSelectedTime(next.peak.time);
+            onSelectTime?.(next.peak.time);
           }
         })
         .catch(() => {
@@ -519,7 +530,7 @@ export function WaveForecast() {
       cancelled = true;
       clearInterval(timer);
     };
-  }, []);
+  }, [onSelectTime]);
 
   const selected = day
     ? (day.hours.find((hour) => hour.time === selectedTime) ?? day.peak)
@@ -595,7 +606,7 @@ export function WaveForecast() {
                       key={hour.time}
                       type="button"
                       aria-pressed={isSelected}
-                      onClick={() => setSelectedTime(hour.time)}
+                      onClick={() => selectHour(hour.time)}
                       className={`grid grid-cols-[3.5rem_2.25rem_minmax(0,1fr)_4.5rem] items-center gap-2.5 rounded-xl px-3 py-2 text-left transition-colors ${
                         isSelected ? "bg-sky-50 ring-1 ring-sky-200" : "hover:bg-slate-50"
                       }`}

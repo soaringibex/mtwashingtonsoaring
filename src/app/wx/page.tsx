@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DashboardHeader } from "@/components/weather/DashboardHeader";
 import { FieldReports } from "@/components/weather/FieldReports";
-import { WaveForecast } from "@/components/weather/WaveForecast";
+import { WavePanel } from "@/components/weather/WavePanel";
 import { WindPanel } from "@/components/weather/WindPanel";
 import { Container } from "@/components/ui/Container";
 
@@ -35,7 +35,7 @@ export default function WxPage() {
       <div className="bg-slate-50 py-10 sm:py-12">
         <Container>
           <div className="grid gap-6">
-            <WaveForecast />
+            <WavePanel />
 
             <WindPanel />
 
