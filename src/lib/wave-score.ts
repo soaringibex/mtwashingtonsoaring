@@ -77,11 +77,13 @@ export type WaveTop = {
 const RIDGE_FT = 6288;
 const FT_PER_M = 3.28084;
 /**
- * Terrain wavenumber squared for the Presidential Range: k = 2π/λ with a cross-ridge
- * scale of about 11 km. Below l² = k² the shorter wave components turn evanescent and
+ * Terrain wavenumber squared for the Presidential Range: k = 2π/λ with a dominant
+ * cross-ridge scale of about 16 km — the massif's half-width between the Great Gulf
+ * and the Bartlett valley, which matches the lee-wave extent SkySight's cross-section
+ * showed on 2026-10-06. Below l² = k² the shorter wave components turn evanescent and
  * reflect — the level pilots read as the Scorer "bend".
  */
-const TERRAIN_K2 = (2 * Math.PI) ** 2 / (11000 * 11000);
+const TERRAIN_K2 = (2 * Math.PI) ** 2 / (16000 * 16000);
 
 /**
  * The estimated top of the usable wave: the highest level the wave still reaches —
