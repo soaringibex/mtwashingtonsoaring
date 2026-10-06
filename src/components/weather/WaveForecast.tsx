@@ -142,6 +142,9 @@ export function WaveForecast() {
   }, []);
 
   const peakLift = day ? Math.max(...day.hours.map((hour) => hour.liftFpm)) : 0;
+  const peakMaxScorer = day
+    ? Math.max(...day.peak.scorerLevels.map((level) => level.scorer), 1e-12)
+    : 1;
 
   return (
     <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
@@ -207,6 +210,38 @@ export function WaveForecast() {
             Scorer {scorer(day.peak.lowScorer)} → {scorer(day.peak.highScorer)} (×10⁻⁷ m⁻²) · N{" "}
             {(day.peak.bruntLow * 100).toFixed(1)}×10⁻² s⁻¹.
           </p>
+          <div className="mt-5 flex flex-wrap items-end gap-x-8 gap-y-4">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                Scorer l² by level · ×10⁻⁷ m⁻²
+              </p>
+              <div className="mt-2 flex items-end gap-2.5">
+                {day.peak.scorerLevels.map((level) => (
+                  <div key={level.hPa} className="flex w-9 flex-col items-center">
+                    <span className="text-[10px] tabular-nums text-slate-500">
+                      {scorer(level.scorer)}
+                    </span>
+                    <span className="mt-1 flex h-11 w-full items-end justify-center">
+                      <span
+                        className="block w-3.5 rounded-t bg-sky-600/75"
+                        style={{
+                          height: Math.max(4, Math.round((level.scorer / peakMaxScorer) * 44)),
+                        }}
+                      />
+                    </span>
+                    <span className="mt-1 text-[10px] tabular-nums text-slate-400">
+                      {level.hPa}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <p className="max-w-sm text-[11px] leading-5 text-slate-400">
+              At the peak hour ({day.peak.label}) — the Scorer parameter falling with height is
+              what lets the wave propagate. The levels run from 850 hPa at the surface end to
+              300 hPa aloft.
+            </p>
+          </div>
           <p className="mt-2 text-[11px] leading-5 text-slate-400">
             Lift is the N·h scale — the low-level stability over the height of the range — an upper
             bound, not a promise. An indicator from the GEM-HRDPS model via Open-Meteo; the

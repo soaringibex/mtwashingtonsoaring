@@ -28,6 +28,8 @@ export type WaveScore = {
   bruntLow: number;
   /** Estimated strongest wave lift, ft/min — the N·h scale, tapered by the cross-ridge flow. */
   liftFpm: number;
+  /** l² at each pressure level, for reading the profile against altitude. */
+  scorerLevels: { hPa: number; scorer: number }[];
 };
 
 const KT_TO_MS = 0.514444;
@@ -57,7 +59,14 @@ export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
 
   // l² per layer between neighbouring levels. Only layers with a stable lapse and a
   // westerly component count — otherwise the ratio below would read a decline that isn't.
-  const layers: { midHPa: number; scorer: number; brunt: number; valid: boolean }[] = [];
+  const layers: {
+    lowerHPa: number;
+    upperHPa: number;
+    midHPa: number;
+    scorer: number;
+    brunt: number;
+    valid: boolean;
+  }[] = [];
   for (let i = 0; i < sorted.length - 1; i += 1) {
     const lower = sorted[i];
     const upper = sorted[i + 1];
@@ -71,6 +80,8 @@ export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
       KT_TO_MS;
     const valid = u > 0 && brunt > 0;
     layers.push({
+      lowerHPa: lower.hPa,
+      upperHPa: upper.hPa,
       midHPa: (lower.hPa + upper.hPa) / 2,
       scorer: valid ? brunt / (u * u) : 0,
       brunt,
@@ -113,6 +124,19 @@ export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
   const crossFactor = clamp01((ridgeKt - 5) / 15); // 5 kt → 0, 20 kt → 1
   const liftFpm = Math.round((bruntLow * WAVE_RELIEF_M * 196.85 * crossFactor) / 100) * 100;
 
+  // l² at each level, for reading the profile against altitude — the average of the
+  // layers immediately above and below the level.
+  const scorerLevels = sorted.map((level) => {
+    const adjacent = layers.filter(
+      (layer) => layer.lowerHPa === level.hPa || layer.upperHPa === level.hPa,
+    );
+    const valid = adjacent.filter((layer) => layer.valid);
+    return {
+      hPa: level.hPa,
+      scorer: valid.length > 0 ? mean(valid.map((layer) => layer.scorer)) : 0,
+    };
+  });
+
   const score = Math.round(100 * (0.4 * stability + 0.35 * ridge + 0.25 * aloft));
 
   return {
@@ -127,5 +151,6 @@ export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
     aloftKt: Math.round(aloftKt),
     bruntLow,
     liftFpm,
+    scorerLevels,
   };
 }
