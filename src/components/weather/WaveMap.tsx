@@ -64,10 +64,12 @@ const SOLVE_BOUNDS = {
 };
 const SOLVE_ZOOM = 10;
 
-/** Every second model node is solved — the linear field is smooth at that scale. */
-const SOLVE_STEP = 2;
-const SOLVE_COLS = Math.floor((MAP_COLS - 1) / SOLVE_STEP) + 1;
-const SOLVE_ROWS = Math.floor((MAP_ROWS - 1) / SOLVE_STEP) + 1;
+/**
+ * Every model node is solved: the day's trapped mode runs ~10 km, so solving every
+ * second node (5.3 km) under-sampled it and smeared the bands — at 2.7 km the field is
+ * resolved (≈3.7 samples per wavelength).
+ */
+const SOLVE_STEP = 1;
 const SOLVE_NODES = MAP_GRID.filter(
   (_, i) => Math.floor(i / MAP_COLS) % SOLVE_STEP === 0 && (i % MAP_COLS) % SOLVE_STEP === 0,
 );
@@ -317,26 +319,7 @@ export function WaveMap({
           levelIndex = i;
         }
       }
-      // Upsample the solve grid (every second node) bilinearly to the full grid.
-      const values: number[] = [];
-      for (let row = 0; row < MAP_ROWS; row += 1) {
-        const sy = Math.min(row / SOLVE_STEP, SOLVE_ROWS - 1.001);
-        const y0 = Math.floor(sy);
-        const ty = sy - y0;
-        for (let col = 0; col < MAP_COLS; col += 1) {
-          const sx = Math.min(col / SOLVE_STEP, SOLVE_COLS - 1.001);
-          const x0 = Math.floor(sx);
-          const tx = sx - x0;
-          const v00 = solvedField.center[y0 * SOLVE_COLS + x0][levelIndex];
-          const v10 = solvedField.center[y0 * SOLVE_COLS + x0 + 1][levelIndex];
-          const v01 = solvedField.center[(y0 + 1) * SOLVE_COLS + x0][levelIndex];
-          const v11 = solvedField.center[(y0 + 1) * SOLVE_COLS + x0 + 1][levelIndex];
-          values.push(
-            v00 * (1 - tx) * (1 - ty) + v10 * tx * (1 - ty) + v01 * (1 - tx) * ty + v11 * tx * ty,
-          );
-        }
-      }
-      return values;
+      return solvedField.center.map((levelsAtNode) => levelsAtNode[levelIndex]);
     }
     const series = data?.w[level];
     if (!series) return null;
@@ -696,7 +679,7 @@ export function WaveMap({
           <WaveLegend scale={mode === "linear" ? "linear" : "hrrr"} />
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
             {mode === "linear"
-              ? `Linear-theory estimate at ${definition.ft.toLocaleString("en-US")} ft — every second node's terrain profile runs along this hour's wind and is solved with the HRRR column, the ridge-top flow doing the forcing. `
+              ? `Linear-theory estimate at ${definition.ft.toLocaleString("en-US")} ft — each node's terrain profile runs along this hour's wind and is solved with the HRRR column, the ridge-top flow doing the forcing. `
               : `Vertical velocity at ${definition.ft.toLocaleString("en-US")} ft over the Gorham country. `}
             The dashed circle is the LOA&apos;s Mount Washington Glider Area — a 10 NM radius around its
             centre — and the solid line is the cross-section above, this hour&apos;s wind line through
