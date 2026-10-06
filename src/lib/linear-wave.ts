@@ -101,11 +101,11 @@ const G = 9.81;
 const GAS_CONSTANT = 287.05; // dry air, J kg⁻¹ K⁻¹
 
 /**
- * The default Rayleigh friction, s⁻¹. Chosen by measurement (Rung 1, live 2026-10-06
- * 16:00 column): of the scan {0, 1e-4, 2e-4, 5e-4, 1e-3}, 1e-3 is the first value that
- * brings the upwind taper edge to the 10% criterion (10.2% — the crossing sits at
- * α ≈ 1.02e-3 in a finer scan, so this is at the threshold). α = 2e-4 leaves the
- * trapped train at 64.5% of the lee peak, and the old flat δ = 0.05 measured 59.6%.
+ * The default Rayleigh friction, s⁻¹. Chosen by measurement (live 2026-10-06 16:00):
+ * the upwind-edge ratio (outermost taper samples / lee peak) crosses the 10% criterion
+ * between 7.5e-4 and 1e-3 on the refreshed 310° bucket (1e-3 → 8.4%; 2e-4 → 53.5%),
+ * and sits at ~10% for 1e-3 on the earlier 295° bucket. The old flat δ = 0.05 measured
+ * 36–60% on the same metric.
  */
 export const DEFAULT_DAMPING_S = 1e-3;
 

@@ -5,6 +5,7 @@ import { fetchJson } from "@/lib/fetch-json";
 import { flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellRgb, wMs, WaveLegend } from "@/components/weather/wave-field";
 import { buildWaveColumn, divideStreamline, saturateWave, solveLinearWave } from "@/lib/linear-wave";
+import { buildRotatedTerrainGrid, sampleField, solveLinearWave3D } from "@/lib/linear-wave-3d";
 import { fetchRoadLines, type RoadLine } from "@/lib/roads";
 import {
   columnLevelsAt,
@@ -135,6 +136,40 @@ const y = (lat: number) => H - ((lat - MAP_LAT_MIN) / MAP_LAT_SPAN) * H;
 /** A road polyline in the map's own coordinates. */
 const roadPoints = (line: RoadLine) =>
   line.p.map(([lon, lat]) => `${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join(" ");
+
+// The 3-D solve grid: 256 × 256 at 500 m (a 128 km square), centred on the map and
+// rotated so x runs downwind. Measured at ~230 ms in Node for a 32-layer column, so
+// 256/500 stays inside the solve budget; the transects remain the fallback.
+const SOLVE3_SIZE = 256;
+const SOLVE3_DX_M = 500;
+
+type MapSolve3D = {
+  kind: "3d";
+  zM: number[];
+  /** w[levelIndex] is the flat 256² field, row-major (crossIndex·size + downwindIndex). */
+  fields: number[][];
+  size: number;
+  dxM: number;
+  alongE: number;
+  alongN: number;
+  crossE: number;
+  crossN: number;
+  metresPerDegLat: number;
+  metresPerDegLon: number;
+  centreDivider: { launchM: number; froude: number };
+};
+
+type MapSolve2D = {
+  kind: "2d";
+  zM: number[];
+  transects: number[][][];
+  alongE: number;
+  alongN: number;
+  crossE: number;
+  crossN: number;
+  centreKmPerDegLon: number;
+  centreDivider: { launchM: number; froude: number } | null;
+};
 
 type MapData = {
   times: string[];
@@ -273,9 +308,10 @@ export function WaveMap({
     };
   }, []);
 
-  // Solve the transects once per hour (the level pick is free after that). Pure math,
-  // so it rides a memo rather than an effect.
-  const solvedField = useMemo(() => {
+  // Solve once per hour (the level pick is free after that). The map is 3-D Smith
+  // (1980) theory on the real terrain; the transect solve remains the fallback when
+  // the 3-D solve cannot run. Pure math, so it rides a memo rather than an effect.
+  const solvedField = useMemo<MapSolve3D | MapSolve2D | null>(() => {
     if (!solveMosaic || !column) return null;
     const hour = waveColumnHour(column, selectedTime);
     const localLevels = columnLevelsAt(column.hourly, hour);
@@ -291,12 +327,64 @@ export function WaveMap({
     const alongN = Math.cos(radians);
     const crossE = Math.sin(radians + Math.PI / 2);
     const crossN = Math.cos(radians + Math.PI / 2);
-    const centreKmPerDegLon = 111 * Math.cos((MAP_CENTER.lat * Math.PI) / 180);
+    const azimuthDeg = (radians * 180) / Math.PI;
+    const metresPerDegLat = METRES_PER_DEG_LAT;
+    const metresPerDegLon = METRES_PER_DEG_LON;
 
+    // 3-D first: the terrain grid is centred on the map, rotated so x runs downwind,
+    // and launched from the dividing streamline of the whole grid.
+    const grid = buildRotatedTerrainGrid({
+      size: SOLVE3_SIZE,
+      dxM: SOLVE3_DX_M,
+      centreLat: MAP_CENTER.lat,
+      centreLon: MAP_CENTER.lon,
+      metresPerDegLat,
+      metresPerDegLon,
+      azimuthDeg,
+      sample: (lat, lon) => sampleMosaic(solveMosaic, lat, lon),
+    });
+    let gridMean = 0;
+    let gridCrest = -Infinity;
+    for (let i = 0; i < grid.length; i += 1) {
+      gridMean += grid[i];
+      if (grid[i] > gridCrest) gridCrest = grid[i];
+    }
+    gridMean /= grid.length;
+    const divider = divideStreamline(levels, azimuthDeg, gridMean, gridCrest);
+    for (let i = 0; i < grid.length; i += 1) grid[i] = Math.max(grid[i], divider.zD);
+    const waveColumn = buildWaveColumn(levels, azimuthDeg, divider.zD);
+    if (waveColumn) {
+      const raw = solveLinearWave3D({
+        terrainM: grid,
+        size: SOLVE3_SIZE,
+        dxM: SOLVE3_DX_M,
+        column: waveColumn,
+      });
+      if (raw) {
+        const solve = saturateWave(raw, waveColumn, divider.froude);
+        return {
+          kind: "3d",
+          zM: solve.zM,
+          fields: solve.w,
+          size: SOLVE3_SIZE,
+          dxM: SOLVE3_DX_M,
+          alongE,
+          alongN,
+          crossE,
+          crossN,
+          metresPerDegLat,
+          metresPerDegLon,
+          centreDivider: { launchM: divider.zD, froude: divider.froude },
+        };
+      }
+    }
+
+    // Fallback: the map's original long parallel transects, each launched from its own
+    // dividing streamline; the blocked air below it is clipped away.
+    const centreKmPerDegLon = 111 * Math.cos((MAP_CENTER.lat * Math.PI) / 180);
     const transects: number[][][] = [];
     let zM: number[] = [];
     let centreDivider: { launchM: number; froude: number } | null = null;
-    const transectAzimuthDeg = (radians * 180) / Math.PI;
     for (let i = 0; i < TRANSECT_COUNT; i += 1) {
       const offsetKm = (i - (TRANSECT_COUNT - 1) / 2) * TRANSECT_SPACING_KM;
       const anchorLat = MAP_CENTER.lat + (crossN * offsetKm) / 111;
@@ -308,27 +396,25 @@ export function WaveMap({
         const lon = anchorLon + (alongE * dKm) / centreKmPerDegLon;
         terrain.push(sampleMosaic(solveMosaic, lat, lon));
       }
-      // Each transect launches from its own dividing streamline; the blocked air
-      // below it is clipped away so only the obstacle above z_d forces the wave.
       const meanM = terrain.reduce((sum, h) => sum + h, 0) / terrain.length;
       const crestM = Math.max(...terrain);
-      const divider = divideStreamline(levels, transectAzimuthDeg, meanM, crestM);
-      const waveColumn = buildWaveColumn(levels, transectAzimuthDeg, divider.zD);
-      if (!waveColumn) return null;
+      const fallbackDivider = divideStreamline(levels, azimuthDeg, meanM, crestM);
+      const fallbackColumn = buildWaveColumn(levels, azimuthDeg, fallbackDivider.zD);
+      if (!fallbackColumn) return null;
       const raw = solveLinearWave({
-        terrainM: terrain.map((h) => Math.max(h, divider.zD)),
+        terrainM: terrain.map((h) => Math.max(h, fallbackDivider.zD)),
         dxM: TRANSECT_DX_M,
-        column: waveColumn,
+        column: fallbackColumn,
       });
       if (!raw) return null;
-      const solve = saturateWave(raw, waveColumn, divider.froude);
+      const solve = saturateWave(raw, fallbackColumn, fallbackDivider.froude);
       zM = solve.zM;
       transects.push(solve.w);
       if (i === (TRANSECT_COUNT - 1) / 2) {
-        centreDivider = { launchM: divider.zD, froude: divider.froude };
+        centreDivider = { launchM: fallbackDivider.zD, froude: fallbackDivider.froude };
       }
     }
-    return { zM, transects, alongE, alongN, crossE, crossN, centreKmPerDegLon, centreDivider };
+    return { kind: "2d", zM, transects, alongE, alongN, crossE, crossN, centreKmPerDegLon, centreDivider };
   }, [solveMosaic, column, selectedTime, upwind]);
 
   // Inputs arrived but the solver came back empty — a data problem, not a pending one.
@@ -374,8 +460,31 @@ export function WaveMap({
           levelIndex = i;
         }
       }
-      // Each node samples the transect pair nearest its cross-flow position, at its own
-      // along-flow distance.
+      if (solvedField.kind === "3d") {
+        // Every node reads the 3-D field at its own (along, cross) position, bilinearly.
+        const {
+          alongE,
+          alongN,
+          crossE,
+          crossN,
+          metresPerDegLat,
+          metresPerDegLon,
+          size,
+          dxM,
+          fields,
+        } = solvedField;
+        const field = fields[levelIndex];
+        const mid = (size - 1) / 2;
+        return MAP_GRID.map((node) => {
+          const dE = (node.lon - MAP_CENTER.lon) * metresPerDegLon;
+          const dN = (node.lat - MAP_CENTER.lat) * metresPerDegLat;
+          const alongM = dE * alongE + dN * alongN;
+          const crossM = dE * crossE + dN * crossN;
+          return sampleField(field, size, alongM / dxM + mid, crossM / dxM + mid);
+        });
+      }
+      // Fallback: each node samples the transect pair nearest its cross-flow position, at
+      // its own along-flow distance.
       const { alongE, alongN, crossE, crossN, centreKmPerDegLon } = solvedField;
       return MAP_GRID.map((node) => {
         const dE = (node.lon - MAP_CENTER.lon) * centreKmPerDegLon;
@@ -521,13 +630,18 @@ export function WaveMap({
 
   const ready = mosaic !== null && (mode === "linear" ? nodeValues !== null : data !== null);
 
-  // The caption carries the launch plane the solve actually used (1a).
+  // The caption carries the launch plane the solve actually used (1a) and which
+  // theory produced the field (3-D on the map, or the transect fallback).
   const mapLaunchNote =
     mode === "linear" && solvedField?.centreDivider
       ? `launched from the dividing streamline at ${(
           Math.round((solvedField.centreDivider.launchM * FT_PER_M) / 100) * 100
         ).toLocaleString("en-US")} ft (Fr ${solvedField.centreDivider.froude.toFixed(2)}) at the map centre, with the amplitude Fr-scaled and capped at half the carrying flow`
       : "";
+  const mapTheoryNote =
+    solvedField?.kind === "2d"
+      ? "2-D linear theory along parallel transects (the 3-D solve was unavailable)"
+      : "3-D linear theory on the real terrain, every horizontal Fourier mode of the DEM riding the HRRR column";
 
   return (
     <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
@@ -773,7 +887,7 @@ export function WaveMap({
           <WaveLegend scale={mode === "linear" ? "linear" : "hrrr"} />
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
             {mode === "linear"
-              ? `Linear-theory estimate at ${definition.ft.toLocaleString("en-US")} ft — long terrain transects run along this hour's wind and are solved with the HRRR column, ${mapLaunchNote || "anchored at the range's mean height with the flow there doing the forcing"}. `
+              ? `${mapTheoryNote} at ${definition.ft.toLocaleString("en-US")} ft — ${mapLaunchNote || "anchored at the range's mean height with the flow there doing the forcing"}. `
               : `Vertical velocity at ${definition.ft.toLocaleString("en-US")} ft over the Gorham country. `}
             The dashed circle is the LOA&apos;s Mount Washington Glider Area — a 10 NM radius around its
             centre — and the solid line is the cross-section above, this hour&apos;s wind line through

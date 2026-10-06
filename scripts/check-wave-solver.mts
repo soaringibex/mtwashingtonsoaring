@@ -20,6 +20,8 @@ import {
   type WaveColumn,
   type WaveColumnLayer,
 } from "../src/lib/linear-wave.ts";
+import { sampleField, solveLinearWave3D } from "../src/lib/linear-wave-3d.ts";
+import { fft2d } from "../src/lib/fft.ts";
 import type { WaveColumnLevel } from "../src/lib/linear-wave.ts";
 
 const G = 9.81;
@@ -306,3 +308,111 @@ if (wavelengthError > 0.05) {
     `two-layer resonance wavelength off by ${(100 * wavelengthError).toFixed(1)}% — the layered integration or the wavelength diagnostic has drifted`,
   );
 }
+
+// -------------------------------------------------- 3-D ridge reduces to the 2-D line
+//
+// A ridge with no cross-wind variation has ĥ(k, l≠0) = 0, so Smith's 3-D solve must
+// reproduce the 2-D transect solve exactly (both tapers cover flat ground). <1% RMS.
+const N3 = 256;
+const DX3 = 500;
+const ridge3 = Array.from({ length: N3 }, (_, i) => {
+  const x = (i - (N3 - 1) / 2) * DX3;
+  return 400 + 800 * Math.exp(-(x * x) / (2 * 5000 * 5000));
+});
+const grid3 = new Float64Array(N3 * N3);
+for (let j = 0; j < N3; j += 1) {
+  for (let i = 0; i < N3; i += 1) grid3[j * N3 + i] = ridge3[i];
+}
+const ridge2d = solveLinearWave({ terrainM: ridge3, dxM: DX3, column: uniformColumn, damping: 1e-3 });
+const ridge3d = solveLinearWave3D({ terrainM: grid3, size: N3, dxM: DX3, column: uniformColumn, damping: 1e-3 });
+if (!ridge2d || !ridge3d) throw new Error("3-D ridge solve failed");
+let ridgeLi = 0;
+for (let i = 1; i < ridge3d.zM.length; i += 1) {
+  if (Math.abs(ridge3d.zM[i] - 3000) < Math.abs(ridge3d.zM[ridgeLi] - 3000)) ridgeLi = i;
+}
+const ridgeRow = ridge3d.w[ridgeLi].slice(128 * N3, 129 * N3);
+const ridgeDiff = Math.sqrt(
+  ridge2d.w[ridgeLi].reduce((sum, value, i) => sum + (value - ridgeRow[i]) ** 2, 0) / N3,
+);
+const ridgeRms = Math.sqrt(ridge2d.w[ridgeLi].reduce((sum, value) => sum + value * value, 0) / N3);
+const ridgeError = ridgeDiff / ridgeRms;
+console.log(
+  `wave solver: 3-D ridge vs 2-D line at z=${ridge3d.zM[ridgeLi]} m: RMS difference ${(100 * ridgeError).toFixed(3)}% ` +
+    `of ${ridgeRms.toFixed(3)} m/s ${ridgeError < 0.01 ? "ok" : "FAILED"}`,
+);
+if (!(ridgeError < 0.01)) {
+  throw new Error(`3-D ridge does not reproduce the 2-D solve (${(100 * ridgeError).toFixed(1)}% RMS)`);
+}
+
+// ---------------------------------------------- 3-D circular hill: ship-wave pattern
+//
+// A compact circular Gaussian hill must leave its largest disturbance downstream of
+// the crest, not in the cross-stream lobes: |w| 20 km downwind on the centreline must
+// exceed |w| 20 km downwind at ±20 km cross-stream.
+const SIGMA3 = 6000;
+const hill3 = new Float64Array(N3 * N3);
+for (let j = 0; j < N3; j += 1) {
+  for (let i = 0; i < N3; i += 1) {
+    const x = (i - (N3 - 1) / 2) * DX3;
+    const y = (j - (N3 - 1) / 2) * DX3;
+    hill3[j * N3 + i] = 400 + 700 * Math.exp(-(x * x + y * y) / (2 * SIGMA3 * SIGMA3));
+  }
+}
+const hillSolve = solveLinearWave3D({ terrainM: hill3, size: N3, dxM: DX3, column: uniformColumn, damping: 1e-3 });
+if (!hillSolve) throw new Error("3-D hill solve failed");
+let hillLi = 0;
+for (let i = 1; i < hillSolve.zM.length; i += 1) {
+  if (Math.abs(hillSolve.zM[i] - 3000) < Math.abs(hillSolve.zM[hillLi] - 3000)) hillLi = i;
+}
+const hillLine = hillSolve.w[hillLi];
+const mid3 = (N3 - 1) / 2;
+const sampleAtKm = (xKm: number, yKm: number) =>
+  Math.abs(sampleField(hillLine, N3, mid3 + (xKm * 1000) / DX3, mid3 + (yKm * 1000) / DX3));
+const centreW = sampleAtKm(20, 0);
+const northW = sampleAtKm(20, 20);
+const southW = sampleAtKm(20, -20);
+console.log(
+  `wave solver: 3-D hill wake at ${hillSolve.zM[hillLi].toFixed(0)} m: |w| 20 km downwind centre ${centreW.toFixed(3)} vs ` +
+    `±20 km cross-stream ${northW.toFixed(3)}/${southW.toFixed(3)} m/s ` +
+    `${centreW > northW && centreW > southW ? "ok" : "FAILED"}`,
+);
+if (!(centreW > northW && centreW > southW)) {
+  throw new Error("3-D hill wake is not concentrated on the downstream centreline");
+}
+
+// ------------------------------------------------------------------------- FFT sanity
+//
+// The ridge and hill are symmetric, so a conjugate or twiddle mistake could cancel in
+// both 3-D tests. Pin the transform directly: one asymmetric coefficient against the
+// hand-written DFT, then an inverse round trip.
+const FN = 8;
+const fRe = new Float64Array(FN * FN);
+for (let i = 0; i < FN * FN; i += 1) fRe[i] = Math.sin(i * 1.7) + 0.3 * Math.cos(i * 0.9);
+const fReCheck = Float64Array.from(fRe);
+const fImCheck = new Float64Array(FN * FN);
+fft2d(fReCheck, fImCheck, FN);
+const checkKx = 1;
+const checkKy = 2;
+let directRe = 0;
+let directIm = 0;
+for (let y = 0; y < FN; y += 1) {
+  for (let x = 0; x < FN; x += 1) {
+    const phase = (-2 * Math.PI * (checkKx * x + checkKy * y)) / FN;
+    directRe += fRe[y * FN + x] * Math.cos(phase);
+    directIm += fRe[y * FN + x] * Math.sin(phase);
+  }
+}
+if (
+  Math.abs(fReCheck[checkKy * FN + checkKx] - directRe) > 1e-9 ||
+  Math.abs(fImCheck[checkKy * FN + checkKx] - directIm) > 1e-9
+) {
+  throw new Error("fft forward transform does not match the direct DFT");
+}
+fft2d(fReCheck, fImCheck, FN, true);
+const fftScale = FN * FN;
+for (let i = 0; i < FN * FN; i += 1) {
+  if (Math.abs(fReCheck[i] / fftScale - fRe[i]) > 1e-9 || Math.abs(fImCheck[i] / fftScale) > 1e-9) {
+    throw new Error("fft inverse round trip does not return the input");
+  }
+}
+console.log("wave solver: fft ok (direct DFT match + inverse round trip)");
