@@ -66,9 +66,9 @@ const pages: SearchEntry[] = [
     title: "Wx Brief — the day's wave forecast",
     href: "/wx",
     kind: "page",
-    text: "The day's wave forecast for Mount Washington — the live column of wind aloft, the summit forecast hour by hour, and the forecasts to read before you fly.",
+    text: "The day's wave forecast for Mount Washington — a Scorer-parameter wave signal, the column of wind aloft, the summit forecast hour by hour, METARs from the nearby fields, the nearest TAF, and the forecasts to read before you fly.",
     keywords:
-      "weather wx brief forecast briefing wind summit wave conditions column aloft gfs open-meteo nws observatory hourly",
+      "weather wx brief dashboard forecast briefing wind summit wave conditions column aloft hrrr ncep open-meteo nws observatory hourly metar taf berlin whitefield fryeburg station",
   },
   {
     title: "History",
