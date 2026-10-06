@@ -38,8 +38,8 @@ import {
 
 const REFRESH_MS = 45 * 60 * 1000;
 
-/** The world (canvas) size — the map's true projected aspect, ~40 m per pixel. */
-const W = 1200;
+/** The world (canvas) size — the map's true projected aspect, ~32 m per pixel. */
+const W = 1500;
 const METRES_PER_DEG_LAT = 110900;
 const METRES_PER_DEG_LON = 111320 * Math.cos((44.26 * Math.PI) / 180);
 const H = Math.round((W * MAP_LAT_SPAN * METRES_PER_DEG_LAT) / (MAP_LON_SPAN * METRES_PER_DEG_LON));
@@ -120,7 +120,7 @@ function reliefColour(elevationM: number, shade: number): [number, number, numbe
     }
   }
   const t = (e - lower[0]) / (upper[0] - lower[0] || 1);
-  const factor = Math.min(Math.max(0.45 + 0.75 * shade, 0.3), 1.38);
+  const factor = Math.min(Math.max(0.42 + 1.15 * shade, 0.3), 1.45);
   return [
     Math.round((lower[1][0] + (upper[1][0] - lower[1][0]) * t) * factor),
     Math.round((lower[1][1] + (upper[1][1] - lower[1][1]) * t) * factor),
@@ -241,7 +241,7 @@ export function WaveMap({
 
   useEffect(() => {
     let cancelled = false;
-    fetchTerrainMosaic(TERRAIN_BOUNDS, 11)
+    fetchTerrainMosaic(TERRAIN_BOUNDS, 12)
       .then((next) => {
         if (!cancelled) {
           setMosaic(next);
@@ -335,10 +335,30 @@ export function WaveMap({
     [mosaic],
   );
 
+  // The elevation at every canvas pixel — it depends only on the mosaic, so hour and
+  // level redraws reuse it.
+  const terrainGrid = useMemo(() => {
+    if (!mosaic) return null;
+    const { lonStep, latStep, west, north } = mosaic;
+    const mx0 = (MAP_LON_MIN - west) / lonStep;
+    const mxStep = MAP_LON_SPAN / (W - 1) / lonStep;
+    const my0 = (north - (MAP_LAT_MIN + MAP_LAT_SPAN)) / latStep;
+    const myStep = MAP_LAT_SPAN / (H - 1) / latStep;
+    const grid = new Float32Array(W * H);
+    for (let py = 0; py < H; py += 1) {
+      const my = my0 + py * myStep;
+      const row = py * W;
+      for (let px = 0; px < W; px += 1) {
+        grid[row + px] = mosaicElevation(mosaic, mx0 + px * mxStep, my);
+      }
+    }
+    return grid;
+  }, [mosaic]);
+
   // Paint the relief (with the wave field blended in) and the contours.
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !mosaic) return;
+    if (!canvas || !mosaic || !terrainGrid) return;
     const context = canvas.getContext("2d");
     if (!context) return;
 
@@ -347,20 +367,12 @@ export function WaveMap({
     const mxStep = MAP_LON_SPAN / (W - 1) / lonStep;
     const my0 = (north - (MAP_LAT_MIN + MAP_LAT_SPAN)) / latStep;
     const myStep = MAP_LAT_SPAN / (H - 1) / latStep;
-    const dxM = lonStep * METRES_PER_DEG_LON;
-    const dyM = latStep * METRES_PER_DEG_LAT;
+    // Gradients are between adjacent canvas pixels, so scale by the canvas pixel size.
+    const dxM = (MAP_LON_SPAN / (W - 1)) * METRES_PER_DEG_LON;
+    const dyM = (MAP_LAT_SPAN / (H - 1)) * METRES_PER_DEG_LAT;
+    const terrain = terrainGrid;
 
-    // First pass: elevation at every canvas pixel.
-    const terrain = new Float32Array(W * H);
-    for (let py = 0; py < H; py += 1) {
-      const my = my0 + py * myStep;
-      const row = py * W;
-      for (let px = 0; px < W; px += 1) {
-        terrain[row + px] = mosaicElevation(mosaic, mx0 + px * mxStep, my);
-      }
-    }
-
-    // Second pass: relief colour + hillshade + the wave field.
+    // Relief colour + hillshade + the wave field.
     const image = context.createImageData(W, H);
     const pixels = image.data;
     for (let py = 0; py < H; py += 1) {
@@ -418,7 +430,7 @@ export function WaveMap({
       }
       context.stroke();
     }
-  }, [mosaic, nodeValues, contours, mode]);
+  }, [mosaic, terrainGrid, nodeValues, contours, mode]);
 
   // The LOA circle and this hour's cross-section line.
   const centre = { x: x(GLIDER_AREA.lon), y: y(GLIDER_AREA.lat) };
