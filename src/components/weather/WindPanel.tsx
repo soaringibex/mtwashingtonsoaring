@@ -3,36 +3,12 @@
 import { useEffect, useState } from "react";
 import { WindProfileView } from "@/components/home/WindProfile";
 import { fetchJson } from "@/lib/fetch-json";
-import { FORECAST_MODELS, mergedSeries } from "@/lib/forecast-model";
+import { mergedSeries } from "@/lib/forecast-model";
 import { fetchWindDay, type WindDay, type WindHour } from "@/lib/wind-day";
-import { flyingWindow, hourLabel, inWindow } from "@/lib/wx-window";
+import { flyingWindow, hourLabel, inWindow, compassName } from "@/lib/wx-window";
+import { wxApiPath } from "@/lib/wx-datasets";
 
-const LATITUDE = 44.2705;
-const LONGITUDE = -71.3032;
 const REFRESH_MS = 45 * 60 * 1000;
-
-const compass = [
-  "N",
-  "NNE",
-  "NE",
-  "ENE",
-  "E",
-  "ESE",
-  "SE",
-  "SSE",
-  "S",
-  "SSW",
-  "SW",
-  "WSW",
-  "W",
-  "WNW",
-  "NW",
-  "NNW",
-];
-
-function directionLetters(deg: number): string {
-  return compass[Math.round(deg / 22.5) % 16];
-}
 
 type SummitHour = {
   time: string;
@@ -48,14 +24,7 @@ type SummitDay = { tomorrow: boolean; nowHour: number; hours: SummitHour[]; peak
 
 /** The summit's hourly forecast for the flying day — the list that drives the column. */
 async function fetchSummitDay(): Promise<SummitDay> {
-  const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}` +
-    `&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m,temperature_2m` +
-    `&models=${FORECAST_MODELS}` +
-    `&wind_speed_unit=kn&temperature_unit=fahrenheit&timezone=America%2FNew_York` +
-    `&forecast_days=2&elevation=1916`;
-
-  const data = (await fetchJson(url)) as { hourly?: Record<string, unknown> };
+  const data = (await fetchJson(wxApiPath("summit-hourly"))) as { hourly?: Record<string, unknown> };
   const hourly = data.hourly ?? {};
   const times = (hourly.time ?? []) as string[];
   const speed = mergedSeries(hourly, "wind_speed_10m") ?? [];
@@ -255,7 +224,7 @@ export function WindPanel() {
             </div>
             <p className="mt-4 text-[11px] leading-5 text-slate-400">
               Click an hour to load the column of wind for it. Peak{" "}
-              {directionLetters(summit.peak.dirDeg)} {summit.peak.windKt} kt around {summit.peak.label}.
+              {compassName(summit.peak.dirDeg)} {summit.peak.windKt} kt around {summit.peak.label}.
               GEM-HRDPS at summit elevation (GFS fallback) via Open-Meteo.
             </p>
           </>

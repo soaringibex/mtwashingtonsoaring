@@ -6,100 +6,53 @@ import { flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellFill, wMs, WaveLegend } from "@/components/weather/wave-field";
 import { buildWaveColumn, solveLinearWave } from "@/lib/linear-wave";
 import {
-  alongTransect,
   columnLevelsAt,
   fetchWaveColumnRaw,
   readCachedTerrain,
+  waveAzimuth,
   waveColumnHour,
   writeCachedTerrain,
   type WaveColumnRaw,
 } from "@/lib/wave-column";
+import {
+  FINE_COLS,
+  FINE_LAT_MIN,
+  FINE_LAT_SPAN,
+  FINE_LON_MIN,
+  FINE_LON_SPAN,
+  FINE_POINTS,
+  FINE_ROWS,
+  MAP_COLS as COLS,
+  MAP_GRID as GRID,
+  MAP_LAT_MIN as LAT_MIN,
+  MAP_LAT_STEP as LAT_STEP,
+  MAP_LEVELS as LEVELS,
+  MAP_LON_MIN as LON_MIN,
+  MAP_LON_STEP as LON_STEP,
+  MAP_ROWS as ROWS,
+  alongTransect,
+  wxApiPath,
+} from "@/lib/wx-datasets";
 
 const REFRESH_MS = 45 * 60 * 1000;
 
-/** 10 x 10 grid over Gorham, the Presidential Range and the Bartlett valley. */
-const ROWS = 10;
-const COLS = 10;
-const LAT_MIN = 44.06;
-const LAT_STEP = 0.04;
-const LON_MIN = -71.55;
-const LON_STEP = 0.0671;
-const GRID = (() => {
-  const points: { lat: number; lon: number }[] = [];
-  for (let row = 0; row < ROWS; row += 1) {
-    for (let col = 0; col < COLS; col += 1) {
-      points.push({ lat: LAT_MIN + row * LAT_STEP, lon: LON_MIN + col * LON_STEP });
-    }
-  }
-  return points;
-})();
-
-/** The flow direction the terrain profiles run along (the cross-section's azimuth). */
-const AZIMUTH = 125;
 /** Each cell is solved from a 1.6 km terrain profile through its centre. */
 const SOLVE_DX_M = 1600;
 const PROFILE_DISTANCES = Array.from({ length: 49 }, (_, i) => (i - 24) * 1.6);
 const PROFILE_CENTER = 24;
 
-/**
- * One fine terrain grid serves every cell's profile — ~3.3 km east-west, ~3.5 km
- * north-south over the map and the flow lines' reach — sampled by bilinear
- * interpolation instead of a fetch per cell. The free API counts each location
- * against a per-minute budget, and terrain is static, so the grid is fetched
- * through the elevation endpoint in three quiet calls and kept in localStorage.
- */
-const FINE_COLS = 20;
-const FINE_ROWS = 10;
-const FINE_LON_MIN = -71.68;
-const FINE_LON_SPAN = 0.78;
-const FINE_LAT_MIN = 43.98;
-const FINE_LAT_SPAN = 0.44;
-const FINE_POINTS = (() => {
-  const points: { lat: number; lon: number }[] = [];
-  for (let row = 0; row < FINE_ROWS; row += 1) {
-    for (let col = 0; col < FINE_COLS; col += 1) {
-      points.push({
-        lat: FINE_LAT_MIN + (row * FINE_LAT_SPAN) / (FINE_ROWS - 1),
-        lon: FINE_LON_MIN + (col * FINE_LON_SPAN) / (FINE_COLS - 1),
-      });
-    }
-  }
-  return points;
-})();
-
 const TERRAIN_CACHE_KEY = "mws-wave-terrain-grid-v1";
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function fetchTerrainGrid(): Promise<number[]> {
   const cached = readCachedTerrain(TERRAIN_CACHE_KEY, FINE_POINTS.length);
   if (cached) return cached;
-
-  const CHUNK = 100; // the elevation endpoint's per-request cap
-  const elevations: number[] = [];
-  for (let start = 0; start < FINE_POINTS.length; start += CHUNK) {
-    if (start > 0) await sleep(350);
-    const chunk = FINE_POINTS.slice(start, start + CHUNK);
-    const url =
-      `https://api.open-meteo.com/v1/elevation?latitude=${chunk.map((p) => p.lat.toFixed(4)).join(",")}` +
-      `&longitude=${chunk.map((p) => p.lon.toFixed(4)).join(",")}`;
-    let data: unknown;
-    try {
-      data = await fetchJson(url);
-    } catch {
-      // One slow second chance — a 429 from the burst limit clears quickly.
-      await sleep(1800);
-      data = await fetchJson(url);
-    }
-    const values = (data as { elevation?: number[] } | null)?.elevation;
-    if (!Array.isArray(values) || values.length !== chunk.length) {
-      throw new Error("missing terrain grid");
-    }
-    elevations.push(...values);
+  const data = (await fetchJson(wxApiPath("terrain-grid"))) as { elevation?: number[] } | null;
+  const values = data?.elevation;
+  if (!Array.isArray(values) || values.length !== FINE_POINTS.length) {
+    throw new Error("missing terrain grid");
   }
-
-  writeCachedTerrain(TERRAIN_CACHE_KEY, elevations);
-  return elevations;
+  writeCachedTerrain(TERRAIN_CACHE_KEY, values);
+  return values;
 }
 
 /** Bilinear sample of the fine terrain grid, clamped at its edges. */
@@ -116,14 +69,6 @@ function sampleTerrain(grid: number[], lat: number, lon: number): number {
   const v11 = grid[(y0 + 1) * FINE_COLS + x0 + 1];
   return v00 * (1 - tx) * (1 - ty) + v10 * tx * (1 - ty) + v01 * (1 - tx) * ty + v11 * tx * ty;
 }
-
-const LEVELS = [
-  { ft: 3000, hPa: 900 },
-  { ft: 7000, hPa: 800 },
-  { ft: 10000, hPa: 700 },
-  { ft: 16000, hPa: 550 },
-  { ft: 23000, hPa: 400 },
-];
 
 const PLACES = [
   { name: "Gorham · 2G8", lat: 44.393, lon: -71.196, primary: true },
@@ -144,13 +89,7 @@ type MapData = {
 };
 
 async function fetchMap(): Promise<MapData> {
-  const variables = LEVELS.map((entry) => `vertical_velocity_${entry.hPa}hPa`).join(",");
-  const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${GRID.map((p) => p.lat.toFixed(4)).join(",")}` +
-    `&longitude=${GRID.map((p) => p.lon.toFixed(4)).join(",")}` +
-    `&hourly=${variables}&models=ncep_hrrr_conus` +
-    `&timezone=America%2FNew_York&forecast_days=2`;
-  const data = (await fetchJson(url)) as unknown;
+  const data = (await fetchJson(wxApiPath("map-field"))) as unknown;
   const locations = (Array.isArray(data) ? data : [data]) as {
     elevation?: number;
     utc_offset_seconds?: number;
@@ -257,18 +196,20 @@ export function WaveMap({
     };
   }, []);
 
-  // Solve every cell's flow-line transect once per hour (the level pick is free after
+  // Solve every cell's wind-line transect once per hour (the level pick is free after
   // that). Pure math, so it rides a memo rather than an effect.
   const solvedField = useMemo(() => {
     if (!terrainGrid || !column) return null;
     const hour = waveColumnHour(column, selectedTime);
-    const waveColumn = buildWaveColumn(columnLevelsAt(column.hourly, hour));
+    const levels = columnLevelsAt(column.hourly, hour);
+    const transectAzimuth = (waveAzimuth(levels) + 180) % 360;
+    const waveColumn = buildWaveColumn(levels, transectAzimuth);
     if (!waveColumn) return null;
     const center: number[][] = [];
     let zM: number[] = [];
     for (const cell of GRID) {
       const terrain = PROFILE_DISTANCES.map((d) => {
-        const point = alongTransect(cell, AZIMUTH, d);
+        const point = alongTransect(cell, transectAzimuth, d);
         return sampleTerrain(terrainGrid, point.lat, point.lon);
       });
       const solve = solveLinearWave({ terrainM: terrain, dxM: SOLVE_DX_M, column: waveColumn });
@@ -492,10 +433,16 @@ export function WaveMap({
               );
             })()}
           </svg>
-          <WaveLegend />
+          <WaveLegend
+            caption={
+              mode === "linear"
+                ? "vertical velocity, m/s — linear-theory estimate; warm is lift, blue is sink"
+                : undefined
+            }
+          />
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
             {mode === "linear"
-              ? `Linear-theory estimate at ${definition.ft.toLocaleString("en-US")} ft — every cell's flow-line terrain profile solved with the HRRR column. The steady wave shows as crest-to-crest stripes just east of the ridge, the one to tow toward from 2G8.`
+              ? `Linear-theory estimate at ${definition.ft.toLocaleString("en-US")} ft — every cell's terrain profile runs along this hour's wind and is solved with the HRRR column. The steady wave shows as crest-to-crest stripes just east of the ridge, the one to tow toward from 2G8.`
               : `Vertical velocity at ${definition.ft.toLocaleString("en-US")} ft over the Gorham country. The westerly flow makes the lift band just east of the ridge crest the one to tow toward from 2G8.`}{" "}
             Warm bands are lift, blue is sink. Pick any hour above; the wave panel shares the
             selection.

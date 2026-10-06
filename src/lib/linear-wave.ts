@@ -79,10 +79,16 @@ function wAdv(w: C, wp: C, q2: C, dz: number): [C, C] {
 const potentialTemperature = (tempC: number, hPa: number) =>
   (tempC + 273.15) * (1000 / hPa) ** 0.2854;
 
-const eastward = (speedMs: number, dirDeg: number) => -speedMs * Math.sin((dirDeg * Math.PI) / 180);
+/** The wind's component along the transect — full speed when the line is the wind's line. */
+const alongTransectWind = (speedMs: number, dirDeg: number, transectAzimuthDeg: number) =>
+  speedMs * Math.cos(((dirDeg + 180 - transectAzimuthDeg) * Math.PI) / 180);
 
-/** N²/U² layers from the model column (wind in m/s), ground-first. */
-export function buildWaveColumn(levels: WaveColumnLevel[]): WaveColumn | null {
+/**
+ * N²/U² layers from the model column, ground-first. `transectAzimuthDeg` is the
+ * direction the cross-section runs toward (downwind), so U is the wind's component
+ * along that line.
+ */
+export function buildWaveColumn(levels: WaveColumnLevel[], transectAzimuthDeg: number): WaveColumn | null {
   const sorted = [...levels].sort((a, b) => b.hPa - a.hPa);
   if (sorted.length < 4) return null;
   const layers: WaveColumnLayer[] = [];
@@ -94,12 +100,15 @@ export function buildWaveColumn(levels: WaveColumnLevel[]): WaveColumn | null {
     const n2 =
       (G / ((potentialTemperature(lower.tempC, lower.hPa) + potentialTemperature(upper.tempC, upper.hPa)) / 2)) *
       ((potentialTemperature(upper.tempC, upper.hPa) - potentialTemperature(lower.tempC, lower.hPa)) / dz);
-    const u = (eastward(lower.speedMs, lower.dirDeg) + eastward(upper.speedMs, upper.dirDeg)) / 2;
+    const u =
+      (alongTransectWind(lower.speedMs, lower.dirDeg, transectAzimuthDeg) +
+        alongTransectWind(upper.speedMs, upper.dirDeg, transectAzimuthDeg)) /
+      2;
     if (!(n2 > 0) || !(u > 0.5)) continue;
     layers.push({ zTopM: upper.zM, n2, u });
   }
   if (layers.length < 3) return null;
-  const uSurfaceMs = eastward(sorted[0].speedMs, sorted[0].dirDeg);
+  const uSurfaceMs = alongTransectWind(sorted[0].speedMs, sorted[0].dirDeg, transectAzimuthDeg);
   if (!(Math.abs(uSurfaceMs) > 0.5)) return null;
   return { levels: sorted.map((level) => ({ zM: level.zM })), layers, uSurfaceMs };
 }

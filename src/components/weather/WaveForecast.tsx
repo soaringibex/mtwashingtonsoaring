@@ -2,36 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
-import { FORECAST_MODELS, mergedSeries } from "@/lib/forecast-model";
+import { mergedSeries } from "@/lib/forecast-model";
 import { computeWaveScore, estimateWaveTop, WAVE_LEVELS, type WaveLevel, type WaveScore, type WaveTop } from "@/lib/wave-score";
-import { flyingWindow, hourLabel, inWindow } from "@/lib/wx-window";
+import { flyingWindow, hourLabel, inWindow, compassName } from "@/lib/wx-window";
+import { wxApiPath } from "@/lib/wx-datasets";
 
-const LATITUDE = 44.3931;
-const LONGITUDE = -71.1996;
 const REFRESH_MS = 45 * 60 * 1000;
-
-const compass = [
-  "N",
-  "NNE",
-  "NE",
-  "ENE",
-  "E",
-  "ESE",
-  "SE",
-  "SSE",
-  "S",
-  "SSW",
-  "SW",
-  "WSW",
-  "W",
-  "WNW",
-  "NW",
-  "NNW",
-];
-
-function directionLetters(deg: number): string {
-  return compass[Math.round(deg / 22.5) % 16];
-}
 
 function signalLabel(score: number): string {
   if (score >= 75) return "Strong signal";
@@ -59,31 +35,22 @@ type WaveDay = {
 
 /** The Scorer-parameter wave signal for the flying day, hour by hour, from Open-Meteo. */
 async function fetchWaveDayFrom(
-  models: string,
+  variant: "hrrr" | "hrdps",
   source: WaveDay["source"],
 ): Promise<WaveDay> {
-  const variables = WAVE_LEVELS.flatMap((level) => [
-    `geopotential_height_${level}hPa`,
-    `wind_speed_${level}hPa`,
-    `wind_direction_${level}hPa`,
-    `temperature_${level}hPa`,
-    `cloud_cover_${level}hPa`,
-  ]);
-  const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}` +
-    `&hourly=${variables.join(",")}&models=${models}&wind_speed_unit=kn` +
-    `&temperature_unit=celsius&timezone=America%2FNew_York&forecast_days=2`;
-
-  const data = (await fetchJson(url)) as { hourly: Record<string, unknown> };
+  const data = (await fetchJson(wxApiPath("wave-forecast", { models: variant }))) as {
+    hourly: Record<string, unknown>;
+  };
   const hourly = data.hourly;
   const times = hourly.time as unknown as string[];
   if (!times || times.length === 0) throw new Error("missing wave forecast");
 
   const at = (key: string, index: number): number | null => {
     // A single requested model comes back with plain keys; a merged pair is suffixed.
-    const series = models.includes(",")
-      ? mergedSeries(hourly, key)
-      : ((hourly[key] as (number | null)[] | undefined) ?? null);
+    const series =
+      variant === "hrdps"
+        ? mergedSeries(hourly, key)
+        : ((hourly[key] as (number | null)[] | undefined) ?? null);
     if (!series) return null;
     const value = series[index];
     return typeof value === "number" ? value : null;
@@ -142,9 +109,9 @@ async function fetchWaveDayFrom(
 
 async function fetchWaveDay(): Promise<WaveDay> {
   try {
-    return await fetchWaveDayFrom("ncep_hrrr_conus", "hrrr");
+    return await fetchWaveDayFrom("hrrr", "hrrr");
   } catch {
-    return await fetchWaveDayFrom(FORECAST_MODELS, "hrdps");
+    return await fetchWaveDayFrom("hrdps", "hrdps");
   }
 }
 
@@ -578,7 +545,7 @@ export function WaveForecast({
               </div>
 
               <p className="mt-4 text-[11px] leading-5 text-slate-400">
-                Cross-ridge wind {selected.ridgeKt} kt ({directionLetters(selected.ridgeDirDeg)}) at
+                Cross-ridge wind {selected.ridgeKt} kt ({compassName(selected.ridgeDirDeg)}) at
                 ridge-top, {selected.aloftKt} kt aloft · Scorer {scorer(selected.lowScorer)} →{" "}
                 {scorer(selected.highScorer)} (×10⁻⁷ m⁻²) · N{" "}
                 {(selected.bruntLow * 100).toFixed(1)}×10⁻² s⁻¹.

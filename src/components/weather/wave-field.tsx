@@ -38,7 +38,11 @@ export const WAVE_LEGEND: { className: string; label: string }[] = [
 ];
 
 /** The swatch row shared by both views. */
-export function WaveLegend() {
+export function WaveLegend({
+  caption = "vertical velocity, m/s (HRRR) — warm is lift, blue is sink",
+}: {
+  caption?: string;
+}) {
   return (
     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
       <div className="flex items-center gap-1" aria-hidden="true">
@@ -49,9 +53,7 @@ export function WaveLegend() {
           </span>
         ))}
       </div>
-      <p className="text-[11px] text-slate-400">
-        vertical velocity, m/s (HRRR) — warm is lift, blue is sink
-      </p>
+      <p className="text-[11px] text-slate-400">{caption}</p>
     </div>
   );
 }

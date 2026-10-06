@@ -2,14 +2,9 @@
 // home page card (latest hour) and the Wx Brief dashboard (hour selection).
 
 import { fetchJson } from "@/lib/fetch-json";
-import { FORECAST_MODELS, mergedSeries } from "@/lib/forecast-model";
+import { mergedSeries } from "@/lib/forecast-model";
 import { localStampFrom } from "@/lib/wx-window";
-
-const LATITUDE = 44.3931;
-const LONGITUDE = -71.1996;
-
-/** Pressure levels to pull, in hPa. Filtered against the surface pressure at render time. */
-const LEVELS = [1000, 975, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200];
+import { WIND_DAY_LEVELS as LEVELS, wxApiPath } from "@/lib/wx-datasets";
 
 export type ProfileRow = {
   hPa: number;
@@ -39,24 +34,10 @@ export type WindDay = {
 };
 
 export async function fetchWindDay(): Promise<WindDay> {
-  const variables = [
-    "wind_speed_10m",
-    "wind_direction_10m",
-    "temperature_2m",
-    "surface_pressure",
-    ...LEVELS.flatMap((level) => [
-      `geopotential_height_${level}hPa`,
-      `wind_speed_${level}hPa`,
-      `wind_direction_${level}hPa`,
-      `temperature_${level}hPa`,
-    ]),
-  ];
-  const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}` +
-    `&hourly=${variables.join(",")}&models=${FORECAST_MODELS}&wind_speed_unit=kn` +
-    `&temperature_unit=fahrenheit&timezone=America%2FNew_York&forecast_days=2`;
-
-  const data = (await fetchJson(url)) as { hourly: Record<string, unknown>; utc_offset_seconds?: number };
+  const data = (await fetchJson(wxApiPath("wind-day"))) as {
+    hourly: Record<string, unknown>;
+    utc_offset_seconds?: number;
+  };
   const hourly = data.hourly;
   const times = hourly.time as unknown as string[];
   const offset = typeof data.utc_offset_seconds === "number" ? data.utc_offset_seconds : 0;

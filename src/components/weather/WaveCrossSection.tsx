@@ -2,34 +2,54 @@
 
 import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
-import { flyingChips, localStampFrom } from "@/lib/wx-window";
+import { compassName, flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellFill, wMs, WaveLegend } from "@/components/weather/wave-field";
 import { buildWaveColumn, solveLinearWave, type SolveResult } from "@/lib/linear-wave";
 import {
-  alongTransect,
   columnLevelsAt,
   fetchWaveColumnRaw,
   readCachedTerrain,
+  waveAzimuth,
   waveColumnHour,
   writeCachedTerrain,
   type WaveColumnRaw,
 } from "@/lib/wave-column";
+import {
+  AREA_RADIUS_NM,
+  KM_PER_NM,
+  MODEL_DISTANCES,
+  CROSS_LEVELS as MODEL_LEVELS,
+  SOLVE_DISTANCES,
+  SOLVE_DX_M,
+  WINDOW_KM,
+  azimuthBucket,
+  wxApiPath,
+} from "@/lib/wx-datasets";
 
-const SUMMIT = { lat: 44.2705, lon: -71.3032 };
-/** Azimuth of the transect, degrees from north — NW (windward) to SE (lee) through the summit. */
-const AZIMUTH = 125;
-const STEP_KM = 2;
-const DISTANCES = Array.from({ length: 14 }, (_, i) => -12 + i * STEP_KM);
-const LEVELS = [950, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 150];
+/**
+ * The transect follows the LOA. The Mount Washington Glider Area is a circle of
+ * radius 10 NM centred at 44°17′26″N 071°13′40″W (the Boston ARTCC letter of
+ * agreement), and the cross-section runs along this hour's 800 hPa wind through
+ * that centre — the chart is the slice inside the circle.
+ */
+
 const REFRESH_MS = 45 * 60 * 1000;
 const FT_PER_M = 3.28084;
 
-/** The solver's terrain sampling — 1 km, wider than the window so the taper is outside. */
-const SOLVE_DX_M = 1000;
-const SOLVE_DISTANCES = Array.from({ length: 49 }, (_, i) => i - 24);
-const TERRAIN_CACHE_KEY = "mws-wave-terrain-transect-v1";
-
-const COORDS = DISTANCES.map((d) => alongTransect(SUMMIT, AZIMUTH, d));
+async function fetchTerrainLine(bucket: number): Promise<number[]> {
+  const key = `mws-wave-terrain-line-v1-${bucket}`;
+  const cached = readCachedTerrain(key, SOLVE_DISTANCES.length);
+  if (cached) return cached;
+  const data = (await fetchJson(wxApiPath("terrain-line", { azimuth: bucket }))) as {
+    elevation?: number[];
+  } | null;
+  const values = data?.elevation;
+  if (!Array.isArray(values) || values.length !== SOLVE_DISTANCES.length) {
+    throw new Error("missing terrain line");
+  }
+  writeCachedTerrain(key, values);
+  return values;
+}
 
 type CrossLevel = {
   hPa: number;
@@ -46,18 +66,8 @@ type CrossData = {
   chips: { time: string; label: string }[];
 };
 
-async function fetchCrossSection(): Promise<CrossData> {
-  const variables = LEVELS.flatMap((hPa) => [
-    `vertical_velocity_${hPa}hPa`,
-    `geopotential_height_${hPa}hPa`,
-  ]);
-  const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${COORDS.map((c) => c.lat.toFixed(4)).join(",")}` +
-    `&longitude=${COORDS.map((c) => c.lon.toFixed(4)).join(",")}` +
-    `&hourly=${variables.join(",")}&models=ncep_hrrr_conus` +
-    `&temperature_unit=celsius&timezone=America%2FNew_York&forecast_days=2`;
-
-  const data = (await fetchJson(url)) as unknown;
+async function fetchModelField(azimuth: number): Promise<CrossData> {
+  const data = (await fetchJson(wxApiPath("cross-section", { azimuth }))) as unknown;
   const locations = (Array.isArray(data) ? data : [data]) as {
     elevation?: number;
     utc_offset_seconds?: number;
@@ -65,7 +75,7 @@ async function fetchCrossSection(): Promise<CrossData> {
   }[];
   const first = locations[0];
   const times = (first?.hourly?.time ?? []) as unknown as string[];
-  if (locations.length !== COORDS.length || times.length === 0) {
+  if (locations.length !== MODEL_DISTANCES.length || times.length === 0) {
     throw new Error("missing cross-section");
   }
   const offsetSeconds = first?.utc_offset_seconds ?? 0;
@@ -73,9 +83,9 @@ async function fetchCrossSection(): Promise<CrossData> {
   const points: CrossPoint[] = locations.map((location, i) => {
     const hourly = location.hourly ?? {};
     return {
-      distanceKm: DISTANCES[i],
+      distanceKm: MODEL_DISTANCES[i],
       elevationFt: (location.elevation ?? 0) * FT_PER_M,
-      levels: LEVELS.map((hPa) => ({
+      levels: MODEL_LEVELS.map((hPa) => ({
         hPa,
         w: hourly[`vertical_velocity_${hPa}hPa`] ?? [],
         altFt: (hourly[`geopotential_height_${hPa}hPa`] ?? []).map((z) =>
@@ -96,25 +106,7 @@ async function fetchCrossSection(): Promise<CrossData> {
   return { times, offsetSeconds, points, defaultIndex, chips: flyingChips(times) };
 }
 
-/** Model terrain along the solver's transect. */
-async function fetchTerrain(): Promise<{ distancesKm: number[]; elevationsM: number[] }> {
-  const cached = readCachedTerrain(TERRAIN_CACHE_KEY, SOLVE_DISTANCES.length);
-  if (cached) return { distancesKm: SOLVE_DISTANCES, elevationsM: cached };
-
-  const coords = SOLVE_DISTANCES.map((d) => alongTransect(SUMMIT, AZIMUTH, d));
-  const url =
-    `https://api.open-meteo.com/v1/elevation?latitude=${coords.map((c) => c.lat.toFixed(4)).join(",")}` +
-    `&longitude=${coords.map((c) => c.lon.toFixed(4)).join(",")}`;
-  const data = (await fetchJson(url)) as { elevation?: number[] } | null;
-  const values = data?.elevation;
-  if (!Array.isArray(values) || values.length !== SOLVE_DISTANCES.length) {
-    throw new Error("missing terrain");
-  }
-  writeCachedTerrain(TERRAIN_CACHE_KEY, values);
-  return { distancesKm: SOLVE_DISTANCES, elevationsM: values };
-}
-
-/** The model's own vertical velocity along a ridge-normal transect through the summit. */
+/** The linear-theory wave field and the model's own field along the hour's wind line. */
 export function WaveCrossSection({
   selectedTime,
   onSelectTime,
@@ -122,31 +114,21 @@ export function WaveCrossSection({
   selectedTime: string | null;
   onSelectTime: (time: string) => void;
 }) {
-  const [data, setData] = useState<CrossData | null>(null);
-  const [error, setError] = useState(false);
-  const [terrain, setTerrain] = useState<{ distancesKm: number[]; elevationsM: number[] } | null>(null);
-  const [column, setColumn] = useState<WaveColumnRaw | null>(null);
-  const [linearError, setLinearError] = useState(false);
   const [mode, setMode] = useState<"linear" | "model">("linear");
+  const [column, setColumn] = useState<WaveColumnRaw | null>(null);
+  const [terrainLine, setTerrainLine] = useState<{ bucket: number; elevationsM: number[] } | null>(null);
+  const [field, setField] = useState<{ bucket: number; data: CrossData } | null>(null);
+  const [linearError, setLinearError] = useState(false);
+  const [error, setError] = useState(false);
 
+  // The column first — the wind in it orients everything downstream.
   useEffect(() => {
     let cancelled = false;
     const load = () => {
-      fetchCrossSection()
+      fetchWaveColumnRaw()
         .then((next) => {
           if (!cancelled) {
-            setData(next);
-            setError(false);
-          }
-        })
-        .catch(() => {
-          if (!cancelled) setError(true);
-        });
-      Promise.all([fetchTerrain(), fetchWaveColumnRaw()])
-        .then(([nextTerrain, nextColumn]) => {
-          if (!cancelled) {
-            setTerrain(nextTerrain);
-            setColumn(nextColumn);
+            setColumn(next);
             setLinearError(false);
           }
         })
@@ -162,22 +144,66 @@ export function WaveCrossSection({
     };
   }, []);
 
+  const hourIndex = column ? waveColumnHour(column, selectedTime) : 0;
+  const levels = column ? columnLevelsAt(column.hourly, hourIndex) : [];
+  const windFrom = waveAzimuth(levels);
+  const transectAzimuth = (windFrom + 180) % 360;
+  const bucket = column && levels.length > 0 ? azimuthBucket(windFrom) : null;
+
+  // The terrain line and the model field follow the chosen hour's direction.
+  useEffect(() => {
+    if (bucket === null) return;
+    let cancelled = false;
+    const load = () => {
+      fetchTerrainLine(bucket)
+        .then((elevationsM) => {
+          if (!cancelled) {
+            setTerrainLine({ bucket, elevationsM });
+            setLinearError(false);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setLinearError(true);
+        });
+      fetchModelField(bucket)
+        .then((next) => {
+          if (!cancelled) {
+            setField({ bucket, data: next });
+            setError(false);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setError(true);
+        });
+    };
+    load();
+    const timer = setInterval(load, REFRESH_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [bucket]);
+
+  // The linear solve for the selected hour — pure math (~0.1 ms), so it runs in render.
+  let solve: SolveResult | null = null;
+  if (column && terrainLine && levels.length > 0) {
+    const waveColumn = buildWaveColumn(levels, transectAzimuth);
+    if (waveColumn) {
+      solve = solveLinearWave({ terrainM: terrainLine.elevationsM, dxM: SOLVE_DX_M, column: waveColumn });
+    }
+  }
+  const linearUnavailable = linearError || (!solve && Boolean(terrainLine && column));
+
+  const data = field?.data ?? null;
+  const staleField = field !== null && bucket !== null && field.bucket !== bucket;
+
   let index = data?.defaultIndex ?? 0;
   if (data && selectedTime) {
     const found = data.times.indexOf(selectedTime);
     if (found >= 0) index = found;
   }
 
-  // The linear solve for the selected hour — pure math (~0.04 ms per solve), so it can
-  // run in render; the fetches above own the clock.
-  let solve: SolveResult | null = null;
-  if (terrain && column) {
-    const columnIndex = waveColumnHour(column, selectedTime);
-    const waveColumn = buildWaveColumn(columnLevelsAt(column.hourly, columnIndex));
-    if (waveColumn) {
-      solve = solveLinearWave({ terrainM: terrain.elevationsM, dxM: SOLVE_DX_M, column: waveColumn });
-    }
-  }
+  const windLabel = `${compassName(windFrom)} ${Math.round(windFrom)}°`;
 
   const W = 1000;
   const H = 330;
@@ -188,10 +214,10 @@ export function WaveCrossSection({
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
-  const xMin = DISTANCES[0];
-  const xMax = DISTANCES[DISTANCES.length - 1];
+  const xMin = -WINDOW_KM;
+  const xMax = WINDOW_KM;
   const x = (d: number) => padL + ((d - xMin) / (xMax - xMin)) * plotW;
-  const distTicks = DISTANCES.filter((d) => d % 4 === 0);
+  const distTicks = [-AREA_RADIUS_NM, -5, 0, 5, AREA_RADIUS_NM];
 
   const axes = (altTicks: number[], y: (altFt: number) => number) => (
     <>
@@ -216,24 +242,24 @@ export function WaveCrossSection({
           </text>
         </g>
       ))}
-      {distTicks.map((d) => (
+      {distTicks.map((nm) => (
         <text
-          key={d}
-          x={x(d)}
+          key={nm}
+          x={x(nm * KM_PER_NM)}
           y={H - 8}
           textAnchor="middle"
           className="fill-slate-400 text-[9px] tabular-nums"
         >
-          {d > 0 ? `+${d}` : d}
+          {nm > 0 ? `+${nm}` : nm}
         </text>
       ))}
       <text
         x={padL + plotW / 2}
-        y={H - 8}
+        y={H - 20}
         textAnchor="middle"
         className="fill-slate-400 text-[9px]"
       >
-        km from the summit · NW (windward) to SE (lee)
+        NM from the Glider Area centre · upwind to downwind
       </text>
       <text x={padL - 6} y={padT + 8} textAnchor="end" className="fill-slate-400 text-[9px]">
         ft
@@ -243,7 +269,7 @@ export function WaveCrossSection({
 
   let content: React.ReactNode = null;
   if (mode === "linear") {
-    if (solve && terrain) {
+    if (solve && terrainLine) {
       const lastLevel = solve.zM.length - 1;
       const topFt = solve.zM[lastLevel] * FT_PER_M;
       const yMax = Math.ceil(Math.min(topFt + 1500, 55000) / 5000) * 5000;
@@ -252,9 +278,9 @@ export function WaveCrossSection({
       const altTicks: number[] = [];
       for (let alt = 10000; alt <= yMax; alt += 10000) altTicks.push(alt);
 
-      const shown = terrain.distancesKm
-        .map((d, i) => ({ d, i }))
-        .filter(({ d }) => d >= xMin && d <= xMax);
+      const shown = SOLVE_DISTANCES.map((d, i) => ({ d, i })).filter(
+        ({ d }) => d >= xMin && d <= xMax,
+      );
 
       const cells: React.ReactNode[] = [];
       for (let s = 0; s < shown.length - 1; s += 1) {
@@ -283,9 +309,10 @@ export function WaveCrossSection({
         }
       }
 
-      const profile = terrain.elevationsM
-        .map((h, i) => ({ d: terrain.distancesKm[i], ft: h * FT_PER_M }))
-        .filter(({ d }) => d >= xMin && d <= xMax);
+      const profile = SOLVE_DISTANCES.map((d, i) => ({
+        d,
+        ft: terrainLine.elevationsM[i] * FT_PER_M,
+      })).filter(({ d }) => d >= xMin && d <= xMax);
       const terrainPath =
         `M ${x(xMin).toFixed(1)},${(padT + plotH).toFixed(1)} ` +
         profile.map(({ d, ft }) => `L ${x(d).toFixed(1)},${y(ft).toFixed(1)}`).join(" ") +
@@ -298,7 +325,7 @@ export function WaveCrossSection({
             viewBox={`0 0 ${W} ${H}`}
             className="mt-3 w-full"
             role="img"
-            aria-label="Linear-theory vertical velocity cross-section through Mount Washington"
+            aria-label="Linear-theory vertical velocity cross-section along the wind through the Mount Washington Glider Area"
           >
             {cells}
             {axes(altTicks, y)}
@@ -309,10 +336,10 @@ export function WaveCrossSection({
               textAnchor="middle"
               className="fill-slate-500 text-[9px]"
             >
-              {peak.d === 0 ? "Mt Washington" : "Presidential Range"}
+              ridge crest
             </text>
           </svg>
-          <WaveLegend />
+          <WaveLegend caption="vertical velocity, m/s — linear-theory estimate; warm is lift, blue is sink" />
         </>
       );
     }
@@ -334,7 +361,7 @@ export function WaveCrossSection({
     for (let i = 0; i < data.points.length - 1; i += 1) {
       const a = data.points[i];
       const b = data.points[i + 1];
-      for (let j = 0; j < LEVELS.length - 1; j += 1) {
+      for (let j = 0; j < MODEL_LEVELS.length - 1; j += 1) {
         const al = a.levels[j];
         const au = a.levels[j + 1];
         const bl = b.levels[j];
@@ -374,9 +401,9 @@ export function WaveCrossSection({
       <>
         <svg
           viewBox={`0 0 ${W} ${H}`}
-          className="mt-3 w-full"
+          className={`mt-3 w-full transition-opacity ${staleField ? "opacity-50" : ""}`}
           role="img"
-          aria-label="Vertical velocity cross-section through Mount Washington"
+          aria-label="Vertical velocity cross-section along the wind through the Mount Washington Glider Area"
         >
           {cells}
           {axes(altTicks, y)}
@@ -387,10 +414,10 @@ export function WaveCrossSection({
             textAnchor="middle"
             className="fill-slate-500 text-[9px]"
           >
-            {peak.distanceKm === 0 ? "Mt Washington" : "Presidential Range"}
+            ridge crest
           </text>
         </svg>
-        <WaveLegend />
+        <WaveLegend caption="vertical velocity, m/s (HRRR); warm is lift, blue is sink" />
       </>
     );
   }
@@ -430,6 +457,9 @@ export function WaveCrossSection({
             {label}
           </button>
         ))}
+        <p className="text-[11px] text-slate-400">
+          the line runs along the 800 hPa wind, {windLabel}, through the Glider Area centre
+        </p>
       </div>
 
       {data ? (
@@ -461,15 +491,15 @@ export function WaveCrossSection({
           {content}
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
             {mode === "linear"
-              ? "Linear-theory estimate: the steady wave equation solved from the terrain profile and the HRRR temperature and wind column — the model's own pressure-level vertical velocity is much smoother, so switch the field to HRRR for comparison."
-              : "The model's own vertical velocity along the line through the summit, grey being the model terrain."}{" "}
+              ? `Linear-theory estimate: the steady wave equation solved from the terrain profile and the HRRR column, on this hour's wind line (${windLabel}) through the LOA's Glider Area centre — the chart is the slice inside the 10 NM circle. The model's own pressure-level vertical velocity is much smoother; switch the field to HRRR for comparison.`
+              : `The model's own vertical velocity along this hour's wind line (${windLabel}) through the LOA's Glider Area centre, grey being the terrain.`}{" "}
             Warm colours are lift, blue is sink — pick any hour above; the wave panel shares the
-            selection. The transect runs about 26 km from the Great Gulf side across to Bartlett.
+            selection.
           </p>
         </>
-      ) : error || (mode === "linear" && linearError) ? (
+      ) : error || linearUnavailable ? (
         <p className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600 ring-1 ring-slate-900/5">
-          {mode === "linear" && linearError
+          {mode === "linear" && linearUnavailable && !error
             ? "The linear wave solve is unavailable right now. "
             : "The cross-section is unavailable right now. "}
           <a

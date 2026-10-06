@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
+import { wxApiPath } from "@/lib/wx-datasets";
 
 const REFRESH_MS = 10 * 60 * 1000;
 const KMH_TO_KT = 0.539957;
@@ -71,11 +72,7 @@ async function fetchStation(): Promise<Summit> {
 
 /** Fallback: the latest model run at summit elevation. */
 async function fetchModel(): Promise<Summit> {
-  const url =
-    "https://api.open-meteo.com/v1/forecast?latitude=44.2705&longitude=-71.3032" +
-    "&current=temperature_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m" +
-    "&wind_speed_unit=kn&temperature_unit=fahrenheit&elevation=1916&timezone=UTC";
-  const data = (await fetchJson(url)) as {
+  const data = (await fetchJson(wxApiPath("summit-current"))) as {
     current?: {
       time?: string;
       temperature_2m?: unknown;

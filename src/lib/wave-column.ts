@@ -1,13 +1,11 @@
 // The pieces both wave-field views share for the linear solve: the free-atmosphere
-// column (fetched once per view, all hours in one request) and the little bit of
-// transect geometry that maps a distance along the flow to a lat/lon.
+// column (fetched once per view through the cached /api/wx route) and the local
+// terrain cache that keeps static elevation off the wire.
 
 import { fetchJson } from "@/lib/fetch-json";
 import { WAVE_LEVELS } from "@/lib/wave-score";
+import { wxApiPath } from "@/lib/wx-datasets";
 import type { WaveColumnLevel } from "@/lib/linear-wave";
-
-/** The column point the wave score already reads — reused as the solve's free atmosphere. */
-export const WAVE_COLUMN_POINT = { lat: 44.3931, lon: -71.1996 };
 
 export type WaveColumnRaw = {
   times: string[];
@@ -18,18 +16,7 @@ export type WaveColumnRaw = {
 
 /** The full model column (geopotential height, wind, temperature per pressure level). */
 async function fetchColumnRaw(): Promise<WaveColumnRaw> {
-  const variables = WAVE_LEVELS.flatMap((hPa) => [
-    `geopotential_height_${hPa}hPa`,
-    `wind_speed_${hPa}hPa`,
-    `wind_direction_${hPa}hPa`,
-    `temperature_${hPa}hPa`,
-  ]);
-  const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${WAVE_COLUMN_POINT.lat}` +
-    `&longitude=${WAVE_COLUMN_POINT.lon}` +
-    `&hourly=${variables.join(",")}&models=ncep_hrrr_conus&wind_speed_unit=ms` +
-    `&temperature_unit=celsius&timezone=America%2FNew_York&forecast_days=2`;
-  const data = (await fetchJson(url)) as {
+  const data = (await fetchJson(wxApiPath("column"))) as {
     hourly?: Record<string, (number | null)[]>;
     utc_offset_seconds?: number;
   };
@@ -91,17 +78,23 @@ export function waveColumnHour(raw: WaveColumnRaw, selectedTime: string | null):
   return raw.defaultIndex;
 }
 
-/** A point offset along a transect azimuth (degrees from north) by dKm from `from`. */
-export function alongTransect(from: { lat: number; lon: number }, azimuthDeg: number, dKm: number) {
-  const az = (azimuthDeg * Math.PI) / 180;
-  return {
-    lat: from.lat + (Math.cos(az) * dKm) / 111,
-    lon: from.lon + (Math.sin(az) * dKm) / (111 * Math.cos((from.lat * Math.PI) / 180)),
-  };
+/**
+ * The azimuth the wave views run along for this hour — the 800 hPa wind's
+ * meteorological direction (the direction it blows FROM), falling back through
+ * nearby levels when that one is missing or calm, then to the historical
+ * northwest axis. Callers lay their transects along `(azimuth + 180) % 360`,
+ * so distance increases downwind.
+ */
+export function waveAzimuth(levels: WaveColumnLevel[]): number {
+  for (const hPa of [800, 825, 775, 850, 750, 700]) {
+    const level = levels.find((entry) => entry.hPa === hPa);
+    if (level && Number.isFinite(level.dirDeg) && level.speedMs > 5) return level.dirDeg;
+  }
+  return 305;
 }
 
-// Terrain never moves, and the free API counts every location against a per-minute
-// budget — so terrain grids are cached locally rather than re-fetched on each visit.
+// Terrain never moves, and the upstream API counts every location against a per-minute
+// budget — so terrain grids are cached locally on top of the server's own cache.
 
 const TERRAIN_CACHE_MS = 90 * 24 * 60 * 60 * 1000;
 

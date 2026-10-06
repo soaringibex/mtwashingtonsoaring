@@ -59,7 +59,9 @@ async function waitForChrome() {
 
 async function main() {
   await mkdir(OUT, { recursive: true });
-  const userDataDir = await mkdtemp(path.join(tmpdir(), "chrome-cdp-"));
+  // CHROME_PROFILE keeps a persistent browser profile between runs, so QA captures
+  // reuse the localStorage terrain caches instead of re-spending the API budget.
+  const userDataDir = process.env.CHROME_PROFILE ?? (await mkdtemp(path.join(tmpdir(), "chrome-cdp-")));
   const chrome = spawn(
     CHROME,
     [

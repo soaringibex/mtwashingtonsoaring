@@ -64,3 +64,27 @@ export function flyingChips(times: string[]): { time: string; label: string }[] 
     .filter((entry) => inWindow(entry.hour, window))
     .map((entry) => ({ time: entry.time, label: hourLabel(entry.hour) }));
 }
+
+const COMPASS = [
+  "N",
+  "NNE",
+  "NE",
+  "ENE",
+  "E",
+  "ESE",
+  "SE",
+  "SSE",
+  "S",
+  "SSW",
+  "SW",
+  "WSW",
+  "W",
+  "WNW",
+  "NW",
+  "NNW",
+];
+
+/** "WSW" for 247 — the heading a wind blows from. */
+export function compassName(deg: number): string {
+  return COMPASS[Math.round(deg / 22.5) % 16];
+}
