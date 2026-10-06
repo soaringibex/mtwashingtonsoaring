@@ -1,6 +1,6 @@
-// Road polylines for the wave map, from OpenStreetMap through our cached /api/roads
-// route. Roads never move, so the browser keeps them for a year on top of the edge's
-// month.
+// Road polylines for the wave map, from OpenStreetMap. The region's roads never move,
+// so they ship as a committed asset (public/roads.json) rather than a runtime API call —
+// one file on the CDN for everyone, kept in localStorage for a year per browser.
 
 const ROADS_CACHE_KEY = "mws-roads-v2";
 const ROADS_CACHE_MS = 365 * 24 * 60 * 60 * 1000;
@@ -27,7 +27,7 @@ export async function fetchRoadLines(): Promise<RoadLine[]> {
     // no readable cache — fall through to the network
   }
 
-  const response = await fetch("/api/roads");
+  const response = await fetch("/roads.json");
   if (!response.ok) throw new Error("roads unavailable");
   const data = (await response.json()) as { lines?: RoadLine[] };
   const lines = Array.isArray(data.lines) ? data.lines : [];
