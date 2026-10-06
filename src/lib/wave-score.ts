@@ -38,7 +38,13 @@ const G = 9.81;
  * The Presidential Range rises roughly 4,000 ft (1,200 m) above the valleys the
  * wave-making flow crosses — the h in the N·h vertical-velocity scale.
  */
-const WAVE_RELIEF_M = 1200;
+export const WAVE_RELIEF_M = 1200;
+
+/** Pressure levels pulled for the wave forecast — the full column for the profile chart. */
+export const WAVE_LEVELS = [
+  1000, 975, 950, 925, 900, 875, 850, 825, 800, 775, 750, 725, 700, 675, 650, 625, 600, 575, 550,
+  525, 500, 475, 450, 425, 400, 375, 350, 325, 300, 275, 250, 225, 200, 175, 150, 100,
+] as const;
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 

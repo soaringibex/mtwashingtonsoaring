@@ -3,15 +3,11 @@
 import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 import { FORECAST_MODELS, mergedSeries } from "@/lib/forecast-model";
-import { computeWaveScore, type WaveLevel, type WaveScore } from "@/lib/wave-score";
+import { computeWaveScore, WAVE_LEVELS, type WaveLevel, type WaveScore } from "@/lib/wave-score";
 import { flyingWindow, hourLabel, inWindow } from "@/lib/wx-window";
 
 const LATITUDE = 44.3931;
 const LONGITUDE = -71.1996;
-const LEVELS = [
-  1000, 975, 950, 925, 900, 875, 850, 825, 800, 775, 750, 725, 700, 675, 650, 625, 600, 575, 550,
-  525, 500, 475, 450, 425, 400, 375, 350, 325, 300, 275, 250, 225, 200, 175, 150, 100,
-];
 const REFRESH_MS = 45 * 60 * 1000;
 
 const compass = [
@@ -53,11 +49,20 @@ function scoreBar(score: number): string {
 }
 
 type WaveHour = { time: string; hour: number; label: string } & WaveScore;
-type WaveDay = { tomorrow: boolean; nowHour: number; hours: WaveHour[]; peak: WaveHour };
+type WaveDay = {
+  tomorrow: boolean;
+  nowHour: number;
+  hours: WaveHour[];
+  peak: WaveHour;
+  source: "hrrr" | "hrdps";
+};
 
-/** The Scorer-parameter wave signal for the flying day, hour by hour. */
-async function fetchWaveDay(): Promise<WaveDay> {
-  const variables = LEVELS.flatMap((level) => [
+/** The Scorer-parameter wave signal for the flying day, hour by hour, from Open-Meteo. */
+async function fetchWaveDayFrom(
+  models: string,
+  source: WaveDay["source"],
+): Promise<WaveDay> {
+  const variables = WAVE_LEVELS.flatMap((level) => [
     `geopotential_height_${level}hPa`,
     `wind_speed_${level}hPa`,
     `wind_direction_${level}hPa`,
@@ -65,7 +70,7 @@ async function fetchWaveDay(): Promise<WaveDay> {
   ]);
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}` +
-    `&hourly=${variables.join(",")}&models=${FORECAST_MODELS}&wind_speed_unit=kn` +
+    `&hourly=${variables.join(",")}&models=${models}&wind_speed_unit=kn` +
     `&temperature_unit=celsius&timezone=America%2FNew_York&forecast_days=2`;
 
   const data = (await fetchJson(url)) as { hourly: Record<string, unknown> };
@@ -74,7 +79,10 @@ async function fetchWaveDay(): Promise<WaveDay> {
   if (!times || times.length === 0) throw new Error("missing wave forecast");
 
   const at = (key: string, index: number): number | null => {
-    const series = mergedSeries(hourly, key);
+    // A single requested model comes back with plain keys; a merged pair is suffixed.
+    const series = models.includes(",")
+      ? mergedSeries(hourly, key)
+      : ((hourly[key] as (number | null)[] | undefined) ?? null);
     if (!series) return null;
     const value = series[index];
     return typeof value === "number" ? value : null;
@@ -92,7 +100,7 @@ async function fetchWaveDay(): Promise<WaveDay> {
 
     const levels: WaveLevel[] = [];
     let complete = true;
-    for (const hPa of LEVELS) {
+    for (const hPa of WAVE_LEVELS) {
       const altM = at(`geopotential_height_${hPa}hPa`, i);
       const speedKt = at(`wind_speed_${hPa}hPa`, i);
       const dirDeg = at(`wind_direction_${hPa}hPa`, i);
@@ -113,7 +121,21 @@ async function fetchWaveDay(): Promise<WaveDay> {
 
   const peak = hours.reduce((best, hour) => (hour.score > best.score ? hour : best), hours[0]);
 
-  return { tomorrow: window.tomorrow, nowHour: window.nowHour, hours, peak };
+  return {
+    tomorrow: window.tomorrow,
+    nowHour: window.nowHour,
+    hours,
+    peak,
+    source,
+  };
+}
+
+async function fetchWaveDay(): Promise<WaveDay> {
+  try {
+    return await fetchWaveDayFrom("ncep_hrrr_conus", "hrrr");
+  } catch {
+    return await fetchWaveDayFrom(FORECAST_MODELS, "hrdps");
+  }
 }
 
 const scorer = (value: number) => (value * 1e7).toFixed(1);
@@ -306,7 +328,10 @@ export function WaveForecast() {
           Wave forecast
         </p>
         <p className="text-xs text-slate-400">
-          Scorer parameter{day ? ` · ${day.tomorrow ? "tomorrow" : "today"}` : ""}
+          Scorer parameter
+          {day
+            ? ` · ${day.source === "hrrr" ? "HRRR" : "HRDPS"} · ${day.tomorrow ? "tomorrow" : "today"}`
+            : ""}
         </p>
       </div>
 
@@ -373,8 +398,11 @@ export function WaveForecast() {
           </div>
           <p className="mt-2 text-[11px] leading-5 text-slate-400">
             Lift is the N·h scale — the low-level stability over the height of the range — an upper
-            bound, not a promise. An indicator from the GEM-HRDPS model via Open-Meteo; the
-            Observatory&apos;s higher-summits forecast is the one to read before committing.
+            bound, not a promise. An indicator from{" "}
+            {day.source === "hrrr"
+              ? "NOAA's HRRR model via Open-Meteo"
+              : "the GEM-HRDPS model via Open-Meteo"}
+            ; the Observatory&apos;s higher-summits forecast is the one to read before committing.
           </p>
         </>
       ) : error ? (
