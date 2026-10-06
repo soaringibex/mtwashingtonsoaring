@@ -179,7 +179,11 @@ export function solveLinearWave(input: SolveInput): SolveResult | null {
     const atBoundary: C[] = new Array(zl.length);
     atBoundary[zl.length - 1] = w;
     for (let s = zl.length - 2; s >= 0; s -= 1) {
-      const q2 = q2s[Math.max(s - 1, 0)];
+      // Segment s spans (zl[s], zl[s+1]] = (t_{s-1}, t_s], which IS layer s — the
+      // segment below the first layer top carries that layer's own l², not the one
+      // beneath it. (Getting this index wrong shifts the whole l² staircase down by
+      // one layer; a uniform test column cannot see it.)
+      const q2 = q2s[s];
       const dz = zl[s] - zl[s + 1]; // negative — downward
       [w, wp] = wAdv(w, wp, q2, dz);
       atBoundary[s] = w;

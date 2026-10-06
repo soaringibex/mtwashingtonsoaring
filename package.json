@@ -7,7 +7,8 @@
     "build": "npm run check:assets && next build",
     "start": "next start",
     "lint": "eslint",
-    "check:assets": "node scripts/check-assets.mjs"
+    "check:assets": "node scripts/check-assets.mjs",
+    "check:wave": "node scripts/check-wave-solver.mts"
   },
   "dependencies": {
     "next": "16.3.8",
