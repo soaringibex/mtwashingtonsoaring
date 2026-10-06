@@ -118,7 +118,7 @@ export function WaveCrossSection({
   const [mode, setMode] = useState<"linear" | "model">("linear");
   const [column, setColumn] = useState<WaveColumnRaw | null>(null);
   const [terrainLine, setTerrainLine] = useState<{ bucket: number; elevationsM: number[] } | null>(null);
-  const [upwindColumn, setUpwindColumn] = useState<WaveColumnRaw | null>(null);
+  const [upwind, setUpwind] = useState<{ bucket: number; column: WaveColumnRaw } | null>(null);
   const [field, setField] = useState<{ bucket: number; data: CrossData } | null>(null);
   const [linearError, setLinearError] = useState(false);
   const [error, setError] = useState(false);
@@ -160,10 +160,10 @@ export function WaveCrossSection({
     let cancelled = false;
     fetchUpwindColumnRaw(bucket)
       .then((next) => {
-        if (!cancelled) setUpwindColumn(next);
+        if (!cancelled) setUpwind({ bucket, column: next });
       })
       .catch(() => {
-        if (!cancelled) setUpwindColumn(null);
+        if (!cancelled) setUpwind(null);
       });
     return () => {
       cancelled = true;
@@ -207,6 +207,9 @@ export function WaveCrossSection({
   // The linear solve for the selected hour — pure math (~0.1 ms), so it runs in render.
   let solve: SolveResult | null = null;
   if (column && terrainLine && levels.length > 0) {
+    // Only a sounding for THIS bucket is usable — a stale one would solve on the
+    // previous direction until the new fetch resolves.
+    const upwindColumn = upwind !== null && upwind.bucket === bucket ? upwind.column : null;
     const solveLevels = upwindColumn
       ? columnLevelsAt(upwindColumn.hourly, waveColumnHour(upwindColumn, selectedTime))
       : levels;

@@ -189,7 +189,7 @@ export function WaveMap({
   const [solveMosaic, setSolveMosaic] = useState<TerrainMosaic | null>(null);
   const [column, setColumn] = useState<WaveColumnRaw | null>(null);
   const [linearError, setLinearError] = useState(false);
-  const [upwindColumn, setUpwindColumn] = useState<WaveColumnRaw | null>(null);
+  const [upwind, setUpwind] = useState<{ bucket: number; column: WaveColumnRaw } | null>(null);
   const [mosaic, setMosaic] = useState<TerrainMosaic | null>(null);
   const [mosaicError, setMosaicError] = useState(false);
   const [roads, setRoads] = useState<RoadLine[] | null>(null);
@@ -279,8 +279,11 @@ export function WaveMap({
     const hour = waveColumnHour(column, selectedTime);
     const localLevels = columnLevelsAt(column.hourly, hour);
     // The solves run on the undisturbed inflow sounding; the local column orients them.
-    const levels = upwindColumn
-      ? columnLevelsAt(upwindColumn.hourly, waveColumnHour(upwindColumn, selectedTime))
+    // Only a sounding for THIS wind bucket is usable — a stale one would solve on the
+    // previous direction until the new fetch resolves.
+    const activeUpwind = upwind !== null && upwind.bucket === azimuthBucket(waveAzimuth(localLevels)) ? upwind.column : null;
+    const levels = activeUpwind
+      ? columnLevelsAt(activeUpwind.hourly, waveColumnHour(activeUpwind, selectedTime))
       : localLevels;
     const radians = (((waveAzimuth(localLevels) + 180) % 360) * Math.PI) / 180;
     const alongE = Math.sin(radians);
@@ -311,7 +314,7 @@ export function WaveMap({
       transects.push(solve.w);
     }
     return { zM, transects, alongE, alongN, crossE, crossN, centreKmPerDegLon };
-  }, [solveMosaic, column, selectedTime, upwindColumn]);
+  }, [solveMosaic, column, selectedTime, upwind]);
 
   // Inputs arrived but the solver came back empty — a data problem, not a pending one.
   const linearUnavailable = linearError || (!solvedField && Boolean(solveMosaic && column));
@@ -335,10 +338,10 @@ export function WaveMap({
     let cancelled = false;
     fetchUpwindColumnRaw(windBucket)
       .then((next) => {
-        if (!cancelled) setUpwindColumn(next);
+        if (!cancelled) setUpwind({ bucket: windBucket, column: next });
       })
       .catch(() => {
-        if (!cancelled) setUpwindColumn(null);
+        if (!cancelled) setUpwind(null);
       });
     return () => {
       cancelled = true;

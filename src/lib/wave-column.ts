@@ -39,7 +39,7 @@ function parseColumn(data: unknown): WaveColumnRaw | null {
 async function fetchColumnRaw(): Promise<WaveColumnRaw> {
   const raw = parseColumn(await fetchJson(wxApiPath("column")));
   if (!raw) throw new Error("missing column");
-  archiveColumn(raw.hourly, raw.times, raw.offsetSeconds);
+  archiveColumn(COLUMN_ARCHIVE_KEY, raw.hourly, raw.times, raw.offsetSeconds);
   return raw;
 }
 
@@ -47,15 +47,28 @@ async function fetchColumnRaw(): Promise<WaveColumnRaw> {
 // per 5° wind bucket, cached like the rest.
 const upwindCache = new Map<number, { at: number; value: Promise<WaveColumnRaw> }>();
 
+const upwindArchiveKey = (bucket: number) => `mws-wave-column-upwind-v1-${bucket}`;
+
 export function fetchUpwindColumnRaw(azimuth: number): Promise<WaveColumnRaw> {
   const bucket = azimuthBucket(azimuth);
   const now = Date.now();
   const cached = upwindCache.get(bucket);
   if (cached && now - cached.at < COLUMN_CACHE_MS) return cached.value;
+  if (!cached) {
+    // Archive-seeded reload: comes back with the sounding instead of jumping from the
+    // lee column once the fetch lands.
+    const archived = readArchivedColumn(upwindArchiveKey(bucket));
+    if (archived && now - archived.at < COLUMN_CACHE_MS) {
+      const value = Promise.resolve<WaveColumnRaw>(archived);
+      upwindCache.set(bucket, { at: archived.at, value });
+      return value;
+    }
+  }
   const value = fetchJson(wxApiPath("column-upwind", { azimuth: bucket }))
     .then((data) => {
       const raw = parseColumn(data);
       if (!raw) throw new Error("missing upwind column");
+      archiveColumn(upwindArchiveKey(bucket), raw.hourly, raw.times, raw.offsetSeconds);
       return raw;
     })
     .catch((error: unknown) => {
@@ -102,9 +115,9 @@ type ColumnArchive = {
   hours?: Record<string, { at: number; levels: WaveColumnLevel[] }>;
 };
 
-function readColumnArchive(): ColumnArchive {
+function readColumnArchive(key: string): ColumnArchive {
   try {
-    const raw = localStorage.getItem(COLUMN_ARCHIVE_KEY);
+    const raw = localStorage.getItem(key);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as ColumnArchive;
     return parsed && typeof parsed === "object" ? parsed : {};
@@ -114,12 +127,13 @@ function readColumnArchive(): ColumnArchive {
 }
 
 function archiveColumn(
+  key: string,
   hourly: Record<string, (number | null)[]>,
   times: string[],
   offsetSeconds: number,
 ): void {
   try {
-    const archive = readColumnArchive();
+    const archive = readColumnArchive(key);
     const hours = archive.hours ?? {};
     const now = Date.now();
     for (let i = 0; i < times.length; i += 1) {
@@ -132,18 +146,15 @@ function archiveColumn(
       const instant = Date.parse(`${time}:00Z`) - offsetSeconds * 1000;
       if (!Number.isFinite(instant) || instant < cutoff) delete hours[time];
     }
-    localStorage.setItem(
-      COLUMN_ARCHIVE_KEY,
-      JSON.stringify({ offsetSeconds, hours } satisfies ColumnArchive),
-    );
+    localStorage.setItem(key, JSON.stringify({ offsetSeconds, hours } satisfies ColumnArchive));
   } catch {
     // storage unavailable — the archive is best-effort
   }
 }
 
 /** The archived column as the solver consumes it, with the time it was stored. */
-export function readArchivedColumn(): (WaveColumnRaw & { at: number }) | null {
-  const archive = readColumnArchive();
+export function readArchivedColumn(key: string = COLUMN_ARCHIVE_KEY): (WaveColumnRaw & { at: number }) | null {
+  const archive = readColumnArchive(key);
   const hours = archive.hours ?? {};
   const times = Object.keys(hours).sort();
   if (times.length === 0) return null;
