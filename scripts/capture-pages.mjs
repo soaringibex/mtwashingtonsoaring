@@ -114,6 +114,10 @@ async function main() {
         await sleep(250);
       }
 
+      // Pages that fetch their data after load need a moment before the screenshot —
+      // opt in per target when the data arrives over a few seconds.
+      if (target.settleMs) await sleep(target.settleMs);
+
       // Scroll through the page so lazy-loaded images actually load, then wait for them to
       // finish: scrolling to a selector before images settle lands the crop in the wrong
       // place when late arrivals shift the layout.
