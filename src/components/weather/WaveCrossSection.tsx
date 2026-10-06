@@ -4,8 +4,16 @@ import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 import { flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellFill, wMs, WaveLegend } from "@/components/weather/wave-field";
-import { buildWaveColumn, solveLinearWave, type SolveResult, type WaveColumnLevel } from "@/lib/linear-wave";
-import { WAVE_LEVELS } from "@/lib/wave-score";
+import { buildWaveColumn, solveLinearWave, type SolveResult } from "@/lib/linear-wave";
+import {
+  alongTransect,
+  columnLevelsAt,
+  fetchWaveColumnRaw,
+  readCachedTerrain,
+  waveColumnHour,
+  writeCachedTerrain,
+  type WaveColumnRaw,
+} from "@/lib/wave-column";
 
 const SUMMIT = { lat: 44.2705, lon: -71.3032 };
 /** Azimuth of the transect, degrees from north — NW (windward) to SE (lee) through the summit. */
@@ -19,18 +27,9 @@ const FT_PER_M = 3.28084;
 /** The solver's terrain sampling — 1 km, wider than the window so the taper is outside. */
 const SOLVE_DX_M = 1000;
 const SOLVE_DISTANCES = Array.from({ length: 49 }, (_, i) => i - 24);
-/** The column for the linear solve, at the same point the wave score uses. */
-const GORHAM = { lat: 44.3931, lon: -71.1996 };
+const TERRAIN_CACHE_KEY = "mws-wave-terrain-transect-v1";
 
-function alongTransect(from: { lat: number; lon: number }, dKm: number) {
-  const az = (AZIMUTH * Math.PI) / 180;
-  return {
-    lat: from.lat + (Math.cos(az) * dKm) / 111,
-    lon: from.lon + (Math.sin(az) * dKm) / (111 * Math.cos((from.lat * Math.PI) / 180)),
-  };
-}
-
-const COORDS = DISTANCES.map((d) => alongTransect(SUMMIT, d));
+const COORDS = DISTANCES.map((d) => alongTransect(SUMMIT, AZIMUTH, d));
 
 type CrossLevel = {
   hPa: number;
@@ -99,69 +98,20 @@ async function fetchCrossSection(): Promise<CrossData> {
 
 /** Model terrain along the solver's transect. */
 async function fetchTerrain(): Promise<{ distancesKm: number[]; elevationsM: number[] }> {
-  const coords = SOLVE_DISTANCES.map((d) => alongTransect(SUMMIT, d));
+  const cached = readCachedTerrain(TERRAIN_CACHE_KEY, SOLVE_DISTANCES.length);
+  if (cached) return { distancesKm: SOLVE_DISTANCES, elevationsM: cached };
+
+  const coords = SOLVE_DISTANCES.map((d) => alongTransect(SUMMIT, AZIMUTH, d));
   const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${coords.map((c) => c.lat.toFixed(4)).join(",")}` +
-    `&longitude=${coords.map((c) => c.lon.toFixed(4)).join(",")}` +
-    `&hourly=temperature_2m&models=ncep_hrrr_conus&forecast_days=1`;
-  const data = (await fetchJson(url)) as unknown;
-  const locations = (Array.isArray(data) ? data : [data]) as { elevation?: number }[];
-  if (locations.length !== SOLVE_DISTANCES.length) throw new Error("missing terrain");
-  return {
-    distancesKm: SOLVE_DISTANCES,
-    elevationsM: locations.map((location) => location.elevation ?? 0),
-  };
-}
-
-type ColumnRaw = {
-  times: string[];
-  offsetSeconds: number;
-  hourly: Record<string, (number | null)[]>;
-  defaultIndex: number;
-};
-
-/** The full model column (for N·h) at the wave-score point. */
-async function fetchColumnRaw(): Promise<ColumnRaw> {
-  const variables = WAVE_LEVELS.flatMap((hPa) => [
-    `geopotential_height_${hPa}hPa`,
-    `wind_speed_${hPa}hPa`,
-    `wind_direction_${hPa}hPa`,
-    `temperature_${hPa}hPa`,
-  ]);
-  const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${GORHAM.lat}&longitude=${GORHAM.lon}` +
-    `&hourly=${variables.join(",")}&models=ncep_hrrr_conus&wind_speed_unit=ms` +
-    `&temperature_unit=celsius&timezone=America%2FNew_York&forecast_days=2`;
-  const data = (await fetchJson(url)) as {
-    hourly?: Record<string, (number | null)[]>;
-    utc_offset_seconds?: number;
-  };
-  const hourly = data.hourly ?? {};
-  const times = (hourly.time ?? []) as unknown as string[];
-  if (times.length === 0) throw new Error("missing column");
-  const offsetSeconds = data.utc_offset_seconds ?? 0;
-  const now = Date.now();
-  let defaultIndex = 0;
-  for (let i = 0; i < times.length; i += 1) {
-    if (Date.parse(`${times[i]}:00Z`) - offsetSeconds * 1000 <= now) defaultIndex = i;
-    else break;
+    `https://api.open-meteo.com/v1/elevation?latitude=${coords.map((c) => c.lat.toFixed(4)).join(",")}` +
+    `&longitude=${coords.map((c) => c.lon.toFixed(4)).join(",")}`;
+  const data = (await fetchJson(url)) as { elevation?: number[] } | null;
+  const values = data?.elevation;
+  if (!Array.isArray(values) || values.length !== SOLVE_DISTANCES.length) {
+    throw new Error("missing terrain");
   }
-  return { times, offsetSeconds, hourly, defaultIndex };
-}
-
-function columnLevelsAt(hourly: Record<string, (number | null)[]>, i: number): WaveColumnLevel[] {
-  const levels: WaveColumnLevel[] = [];
-  for (const hPa of WAVE_LEVELS) {
-    const z = hourly[`geopotential_height_${hPa}hPa`]?.[i];
-    const s = hourly[`wind_speed_${hPa}hPa`]?.[i];
-    const d = hourly[`wind_direction_${hPa}hPa`]?.[i];
-    const t = hourly[`temperature_${hPa}hPa`]?.[i];
-    if (typeof z !== "number" || typeof s !== "number" || typeof d !== "number" || typeof t !== "number") {
-      continue;
-    }
-    levels.push({ hPa, zM: z, tempC: t, speedMs: s, dirDeg: d });
-  }
-  return levels;
+  writeCachedTerrain(TERRAIN_CACHE_KEY, values);
+  return { distancesKm: SOLVE_DISTANCES, elevationsM: values };
 }
 
 /** The model's own vertical velocity along a ridge-normal transect through the summit. */
@@ -175,7 +125,7 @@ export function WaveCrossSection({
   const [data, setData] = useState<CrossData | null>(null);
   const [error, setError] = useState(false);
   const [terrain, setTerrain] = useState<{ distancesKm: number[]; elevationsM: number[] } | null>(null);
-  const [column, setColumn] = useState<ColumnRaw | null>(null);
+  const [column, setColumn] = useState<WaveColumnRaw | null>(null);
   const [linearError, setLinearError] = useState(false);
   const [mode, setMode] = useState<"linear" | "model">("linear");
 
@@ -192,7 +142,7 @@ export function WaveCrossSection({
         .catch(() => {
           if (!cancelled) setError(true);
         });
-      Promise.all([fetchTerrain(), fetchColumnRaw()])
+      Promise.all([fetchTerrain(), fetchWaveColumnRaw()])
         .then(([nextTerrain, nextColumn]) => {
           if (!cancelled) {
             setTerrain(nextTerrain);
@@ -222,11 +172,7 @@ export function WaveCrossSection({
   // run in render; the fetches above own the clock.
   let solve: SolveResult | null = null;
   if (terrain && column) {
-    let columnIndex = column.defaultIndex;
-    if (selectedTime) {
-      const found = column.times.indexOf(selectedTime);
-      if (found >= 0) columnIndex = found;
-    }
+    const columnIndex = waveColumnHour(column, selectedTime);
     const waveColumn = buildWaveColumn(columnLevelsAt(column.hourly, columnIndex));
     if (waveColumn) {
       solve = solveLinearWave({ terrainM: terrain.elevationsM, dxM: SOLVE_DX_M, column: waveColumn });
