@@ -4,7 +4,7 @@
 
 import { fetchJson } from "@/lib/fetch-json";
 import { WAVE_LEVELS } from "@/lib/wave-score";
-import { wxApiPath } from "@/lib/wx-datasets";
+import { azimuthBucket, wxApiPath } from "@/lib/wx-datasets";
 import type { WaveColumnLevel } from "@/lib/linear-wave";
 
 export type WaveColumnRaw = {
@@ -14,17 +14,17 @@ export type WaveColumnRaw = {
   defaultIndex: number;
 };
 
-/** The full model column (geopotential height, wind, temperature per pressure level). */
-async function fetchColumnRaw(): Promise<WaveColumnRaw> {
-  const data = (await fetchJson(wxApiPath("column"))) as {
-    hourly?: Record<string, (number | null)[]>;
-    utc_offset_seconds?: number;
-  };
-  const hourly = data.hourly ?? {};
+type ColumnPayload = {
+  hourly?: Record<string, (number | null)[]>;
+  utc_offset_seconds?: number;
+};
+
+function parseColumn(data: unknown): WaveColumnRaw | null {
+  const payload = data as ColumnPayload | null;
+  const hourly = payload?.hourly ?? {};
   const times = (hourly.time ?? []) as unknown as string[];
-  if (times.length === 0) throw new Error("missing column");
-  const offsetSeconds = data.utc_offset_seconds ?? 0;
-  archiveColumn(hourly, times, offsetSeconds);
+  if (times.length === 0) return null;
+  const offsetSeconds = payload?.utc_offset_seconds ?? 0;
   // The hour containing now, resolved here where the clock is allowed.
   const now = Date.now();
   let defaultIndex = 0;
@@ -33,6 +33,37 @@ async function fetchColumnRaw(): Promise<WaveColumnRaw> {
     else break;
   }
   return { times, offsetSeconds, hourly, defaultIndex };
+}
+
+/** The full model column (geopotential height, wind, temperature per pressure level). */
+async function fetchColumnRaw(): Promise<WaveColumnRaw> {
+  const raw = parseColumn(await fetchJson(wxApiPath("column")));
+  if (!raw) throw new Error("missing column");
+  archiveColumn(raw.hourly, raw.times, raw.offsetSeconds);
+  return raw;
+}
+
+// The solve wants the undisturbed inflow, not the lee-side Gorham column — one sounding
+// per 5° wind bucket, cached like the rest.
+const upwindCache = new Map<number, { at: number; value: Promise<WaveColumnRaw> }>();
+
+export function fetchUpwindColumnRaw(azimuth: number): Promise<WaveColumnRaw> {
+  const bucket = azimuthBucket(azimuth);
+  const now = Date.now();
+  const cached = upwindCache.get(bucket);
+  if (cached && now - cached.at < COLUMN_CACHE_MS) return cached.value;
+  const value = fetchJson(wxApiPath("column-upwind", { azimuth: bucket }))
+    .then((data) => {
+      const raw = parseColumn(data);
+      if (!raw) throw new Error("missing upwind column");
+      return raw;
+    })
+    .catch((error: unknown) => {
+      if (upwindCache.get(bucket)?.value === value) upwindCache.delete(bucket);
+      throw error;
+    });
+  upwindCache.set(bucket, { at: now, value });
+  return value;
 }
 
 // Both wave views need the same column — share one in-flight request rather than

@@ -76,6 +76,7 @@ export function alongTransect(from: { lat: number; lon: number }, azimuthDeg: nu
 
 export type WxDataset =
   | "column"
+  | "column-upwind"
   | "wave-forecast"
   | "cross-section"
   | "map-field"
@@ -151,6 +152,24 @@ export function buildUpstreamRequest(dataset: string, params: URLSearchParams): 
         ],
         revalidate: 900,
       };
+
+    case "column-upwind": {
+      const azimuth = bucketParam(params);
+      if (azimuth === null) return null;
+      // The undisturbed inflow sounding: 48 km toward the wind's source. The local
+      // Gorham column is inside the wave on a NW day, and the solve's amplitude
+      // scales linearly with the base-plane wind it supplies.
+      const point = alongTransect(GLIDER_AREA, azimuth, 48);
+      return {
+        urls: [
+          `${FORECAST}?${coordsOf([point])}` +
+            `&hourly=${levelVars(WAVE_LEVELS, ["geopotential_height", "wind_speed", "wind_direction", "temperature"])}` +
+            `&models=ncep_hrrr_conus&wind_speed_unit=ms&temperature_unit=celsius` +
+            `&timezone=America%2FNew_York&forecast_days=2`,
+        ],
+        revalidate: 900,
+      };
+    }
 
     case "wave-forecast": {
       const variant = params.get("models");

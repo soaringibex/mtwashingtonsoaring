@@ -8,6 +8,7 @@ import { buildWaveColumn, solveLinearWave } from "@/lib/linear-wave";
 import { fetchRoadLines, type RoadLine } from "@/lib/roads";
 import {
   columnLevelsAt,
+  fetchUpwindColumnRaw,
   fetchWaveColumnRaw,
   waveAzimuth,
   waveColumnHour,
@@ -16,6 +17,7 @@ import {
 import {
   AREA_RADIUS_NM,
   GLIDER_AREA,
+  azimuthBucket,
   KM_PER_NM,
   MAP_COLS,
   MAP_GRID,
@@ -60,17 +62,20 @@ const TERRAIN_BOUNDS = {
  * ~110 m resolution, sampled at 1.2 km.
  */
 const SOLVE_BOUNDS = {
-  west: MAP_LON_MIN - 0.85,
-  south: MAP_LAT_MIN - 0.62,
-  east: MAP_LON_MIN + MAP_LON_SPAN + 0.85,
-  north: MAP_LAT_MIN + MAP_LAT_SPAN + 0.62,
+  west: MAP_LON_MIN - 1.0,
+  south: MAP_LAT_MIN - 0.72,
+  east: MAP_LON_MIN + MAP_LON_SPAN + 1.0,
+  north: MAP_LAT_MIN + MAP_LAT_SPAN + 0.72,
 };
 const SOLVE_ZOOM = 10;
 
-const TRANSECT_COUNT = 21;
+// The band must cover the map's corners — 33.5 km cross-flow on the 135° diagonal — and
+// the transects must reach past the corner nodes' 33.5 km along-flow in the untapered
+// span (the taper eats the outer quarter: 111 samples place it beyond 33.6 km).
+const TRANSECT_COUNT = 29;
 const TRANSECT_SPACING_KM = 2.4;
 const TRANSECT_DX_M = 1200;
-const TRANSECT_SAMPLES = 101; // ±60 km
+const TRANSECT_SAMPLES = 111;
 const MAP_CENTER = { lat: MAP_LAT_MIN + MAP_LAT_SPAN / 2, lon: MAP_LON_MIN + MAP_LON_SPAN / 2 };
 
 const PLACES = [
@@ -184,6 +189,7 @@ export function WaveMap({
   const [solveMosaic, setSolveMosaic] = useState<TerrainMosaic | null>(null);
   const [column, setColumn] = useState<WaveColumnRaw | null>(null);
   const [linearError, setLinearError] = useState(false);
+  const [upwindColumn, setUpwindColumn] = useState<WaveColumnRaw | null>(null);
   const [mosaic, setMosaic] = useState<TerrainMosaic | null>(null);
   const [mosaicError, setMosaicError] = useState(false);
   const [roads, setRoads] = useState<RoadLine[] | null>(null);
@@ -271,8 +277,12 @@ export function WaveMap({
   const solvedField = useMemo(() => {
     if (!solveMosaic || !column) return null;
     const hour = waveColumnHour(column, selectedTime);
-    const levels = columnLevelsAt(column.hourly, hour);
-    const radians = (((waveAzimuth(levels) + 180) % 360) * Math.PI) / 180;
+    const localLevels = columnLevelsAt(column.hourly, hour);
+    // The solves run on the undisturbed inflow sounding; the local column orients them.
+    const levels = upwindColumn
+      ? columnLevelsAt(upwindColumn.hourly, waveColumnHour(upwindColumn, selectedTime))
+      : localLevels;
+    const radians = (((waveAzimuth(localLevels) + 180) % 360) * Math.PI) / 180;
     const alongE = Math.sin(radians);
     const alongN = Math.cos(radians);
     const crossE = Math.sin(radians + Math.PI / 2);
@@ -301,7 +311,7 @@ export function WaveMap({
       transects.push(solve.w);
     }
     return { zM, transects, alongE, alongN, crossE, crossN, centreKmPerDegLon };
-  }, [solveMosaic, column, selectedTime]);
+  }, [solveMosaic, column, selectedTime, upwindColumn]);
 
   // Inputs arrived but the solver came back empty — a data problem, not a pending one.
   const linearUnavailable = linearError || (!solvedField && Boolean(solveMosaic && column));
@@ -315,6 +325,25 @@ export function WaveMap({
   const hourIndex = column ? waveColumnHour(column, selectedTime) : 0;
   const levels = column ? columnLevelsAt(column.hourly, hourIndex) : [];
   const windFrom = waveAzimuth(levels);
+  const windBucket = column && levels.length > 0 ? azimuthBucket(windFrom) : null;
+
+  // The transect solves run on the undisturbed inflow sounding — the local Gorham
+  // column is inside the wave on a NW day, and the amplitude scales with the base-plane
+  // wind. Falls back to the local column when the upwind fetch cannot be had.
+  useEffect(() => {
+    if (windBucket === null) return;
+    let cancelled = false;
+    fetchUpwindColumnRaw(windBucket)
+      .then((next) => {
+        if (!cancelled) setUpwindColumn(next);
+      })
+      .catch(() => {
+        if (!cancelled) setUpwindColumn(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [windBucket]);
 
   // The overlay values on the full model grid, whatever the mode.
   const nodeValues = useMemo<(number | null)[] | null>(() => {

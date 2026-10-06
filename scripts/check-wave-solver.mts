@@ -122,15 +122,13 @@ if (!uniformSolve) throw new Error("uniform solve failed");
 // solution, and the density factor re-derived from the synthetic profile.
 const reference = (zM: number, amp: number): number => {
   const m0 = Math.floor(n / 4);
-  const windowed = sinusoid.map((h, i) =>
-    i < m0
-      ? h * 0.5 * (1 - Math.cos((Math.PI * i) / m0))
-      : i > n - 1 - m0
-        ? h * 0.5 * (1 - Math.cos((Math.PI * (n - 1 - i)) / m0))
-        : h,
-  );
-  const mean = windowed.reduce((sum, v) => sum + v, 0) / n;
-  for (let i = 0; i < n; i += 1) windowed[i] -= mean;
+  const rawMean = sinusoid.reduce((sum, v) => sum + v, 0) / n;
+  const windowed = sinusoid.map((h, i) => {
+    const centred = h - rawMean;
+    if (i < m0) return centred * 0.5 * (1 - Math.cos((Math.PI * i) / m0));
+    if (i > n - 1 - m0) return centred * 0.5 * (1 - Math.cos((Math.PI * (n - 1 - i)) / m0));
+    return centred;
+  });
   const scaleHeight = (GAS_CONSTANT * 290) / G;
   const l2 = N2 / (U * U) - 1 / (4 * scaleHeight * scaleHeight);
   let peak = 0;

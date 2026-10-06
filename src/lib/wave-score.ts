@@ -50,7 +50,6 @@ export const WAVE_LEVELS = [
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-/** Eastward wind component in knots — positive is a westerly (cross-ridge) wind. */
 /** The ridge's lee side — the Presidential crest runs ~40°/220°, so the normal is 305°/125°. */
 const RIDGE_LEE_DEG = 125;
 

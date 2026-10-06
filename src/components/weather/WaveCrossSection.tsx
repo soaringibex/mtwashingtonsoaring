@@ -7,6 +7,7 @@ import { cellFill, wMs, WaveLegend } from "@/components/weather/wave-field";
 import { buildWaveColumn, solveLinearWave, type SolveResult } from "@/lib/linear-wave";
 import {
   columnLevelsAt,
+  fetchUpwindColumnRaw,
   fetchWaveColumnRaw,
   readCachedTerrain,
   waveAzimuth,
@@ -117,6 +118,7 @@ export function WaveCrossSection({
   const [mode, setMode] = useState<"linear" | "model">("linear");
   const [column, setColumn] = useState<WaveColumnRaw | null>(null);
   const [terrainLine, setTerrainLine] = useState<{ bucket: number; elevationsM: number[] } | null>(null);
+  const [upwindColumn, setUpwindColumn] = useState<WaveColumnRaw | null>(null);
   const [field, setField] = useState<{ bucket: number; data: CrossData } | null>(null);
   const [linearError, setLinearError] = useState(false);
   const [error, setError] = useState(false);
@@ -149,6 +151,24 @@ export function WaveCrossSection({
   const windFrom = waveAzimuth(levels);
   const transectAzimuth = (windFrom + 180) % 360;
   const bucket = column && levels.length > 0 ? azimuthBucket(windFrom) : null;
+
+  // The solve runs on the undisturbed inflow sounding — the local Gorham column is
+  // inside the wave on a NW day, and the amplitude scales with the base-plane wind.
+  // Falls back to the local column when the upwind fetch cannot be had.
+  useEffect(() => {
+    if (bucket === null) return;
+    let cancelled = false;
+    fetchUpwindColumnRaw(bucket)
+      .then((next) => {
+        if (!cancelled) setUpwindColumn(next);
+      })
+      .catch(() => {
+        if (!cancelled) setUpwindColumn(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [bucket]);
 
   // The terrain line and the model field follow the chosen hour's direction.
   useEffect(() => {
@@ -187,9 +207,12 @@ export function WaveCrossSection({
   // The linear solve for the selected hour — pure math (~0.1 ms), so it runs in render.
   let solve: SolveResult | null = null;
   if (column && terrainLine && levels.length > 0) {
+    const solveLevels = upwindColumn
+      ? columnLevelsAt(upwindColumn.hourly, waveColumnHour(upwindColumn, selectedTime))
+      : levels;
     const baseM =
       terrainLine.elevationsM.reduce((sum, h) => sum + h, 0) / terrainLine.elevationsM.length;
-    const waveColumn = buildWaveColumn(levels, transectAzimuth, baseM);
+    const waveColumn = buildWaveColumn(solveLevels, transectAzimuth, baseM);
     if (waveColumn) {
       solve = solveLinearWave({ terrainM: terrainLine.elevationsM, dxM: SOLVE_DX_M, column: waveColumn });
     }

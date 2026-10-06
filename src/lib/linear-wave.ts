@@ -130,12 +130,22 @@ export function buildWaveColumn(
   const upper = sorted[Math.min(baseIndex + 1, sorted.length - 1)];
   const span = upper.zM - lower.zM;
   const f = span > 0 ? Math.min(Math.max((baseM - lower.zM) / span, 0), 1) : 0;
+  // Interpolate the wind as a vector (u, v) — interpolating direction degrees wraps
+  // silently across north (350° ↔ 10° would average to 180°).
+  const toUV = (level: WaveColumnLevel) => {
+    const rad = (level.dirDeg * Math.PI) / 180;
+    return { u: -level.speedMs * Math.sin(rad), v: -level.speedMs * Math.cos(rad) };
+  };
+  const uvLower = toUV(lower);
+  const uvUpper = toUV(upper);
+  const u = uvLower.u + (uvUpper.u - uvLower.u) * f;
+  const v = uvLower.v + (uvUpper.v - uvLower.v) * f;
   const base: WaveColumnLevel = {
     hPa: lower.hPa + (upper.hPa - lower.hPa) * f,
     zM: lower.zM + span * f,
     tempC: lower.tempC + (upper.tempC - lower.tempC) * f,
-    speedMs: lower.speedMs + (upper.speedMs - lower.speedMs) * f,
-    dirDeg: lower.dirDeg + (upper.dirDeg - lower.dirDeg) * f,
+    speedMs: Math.hypot(u, v),
+    dirDeg: ((Math.atan2(-u, -v) * 180) / Math.PI + 360) % 360,
   };
   if (Math.abs(along(base)) <= 0.5) return null;
 
@@ -178,8 +188,10 @@ export function solveLinearWave(input: SolveInput): SolveResult | null {
   const n = terrainM.length;
   if (n < 16 || !(dxM > 0) || column.layers.length < 3) return null;
 
-  // Taper the outer quarter and remove the mean, so the periodic Fourier basis sees a
-  // smooth profile whose reference plane is the base (mean terrain) plane.
+  // Taper the outer quarter of the CENTRED profile: subtracting the mean first makes
+  // the tapered ends approach the base plane (0), not sea level — tapering the raw
+  // heights left a fake ~600 m valley ramped into each end, worth 7-8% RMS inside the
+  // LOA circle and up to 50% at the far upwind end.
   const taper = new Array<number>(n).fill(1);
   const m = Math.floor(n / 4);
   for (let i = 0; i < m; i += 1) {
@@ -187,9 +199,8 @@ export function solveLinearWave(input: SolveInput): SolveResult | null {
     taper[i] = t;
     taper[n - 1 - i] = t;
   }
-  const ht = terrainM.map((h, i) => h * taper[i]);
-  const mean = ht.reduce((sum, value) => sum + value, 0) / n;
-  for (let i = 0; i < n; i += 1) ht[i] -= mean;
+  const mean = terrainM.reduce((sum, value) => sum + value, 0) / n;
+  const ht = terrainM.map((h, i) => (h - mean) * taper[i]);
 
   // Integration segments: 0 → first layer top, then one per layer.
   const zl = [0, ...column.layers.map((layer) => layer.zTopM)];
