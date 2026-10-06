@@ -28,8 +28,8 @@ export type WaveScore = {
   bruntLow: number;
   /** Estimated strongest wave lift, ft/min — the N·h scale, tapered by the cross-ridge flow. */
   liftFpm: number;
-  /** l² at each pressure level, for reading the profile against altitude. */
-  scorerLevels: { hPa: number; scorer: number }[];
+  /** Signed l² at each pressure level, for the profile chart. */
+  scorerLevels: { hPa: number; altM: number; scorer: number | null }[];
 };
 
 const KT_TO_MS = 0.514444;
@@ -64,6 +64,7 @@ export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
     upperHPa: number;
     midHPa: number;
     scorer: number;
+    rawScorer: number | null;
     brunt: number;
     valid: boolean;
   }[] = [];
@@ -84,6 +85,9 @@ export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
       upperHPa: upper.hPa,
       midHPa: (lower.hPa + upper.hPa) / 2,
       scorer: valid ? brunt / (u * u) : 0,
+      // The chart keeps the signed value — unstable layers show negative, as on a
+      // sounding sheet; near-zero winds are skipped rather than blowing the scale up.
+      rawScorer: u > 0.25 ? brunt / (u * u) : null,
       brunt,
       valid,
     });
@@ -124,16 +128,19 @@ export function computeWaveScore(levels: WaveLevel[]): WaveScore | null {
   const crossFactor = clamp01((ridgeKt - 5) / 15); // 5 kt → 0, 20 kt → 1
   const liftFpm = Math.round((bruntLow * WAVE_RELIEF_M * 196.85 * crossFactor) / 100) * 100;
 
-  // l² at each level, for reading the profile against altitude — the average of the
-  // layers immediately above and below the level.
+  // Signed l² at each level for the profile chart — the average of the layers
+  // immediately above and below it.
   const scorerLevels = sorted.map((level) => {
     const adjacent = layers.filter(
       (layer) => layer.lowerHPa === level.hPa || layer.upperHPa === level.hPa,
     );
-    const valid = adjacent.filter((layer) => layer.valid);
+    const raw = adjacent
+      .map((layer) => layer.rawScorer)
+      .filter((value): value is number => value !== null);
     return {
       hPa: level.hPa,
-      scorer: valid.length > 0 ? mean(valid.map((layer) => layer.scorer)) : 0,
+      altM: level.altM,
+      scorer: raw.length > 0 ? mean(raw) : null,
     };
   });
 

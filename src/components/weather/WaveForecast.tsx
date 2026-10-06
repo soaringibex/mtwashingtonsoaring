@@ -8,7 +8,10 @@ import { flyingWindow, hourLabel, inWindow } from "@/lib/wx-window";
 
 const LATITUDE = 44.3931;
 const LONGITUDE = -71.1996;
-const LEVELS = [850, 800, 700, 600, 500, 400, 300];
+const LEVELS = [
+  1000, 975, 950, 925, 900, 875, 850, 825, 800, 775, 750, 725, 700, 675, 650, 625, 600, 575, 550,
+  525, 500, 475, 450, 425, 400, 375, 350, 325, 300, 275, 250, 225, 200, 175, 150, 100,
+];
 const REFRESH_MS = 45 * 60 * 1000;
 
 const compass = [
@@ -115,6 +118,159 @@ async function fetchWaveDay(): Promise<WaveDay> {
 
 const scorer = (value: number) => (value * 1e7).toFixed(1);
 
+/** The Scorer parameter against altitude for the peak hour — a classic l²(z) sounding. */
+function ScorerProfile({
+  levels,
+}: {
+  levels: { hPa: number; altM: number; scorer: number | null }[];
+}) {
+  const points = levels.filter(
+    (level): level is { hPa: number; altM: number; scorer: number } => level.scorer !== null,
+  );
+  if (points.length < 2) return null;
+
+  const FT_PER_M = 3.28084;
+  const values = points.map((point) => point.scorer * 1e7);
+  // The surface layers can spike hard (unstable air, or near-calm winds); clip the
+  // display to a window where the wave-relevant structure is still readable.
+  const xMin = Math.max(Math.min(0, Math.floor(Math.min(...values))), -10);
+  const xMax = Math.max(Math.min(Math.ceil(Math.max(...values)), 15), xMin + 10);
+  const alts = points.map((point) => point.altM * FT_PER_M);
+  const yMin = Math.max(0, Math.floor(Math.min(...alts) / 5000) * 5000);
+  const yMax = Math.ceil(Math.max(...alts) / 5000) * 5000;
+
+  const W = 300;
+  const H = 240;
+  const padL = 44;
+  const padR = 10;
+  const padT = 10;
+  const padB = 30;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  const x = (value: number) =>
+    padL + ((Math.min(Math.max(value, xMin), xMax) - xMin) / (xMax - xMin)) * plotW;
+  const y = (altFt: number) => padT + (1 - (altFt - yMin) / (yMax - yMin)) * plotH;
+
+  const span = xMax - xMin;
+  const xStep = span <= 10 ? 2 : span <= 25 ? 5 : 10;
+  const xTicks: number[] = [];
+  for (let value = Math.ceil(xMin / xStep) * xStep; value <= xMax; value += xStep) {
+    xTicks.push(value);
+  }
+  const altSpan = yMax - yMin;
+  const altStep = altSpan <= 12000 ? 5000 : 10000;
+  const altTicks: number[] = [];
+  for (let alt = yMin; alt <= yMax; alt += altStep) altTicks.push(alt);
+
+  const path = points
+    .map((point) => `${x(point.scorer * 1e7).toFixed(1)},${y(point.altM * FT_PER_M).toFixed(1)}`)
+    .join(" ");
+
+  return (
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+        Scorer l² by altitude · ×10⁻⁷ m⁻²
+      </p>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="mt-2 w-full max-w-[340px]"
+        role="img"
+        aria-label="Scorer parameter against altitude for the peak hour"
+      >
+        {altTicks.map((alt) => (
+          <g key={alt}>
+            <line
+              x1={padL}
+              x2={W - padR}
+              y1={y(alt)}
+              y2={y(alt)}
+              className="stroke-slate-200"
+              vectorEffect="non-scaling-stroke"
+            />
+            <text
+              x={padL - 6}
+              y={y(alt) + 3}
+              textAnchor="end"
+              className="fill-slate-400 text-[9px] tabular-nums"
+            >
+              {alt.toLocaleString("en-US")}
+            </text>
+          </g>
+        ))}
+        {xTicks.map((value) => (
+          <g key={value}>
+            <line
+              x1={x(value)}
+              x2={x(value)}
+              y1={padT}
+              y2={H - padB}
+              className="stroke-slate-200"
+              vectorEffect="non-scaling-stroke"
+            />
+            <text
+              x={x(value)}
+              y={H - padB + 12}
+              textAnchor="middle"
+              className="fill-slate-400 text-[9px] tabular-nums"
+            >
+              {value}
+            </text>
+          </g>
+        ))}
+        {xMin < 0 ? (
+          <line
+            x1={x(0)}
+            x2={x(0)}
+            y1={padT}
+            y2={H - padB}
+            className="stroke-slate-300"
+            strokeDasharray="3 3"
+            vectorEffect="non-scaling-stroke"
+          />
+        ) : null}
+        <polyline
+          points={path}
+          fill="none"
+          className="stroke-sky-600"
+          strokeWidth={1.6}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+        {points.map((point) => (
+          <circle
+            key={point.hPa}
+            cx={x(point.scorer * 1e7)}
+            cy={y(point.altM * FT_PER_M)}
+            r={2.2}
+            className="fill-sky-600"
+          >
+            <title>{`${scorer(point.scorer)} at ${Math.round(point.altM * FT_PER_M).toLocaleString("en-US")} ft (${point.hPa} hPa)`}</title>
+          </circle>
+        ))}
+        <text
+          x={padL + plotW / 2}
+          y={H - 5}
+          textAnchor="middle"
+          className="fill-slate-400 text-[9px]"
+        >
+          Scorer l² (×10⁻⁷ m⁻²)
+        </text>
+        <text
+          x={11}
+          y={padT + plotH / 2}
+          textAnchor="middle"
+          transform={`rotate(-90 11 ${padT + plotH / 2})`}
+          className="fill-slate-400 text-[9px]"
+        >
+          ft
+        </text>
+      </svg>
+    </div>
+  );
+}
+
 export function WaveForecast() {
   const [day, setDay] = useState<WaveDay | null>(null);
   const [error, setError] = useState(false);
@@ -142,9 +298,6 @@ export function WaveForecast() {
   }, []);
 
   const peakLift = day ? Math.max(...day.hours.map((hour) => hour.liftFpm)) : 0;
-  const peakMaxScorer = day
-    ? Math.max(...day.peak.scorerLevels.map((level) => level.scorer), 1e-12)
-    : 1;
 
   return (
     <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
@@ -210,36 +363,12 @@ export function WaveForecast() {
             Scorer {scorer(day.peak.lowScorer)} → {scorer(day.peak.highScorer)} (×10⁻⁷ m⁻²) · N{" "}
             {(day.peak.bruntLow * 100).toFixed(1)}×10⁻² s⁻¹.
           </p>
-          <div className="mt-5 flex flex-wrap items-end gap-x-8 gap-y-4">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Scorer l² by level · ×10⁻⁷ m⁻²
-              </p>
-              <div className="mt-2 flex items-end gap-2.5">
-                {day.peak.scorerLevels.map((level) => (
-                  <div key={level.hPa} className="flex w-9 flex-col items-center">
-                    <span className="text-[10px] tabular-nums text-slate-500">
-                      {scorer(level.scorer)}
-                    </span>
-                    <span className="mt-1 flex h-11 w-full items-end justify-center">
-                      <span
-                        className="block w-3.5 rounded-t bg-sky-600/75"
-                        style={{
-                          height: Math.max(4, Math.round((level.scorer / peakMaxScorer) * 44)),
-                        }}
-                      />
-                    </span>
-                    <span className="mt-1 text-[10px] tabular-nums text-slate-400">
-                      {level.hPa}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="mt-5 flex flex-wrap items-start gap-x-10 gap-y-5">
+            <ScorerProfile levels={day.peak.scorerLevels} />
             <p className="max-w-sm text-[11px] leading-5 text-slate-400">
-              At the peak hour ({day.peak.label}) — the Scorer parameter falling with height is
-              what lets the wave propagate. The levels run from 850 hPa at the surface end to
-              300 hPa aloft.
+              At the peak hour ({day.peak.label}) — from 1,000 hPa at the station end to 100 hPa
+              aloft. Falling with height is what lets the wave propagate; negative values are
+              unstable layers that cannot carry it.
             </p>
           </div>
           <p className="mt-2 text-[11px] leading-5 text-slate-400">
