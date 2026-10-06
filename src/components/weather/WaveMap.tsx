@@ -432,7 +432,7 @@ export function WaveMap({
                 }
               }
               const overlay: React.ReactNode[] = [];
-              const linear = nodeValues;
+              const linear = mode === "linear" ? nodeValues : null;
               for (let row = 0; row < ROWS - 1; row += 1) {
                 for (let col = 0; col < COLS - 1; col += 1) {
                   const corners = [
