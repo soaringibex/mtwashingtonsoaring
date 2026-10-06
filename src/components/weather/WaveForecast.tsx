@@ -493,18 +493,16 @@ function WaveTopMeteogram({ hours }: { hours: WaveHour[] }) {
   );
 }
 
-export function WaveForecast({ onSelectTime }: { onSelectTime?: (time: string) => void } = {}) {
+export function WaveForecast({
+  selectedTime,
+  onSelectTime,
+}: {
+  selectedTime: string | null;
+  onSelectTime: (time: string) => void;
+}) {
   const [day, setDay] = useState<WaveDay | null>(null);
   const [error, setError] = useState(false);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const selectedRef = useRef<string | null>(null);
-
-  /** Selection lives here; the parent is notified so the cross-section can follow. */
-  const selectHour = (time: string) => {
-    selectedRef.current = time;
-    setSelectedTime(time);
-    onSelectTime?.(time);
-  };
+  const defaulted = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -514,10 +512,9 @@ export function WaveForecast({ onSelectTime }: { onSelectTime?: (time: string) =
           if (cancelled) return;
           setDay(next);
           setError(false);
-          if (selectedRef.current === null) {
-            selectedRef.current = next.peak.time;
-            setSelectedTime(next.peak.time);
-            onSelectTime?.(next.peak.time);
+          if (!defaulted.current) {
+            defaulted.current = true;
+            onSelectTime(next.peak.time);
           }
         })
         .catch(() => {
@@ -606,7 +603,7 @@ export function WaveForecast({ onSelectTime }: { onSelectTime?: (time: string) =
                       key={hour.time}
                       type="button"
                       aria-pressed={isSelected}
-                      onClick={() => selectHour(hour.time)}
+                      onClick={() => onSelectTime(hour.time)}
                       className={`grid grid-cols-[3.5rem_2.25rem_minmax(0,1fr)_4.5rem] items-center gap-2.5 rounded-xl px-3 py-2 text-left transition-colors ${
                         isSelected ? "bg-sky-50 ring-1 ring-sky-200" : "hover:bg-slate-50"
                       }`}

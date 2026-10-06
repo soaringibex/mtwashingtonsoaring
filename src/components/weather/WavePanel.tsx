@@ -11,9 +11,9 @@ export function WavePanel() {
 
   return (
     <>
-      <WaveForecast onSelectTime={setSelectedTime} />
-      <WaveCrossSection selectedTime={selectedTime} />
-      <WaveMap selectedTime={selectedTime} />
+      <WaveForecast selectedTime={selectedTime} onSelectTime={setSelectedTime} />
+      <WaveCrossSection selectedTime={selectedTime} onSelectTime={setSelectedTime} />
+      <WaveMap selectedTime={selectedTime} onSelectTime={setSelectedTime} />
     </>
   );
 }

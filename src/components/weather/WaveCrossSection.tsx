@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
-import { localStampFrom } from "@/lib/wx-window";
+import { flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellFill, wMs, WaveLegend } from "@/components/weather/wave-field";
 
 const SUMMIT = { lat: 44.2705, lon: -71.3032 };
@@ -28,7 +28,13 @@ type CrossLevel = {
 };
 
 type CrossPoint = { distanceKm: number; elevationFt: number; levels: CrossLevel[] };
-type CrossData = { times: string[]; offsetSeconds: number; points: CrossPoint[]; defaultIndex: number };
+type CrossData = {
+  times: string[];
+  offsetSeconds: number;
+  points: CrossPoint[];
+  defaultIndex: number;
+  chips: { time: string; label: string }[];
+};
 
 async function fetchCrossSection(): Promise<CrossData> {
   const variables = LEVELS.flatMap((hPa) => [
@@ -77,11 +83,17 @@ async function fetchCrossSection(): Promise<CrossData> {
     else break;
   }
 
-  return { times, offsetSeconds, points, defaultIndex };
+  return { times, offsetSeconds, points, defaultIndex, chips: flyingChips(times) };
 }
 
 /** The model's own vertical velocity along a ridge-normal transect through the summit. */
-export function WaveCrossSection({ selectedTime }: { selectedTime: string | null }) {
+export function WaveCrossSection({
+  selectedTime,
+  onSelectTime,
+}: {
+  selectedTime: string | null;
+  onSelectTime: (time: string) => void;
+}) {
   const [data, setData] = useState<CrossData | null>(null);
   const [error, setError] = useState(false);
 
@@ -261,13 +273,37 @@ export function WaveCrossSection({ selectedTime }: { selectedTime: string | null
       </div>
 
       {data ? (
+        <div className="mt-4 flex flex-wrap items-center gap-1.5">
+          {data.chips.map((chip) => {
+            const active = chip.time === data.times[index];
+            return (
+              <button
+                key={chip.time}
+                type="button"
+                aria-pressed={active}
+                onClick={() => onSelectTime(chip.time)}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                  active
+                    ? "bg-sky-100 text-sky-700 ring-1 ring-sky-200"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {chip.label}
+              </button>
+            );
+          })}
+          <p className="text-[11px] text-slate-400">the hour</p>
+        </div>
+      ) : null}
+
+      {data ? (
         <>
           {content}
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
             The model&apos;s own vertical velocity along the line through the summit, grey being
-            the model terrain — follows the hour selected above. Warm colours are lift, blue is
-            sink; the ridge-normal transect runs about 26 km from the Great Gulf side across to
-            Bartlett.
+            the model terrain — pick any hour above; the wave panel shares the selection. Warm
+            colours are lift, blue is sink; the ridge-normal transect runs about 26 km from the
+            Great Gulf side across to Bartlett.
           </p>
         </>
       ) : error ? (

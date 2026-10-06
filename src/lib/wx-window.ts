@@ -53,3 +53,14 @@ export function localStampFrom(time: string, offsetSeconds: number): string {
     timeZoneName: "short",
   }).format(new Date(instantMs));
 }
+
+/** The hour selector among the same window the wave panel shows. */
+export function flyingChips(times: string[]): { time: string; label: string }[] {
+  const window = flyingWindow(times);
+  if (!window) return [];
+  return times
+    .filter((time) => time.startsWith(window.date))
+    .map((time) => ({ time, hour: Number(time.slice(11, 13)) }))
+    .filter((entry) => inWindow(entry.hour, window))
+    .map((entry) => ({ time: entry.time, label: hourLabel(entry.hour) }));
+}

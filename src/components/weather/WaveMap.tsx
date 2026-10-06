@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
-import { localStampFrom } from "@/lib/wx-window";
+import { flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellFill, wMs, WaveLegend } from "@/components/weather/wave-field";
 
 const REFRESH_MS = 45 * 60 * 1000;
@@ -48,6 +48,7 @@ type LevelData = {
   defaultIndex: number;
   elevationFt: number[];
   w: (number | null)[][];
+  chips: { time: string; label: string }[];
 };
 
 async function fetchLevel(hPa: number, ft: number): Promise<LevelData> {
@@ -86,6 +87,7 @@ async function fetchLevel(hPa: number, ft: number): Promise<LevelData> {
         wMs(omega),
       ),
     ),
+    chips: flyingChips(times),
   };
 }
 
@@ -99,7 +101,13 @@ function terrainFill(elevationFt: number): string {
 }
 
 /** Where the lift bands sit on the ground — vertical velocity over the Gorham country. */
-export function WaveMap({ selectedTime }: { selectedTime: string | null }) {
+export function WaveMap({
+  selectedTime,
+  onSelectTime,
+}: {
+  selectedTime: string | null;
+  onSelectTime: (time: string) => void;
+}) {
   const [level, setLevel] = useState(700); // 10,000 ft — the wave-connection level
   const [data, setData] = useState<LevelData | null>(null);
   const [error, setError] = useState(false);
@@ -146,7 +154,31 @@ export function WaveMap({ selectedTime }: { selectedTime: string | null }) {
         </p>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      {data ? (
+        <div className="mt-4 flex flex-wrap items-center gap-1.5">
+          {data.chips.map((chip) => {
+            const active = chip.time === data.times[index];
+            return (
+              <button
+                key={chip.time}
+                type="button"
+                aria-pressed={active}
+                onClick={() => onSelectTime(chip.time)}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                  active
+                    ? "bg-sky-100 text-sky-700 ring-1 ring-sky-200"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {chip.label}
+              </button>
+            );
+          })}
+          <p className="text-[11px] text-slate-400">the hour</p>
+        </div>
+      ) : null}
+
+      <div className="mt-2.5 flex flex-wrap items-center gap-2">
         {LEVELS.map((entry) => {
           const active = entry.hPa === level;
           return (
@@ -270,8 +302,9 @@ export function WaveMap({ selectedTime }: { selectedTime: string | null }) {
           <WaveLegend />
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
             Vertical velocity at {data.ft.toLocaleString("en-US")} ft over the Gorham country —
-            warm bands are lift, blue is sink. The westerly flow makes the lift band just east of
-            the ridge crest the one to tow toward from 2G8; it follows the hour selected above.
+            warm bands are lift, blue is sink. Pick any hour above; the wave panel shares the
+            selection. The westerly flow makes the lift band just east of the ridge crest the one
+            to tow toward from 2G8.
           </p>
         </>
       ) : error ? (
