@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
+import { FORECAST_MODELS, mergedSeries } from "@/lib/forecast-model";
 
 const LATITUDE = 44.3931;
 const LONGITUDE = -71.1996;
@@ -73,10 +74,10 @@ async function fetchProfile(): Promise<Profile> {
   ];
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}` +
-    `&hourly=${variables.join(",")}&models=gfs_seamless&wind_speed_unit=kn` +
+    `&hourly=${variables.join(",")}&models=${FORECAST_MODELS}&wind_speed_unit=kn` +
     `&temperature_unit=fahrenheit&timezone=UTC&forecast_days=2`;
 
-  const data = (await fetchJson(url)) as { hourly: Record<string, (number | null)[]> };
+  const data = (await fetchJson(url)) as { hourly: Record<string, unknown> };
   const hourly = data.hourly;
   const times = hourly.time as unknown as string[];
 
@@ -89,7 +90,7 @@ async function fetchProfile(): Promise<Profile> {
   }
 
   const at = (key: string): number | null => {
-    const series = hourly[key];
+    const series = mergedSeries(hourly, key);
     if (!series) return null;
     const value = series[index];
     return typeof value === "number" ? value : null;
@@ -421,9 +422,9 @@ export function WindProfile() {
               rel="noreferrer"
               className="font-medium text-sky-700 hover:text-sky-600"
             >
-              GFS via Open-Meteo
+              GEM-HRDPS via Open-Meteo
             </a>
-            ), refreshed hourly —{" "}
+            ), GFS fallback, refreshed through the day —{" "}
             <Link href="/more#weather" className="font-medium text-sky-700 hover:text-sky-600">
               more weather links
             </Link>

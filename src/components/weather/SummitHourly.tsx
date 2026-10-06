@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
+import { FORECAST_MODELS, mergedSeries } from "@/lib/forecast-model";
+import { flyingWindow, hourLabel, inWindow } from "@/lib/wx-window";
 
 const LATITUDE = 44.2705;
 const LONGITUDE = -71.3032;
@@ -59,59 +61,33 @@ type SummitDay = {
   peak: SummitHour;
 };
 
-function hourLabel(hour: number): string {
-  if (hour === 0) return "12 AM";
-  if (hour < 12) return `${hour} AM`;
-  if (hour === 12) return "12 PM";
-  return `${hour - 12} PM`;
-}
-
 /** The summit's hourly forecast for the flying day — today's remaining window, or tomorrow's once today's is done. */
 async function fetchSummitDay(): Promise<SummitDay> {
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}` +
     `&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m,temperature_2m` +
+    `&models=${FORECAST_MODELS}` +
     `&wind_speed_unit=kn&temperature_unit=fahrenheit&timezone=America%2FNew_York` +
     `&forecast_days=2&elevation=1916`;
 
-  const data = (await fetchJson(url)) as {
-    hourly?: {
-      time?: string[];
-      wind_speed_10m?: (number | null)[];
-      wind_gusts_10m?: (number | null)[];
-      wind_direction_10m?: (number | null)[];
-      temperature_2m?: (number | null)[];
-    };
-  };
-
-  const hourly = data.hourly;
-  const times = hourly?.time ?? [];
-  const speed = hourly?.wind_speed_10m ?? [];
-  const gust = hourly?.wind_gusts_10m ?? [];
-  const dir = hourly?.wind_direction_10m ?? [];
-  const temp = hourly?.temperature_2m ?? [];
+  const data = (await fetchJson(url)) as { hourly?: Record<string, unknown> };
+  const hourly = data.hourly ?? {};
+  const times = (hourly.time ?? []) as string[];
+  const speed = mergedSeries(hourly, "wind_speed_10m") ?? [];
+  const gust = mergedSeries(hourly, "wind_gusts_10m") ?? [];
+  const dir = mergedSeries(hourly, "wind_direction_10m") ?? [];
+  const temp = mergedSeries(hourly, "temperature_2m") ?? [];
   if (times.length === 0) throw new Error("missing summit forecast");
 
-  const dates = Array.from(new Set(times.map((time) => time.slice(0, 10))));
-  const nowHour = Number(
-    new Intl.DateTimeFormat("en-US", {
-      timeZone: "America/New_York",
-      hour: "numeric",
-      hourCycle: "h23",
-    }).format(new Date()),
-  );
-
-  // Late evening: the flying day is done — brief tomorrow's window instead.
-  const tomorrow = nowHour >= 20 && dates.length > 1;
-  const date = tomorrow ? dates[1] : dates[0];
-  const startHour = tomorrow ? 6 : Math.max(6, Math.min(nowHour, 21) - 1);
+  const window = flyingWindow(times);
+  if (!window) throw new Error("missing summit forecast");
 
   const hours: SummitHour[] = [];
   for (let i = 0; i < times.length; i += 1) {
     const time = times[i];
-    if (!time.startsWith(date)) continue;
+    if (!time.startsWith(window.date)) continue;
     const hour = Number(time.slice(11, 13));
-    if (hour < startHour || hour > 21) continue;
+    if (!inWindow(hour, window)) continue;
     const windKt = speed[i];
     const dirDeg = dir[i];
     const tempF = temp[i];
@@ -132,7 +108,7 @@ async function fetchSummitDay(): Promise<SummitDay> {
 
   const peak = hours.reduce((best, hour) => (hour.windKt > best.windKt ? hour : best), hours[0]);
 
-  return { tomorrow, nowHour, hours, peak };
+  return { tomorrow: window.tomorrow, nowHour: window.nowHour, hours, peak };
 }
 
 export function SummitHourly() {
@@ -216,7 +192,7 @@ export function SummitHourly() {
           </div>
           <p className="mt-4 text-[11px] leading-5 text-slate-400">
             Peak {directionLetters(day.peak.dirDeg)} {day.peak.windKt} kt around {day.peak.label}.
-            Hourly GFS at summit elevation via{" "}
+            Hourly GEM-HRDPS at summit elevation (GFS fallback) via{" "}
             <a
               href="https://open-meteo.com/"
               target="_blank"
@@ -225,7 +201,7 @@ export function SummitHourly() {
             >
               Open-Meteo
             </a>
-            , refreshed hourly.
+            , refreshed through the day.
           </p>
         </>
       ) : error ? (

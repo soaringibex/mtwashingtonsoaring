@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { WindProfile } from "@/components/home/WindProfile";
 import { SummitHourly } from "@/components/weather/SummitHourly";
+import { WaveForecast } from "@/components/weather/WaveForecast";
 import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/ui/PageHero";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -9,7 +10,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 export const metadata: Metadata = {
   title: "Wx Brief",
   description:
-    "The day's wave forecast for Mount Washington — the live column of wind aloft, the summit forecast hour by hour, and the forecasts to read before you fly.",
+    "The day's wave forecast for Mount Washington — a Scorer-parameter wave signal, the live column of wind aloft, the summit forecast hour by hour, and the forecasts to read before you fly.",
 };
 
 const forecastLinks = [
@@ -37,7 +38,7 @@ export default function WxPage() {
       <PageHero
         eyebrow="Weather · briefing"
         title="Wx Brief"
-        lede="What the model has the wind doing over the mountain today — the column of wind aloft, the summit forecast hour by hour, and the forecasts worth reading before you fly."
+        lede="What the model has the wind doing over the mountain today — a wave signal built on the Scorer parameter, the column of wind aloft, and the summit forecast hour by hour."
         image="/images/scenic/lenticular-wing.webp"
         imageAlt="A lenticular cloud over the Presidential Range seen from a glider"
         priority
@@ -58,6 +59,19 @@ export default function WxPage() {
       </section>
 
       <section className="bg-slate-50 py-16 sm:py-20">
+        <Container>
+          <SectionHeading
+            eyebrow="The day's wave"
+            title="Wave signal"
+            lede="A model-based reading of the day's wave potential, built on the Scorer parameter — the atmosphere's stability against the wind, written N²/U², and the way it falls with height. A falling Scorer over a steady cross-ridge flow is what lets Mount Washington's lee wave reach the flight levels."
+          />
+          <div className="mt-10">
+            <WaveForecast />
+          </div>
+        </Container>
+      </section>
+
+      <section className="py-16 sm:py-20">
         <Container>
           <SectionHeading
             eyebrow="Look further"
