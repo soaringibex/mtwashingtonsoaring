@@ -3,7 +3,6 @@
 // mosaic, and feed the shaded-relief canvas and its contour lines.
 
 export const TILE_SIZE = 256;
-const TERRAIN_ZOOM = 11;
 
 const lonToTileX = (lon: number, zoom: number) => ((lon + 180) / 360) * 2 ** zoom;
 const latToTileY = (lat: number, zoom: number) => {
@@ -30,8 +29,23 @@ export type TerrainMosaic = {
 
 export type MosaicBounds = { west: number; south: number; east: number; north: number };
 
-export async function fetchTerrainMosaic(bounds: MosaicBounds): Promise<TerrainMosaic> {
-  const zoom = TERRAIN_ZOOM;
+// One mosaic per session per bounds/zoom — the map's display relief and its solve
+// terrain share fetches, and the browser's HTTP cache carries them across reloads.
+const mosaicCache = new Map<string, Promise<TerrainMosaic>>();
+
+export function fetchTerrainMosaic(bounds: MosaicBounds, zoom: number): Promise<TerrainMosaic> {
+  const key = `${zoom}:${bounds.west},${bounds.south},${bounds.east},${bounds.north}`;
+  const cached = mosaicCache.get(key);
+  if (cached) return cached;
+  const value = buildTerrainMosaic(bounds, zoom).catch((error: unknown) => {
+    if (mosaicCache.get(key) === value) mosaicCache.delete(key);
+    throw error;
+  });
+  mosaicCache.set(key, value);
+  return value;
+}
+
+async function buildTerrainMosaic(bounds: MosaicBounds, zoom: number): Promise<TerrainMosaic> {
   const x0 = Math.floor(lonToTileX(bounds.west, zoom));
   const x1 = Math.floor(lonToTileX(bounds.east, zoom));
   const y0 = Math.floor(latToTileY(bounds.north, zoom));
@@ -76,6 +90,15 @@ export async function fetchTerrainMosaic(bounds: MosaicBounds): Promise<TerrainM
     lonStep: 360 / 2 ** zoom / TILE_SIZE,
     latStep: (north - tileYToLat(y0 + 1, zoom)) / TILE_SIZE,
   };
+}
+
+/** Bilinear elevation at a point, clamped at the mosaic's edges. */
+export function sampleMosaic(mosaic: TerrainMosaic, lat: number, lon: number): number {
+  return mosaicElevation(
+    mosaic,
+    (lon - mosaic.west) / mosaic.lonStep,
+    (mosaic.north - lat) / mosaic.latStep,
+  );
 }
 
 /** Bilinear elevation at a mosaic pixel, clamped at the edges. */

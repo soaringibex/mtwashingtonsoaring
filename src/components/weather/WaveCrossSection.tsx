@@ -187,7 +187,8 @@ export function WaveCrossSection({
   // The linear solve for the selected hour — pure math (~0.1 ms), so it runs in render.
   let solve: SolveResult | null = null;
   if (column && terrainLine && levels.length > 0) {
-    const waveColumn = buildWaveColumn(levels, transectAzimuth);
+    const crestM = Math.max(...terrainLine.elevationsM);
+    const waveColumn = buildWaveColumn(levels, transectAzimuth, crestM);
     if (waveColumn) {
       solve = solveLinearWave({ terrainM: terrainLine.elevationsM, dxM: SOLVE_DX_M, column: waveColumn });
     }
@@ -303,7 +304,7 @@ export function WaveCrossSection({
               y={y(zTop).toFixed(1)}
               width={(x(b.d) - x(a.d)).toFixed(1)}
               height={Math.max(y(zBot) - y(zTop), 0.1).toFixed(1)}
-              className={cellFill(value)}
+              className={cellFill(value, "linear")}
             />,
           );
         }
@@ -339,7 +340,7 @@ export function WaveCrossSection({
               ridge crest
             </text>
           </svg>
-          <WaveLegend caption="vertical velocity, m/s — linear-theory estimate; warm is lift, blue is sink" />
+          <WaveLegend scale="linear" />
         </>
       );
     }
@@ -383,7 +384,7 @@ export function WaveCrossSection({
           <polygon
             key={`${i}-${j}`}
             points={`${x(a.distanceKm).toFixed(1)},${y(za0).toFixed(1)} ${x(b.distanceKm).toFixed(1)},${y(zb0).toFixed(1)} ${x(b.distanceKm).toFixed(1)},${y(zb1).toFixed(1)} ${x(a.distanceKm).toFixed(1)},${y(za1).toFixed(1)}`}
-            className={cellFill(w)}
+            className={cellFill(w, "hrrr")}
           />,
         );
       }
@@ -417,7 +418,7 @@ export function WaveCrossSection({
             ridge crest
           </text>
         </svg>
-        <WaveLegend caption="vertical velocity, m/s (HRRR); warm is lift, blue is sink" />
+        <WaveLegend scale="hrrr" />
       </>
     );
   }

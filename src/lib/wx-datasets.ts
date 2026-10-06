@@ -59,26 +59,6 @@ export const MAP_LEVELS = [
   { ft: 23000, hPa: 400 },
 ];
 
-/** The map's fine terrain grid — every cell's solve profile is sampled from it. */
-export const FINE_COLS = 20;
-export const FINE_ROWS = 10;
-export const FINE_LON_MIN = -71.68;
-export const FINE_LON_SPAN = 0.78;
-export const FINE_LAT_MIN = 43.98;
-export const FINE_LAT_SPAN = 0.44;
-export const FINE_POINTS = (() => {
-  const points: { lat: number; lon: number }[] = [];
-  for (let row = 0; row < FINE_ROWS; row += 1) {
-    for (let col = 0; col < FINE_COLS; col += 1) {
-      points.push({
-        lat: FINE_LAT_MIN + (row * FINE_LAT_SPAN) / (FINE_ROWS - 1),
-        lon: FINE_LON_MIN + (col * FINE_LON_SPAN) / (FINE_COLS - 1),
-      });
-    }
-  }
-  return points;
-})();
-
 /** The wind card's pressure levels, in hPa. */
 export const WIND_DAY_LEVELS = [1000, 975, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200];
 
@@ -100,7 +80,6 @@ export type WxDataset =
   | "cross-section"
   | "map-field"
   | "terrain-line"
-  | "terrain-grid"
   | "wind-day"
   | "summit-hourly"
   | "summit-current";
@@ -221,9 +200,6 @@ export function buildUpstreamRequest(dataset: string, params: URLSearchParams): 
       const points = SOLVE_DISTANCES.map((d) => alongTransect(GLIDER_AREA, (azimuth + 180) % 360, d));
       return { urls: elevationUrls(points), revalidate: 604800, elevationMerge: true };
     }
-
-    case "terrain-grid":
-      return { urls: elevationUrls(FINE_POINTS), revalidate: 604800, elevationMerge: true };
 
     case "wind-day":
       return {

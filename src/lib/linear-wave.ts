@@ -20,7 +20,7 @@ export type WaveColumnLevel = {
   dirDeg: number;
 };
 
-export type WaveColumnLayer = { zTopM: number; n2: number; u: number };
+export type WaveColumnLayer = { zTopM: number; l2: number };
 
 export type WaveColumn = {
   levels: { zM: number }[];
@@ -87,10 +87,25 @@ const alongTransectWind = (speedMs: number, dirDeg: number, transectAzimuthDeg: 
  * N²/U² layers from the model column, ground-first. `transectAzimuthDeg` is the
  * direction the cross-section runs toward (downwind), so U is the wind's component
  * along that line.
+ *
+ * The shear-curvature term (−U″/U) is deliberately NOT applied: at 25-hPa model
+ * spacing the second derivative of the along-wind component is not resolvable to the
+ * accuracy the term demands — measured on 2026-10-06, it swung the 16,000 ft response
+ * by 3–8× (with a spurious mid-level barrier) in either direction.
+ *
+ * `forcingHeightM` is the height of the flow that actually clears the terrain (the
+ * profile's crest): with a decoupled valley beneath the range, taking the surface wind
+ * as the boundary condition under-forces the wave ~3× — the ridge-top flow is the one
+ * that climbs the mountain.
  */
-export function buildWaveColumn(levels: WaveColumnLevel[], transectAzimuthDeg: number): WaveColumn | null {
+export function buildWaveColumn(
+  levels: WaveColumnLevel[],
+  transectAzimuthDeg: number,
+  forcingHeightM: number,
+): WaveColumn | null {
   const sorted = [...levels].sort((a, b) => b.hPa - a.hPa);
   if (sorted.length < 4) return null;
+  const along = (level: WaveColumnLevel) => alongTransectWind(level.speedMs, level.dirDeg, transectAzimuthDeg);
   const layers: WaveColumnLayer[] = [];
   for (let i = 0; i < sorted.length - 1; i += 1) {
     const lower = sorted[i];
@@ -100,15 +115,16 @@ export function buildWaveColumn(levels: WaveColumnLevel[], transectAzimuthDeg: n
     const n2 =
       (G / ((potentialTemperature(lower.tempC, lower.hPa) + potentialTemperature(upper.tempC, upper.hPa)) / 2)) *
       ((potentialTemperature(upper.tempC, upper.hPa) - potentialTemperature(lower.tempC, lower.hPa)) / dz);
-    const u =
-      (alongTransectWind(lower.speedMs, lower.dirDeg, transectAzimuthDeg) +
-        alongTransectWind(upper.speedMs, upper.dirDeg, transectAzimuthDeg)) /
-      2;
+    const u = (along(lower) + along(upper)) / 2;
     if (!(n2 > 0) || !(u > 0.5)) continue;
-    layers.push({ zTopM: upper.zM, n2, u });
+    layers.push({ zTopM: upper.zM, l2: n2 / (u * u) });
   }
   if (layers.length < 3) return null;
-  const uSurfaceMs = alongTransectWind(sorted[0].speedMs, sorted[0].dirDeg, transectAzimuthDeg);
+
+  const forcing = sorted.reduce((best, level) =>
+    Math.abs(level.zM - forcingHeightM) < Math.abs(best.zM - forcingHeightM) ? level : best,
+  );
+  const uSurfaceMs = along(forcing);
   if (!(Math.abs(uSurfaceMs) > 0.5)) return null;
   return { levels: sorted.map((level) => ({ zM: level.zM })), layers, uSurfaceMs };
 }
@@ -154,10 +170,7 @@ export function solveLinearWave(input: SolveInput): SolveResult | null {
     if (Math.hypot(hkRe, hkIm) < 1e-9) continue;
 
     // l² per layer with damping → q² = l²(1 + iδ) − k²
-    const q2s: C[] = column.layers.map((layer) => {
-      const l2 = layer.n2 / (layer.u * layer.u);
-      return [l2 - k * k, l2 * damping];
-    });
+    const q2s: C[] = column.layers.map((layer) => [layer.l2 - k * k, Math.abs(layer.l2) * damping]);
 
     // outgoing solution at the top: w = e^{i m z}, w' = i m w
     const mTop = cSqrt(q2s[q2s.length - 1]);

@@ -5,24 +5,16 @@ import { fetchJson } from "@/lib/fetch-json";
 import { flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellRgb, wMs, WaveLegend } from "@/components/weather/wave-field";
 import { buildWaveColumn, solveLinearWave } from "@/lib/linear-wave";
+import { fetchRoadLines, type RoadLine } from "@/lib/roads";
 import {
   columnLevelsAt,
   fetchWaveColumnRaw,
-  readCachedTerrain,
   waveAzimuth,
   waveColumnHour,
-  writeCachedTerrain,
   type WaveColumnRaw,
 } from "@/lib/wave-column";
 import {
   AREA_RADIUS_NM,
-  FINE_COLS,
-  FINE_LAT_MIN,
-  FINE_LAT_SPAN,
-  FINE_LON_MIN,
-  FINE_LON_SPAN,
-  FINE_POINTS,
-  FINE_ROWS,
   GLIDER_AREA,
   KM_PER_NM,
   MAP_COLS,
@@ -36,7 +28,13 @@ import {
   alongTransect,
   wxApiPath,
 } from "@/lib/wx-datasets";
-import { contourSegments, fetchTerrainMosaic, mosaicElevation, type TerrainMosaic } from "@/lib/terrain-tiles";
+import {
+  contourSegments,
+  fetchTerrainMosaic,
+  mosaicElevation,
+  sampleMosaic,
+  type TerrainMosaic,
+} from "@/lib/terrain-tiles";
 
 const REFRESH_MS = 45 * 60 * 1000;
 
@@ -54,6 +52,18 @@ const TERRAIN_BOUNDS = {
   north: MAP_LAT_MIN + MAP_LAT_SPAN + 0.02,
 };
 
+/**
+ * The solves run from a wider, coarser tile set — every cell's terrain profile reaches
+ * beyond the display, and z10 (110 m) is far finer than the profiles' 1.6 km sampling.
+ */
+const SOLVE_BOUNDS = {
+  west: MAP_LON_MIN - 0.32,
+  south: MAP_LAT_MIN - 0.24,
+  east: MAP_LON_MIN + MAP_LON_SPAN + 0.32,
+  north: MAP_LAT_MIN + MAP_LAT_SPAN + 0.24,
+};
+const SOLVE_ZOOM = 10;
+
 /** Every second model node is solved — the linear field is smooth at that scale. */
 const SOLVE_STEP = 2;
 const SOLVE_COLS = Math.floor((MAP_COLS - 1) / SOLVE_STEP) + 1;
@@ -63,10 +73,8 @@ const SOLVE_NODES = MAP_GRID.filter(
 );
 
 const SOLVE_DX_M = 1600;
-const PROFILE_DISTANCES = Array.from({ length: 49 }, (_, i) => (i - 24) * 1.6);
-const PROFILE_CENTER = 24;
-
-const TERRAIN_CACHE_KEY = "mws-wave-terrain-grid-v1";
+const PROFILE_DISTANCES = Array.from({ length: 31 }, (_, i) => (i - 15) * 1.6);
+const PROFILE_CENTER = 15;
 
 const PLACES = [
   { name: "Gorham · 2G8", lat: 44.393, lon: -71.196, primary: true },
@@ -121,32 +129,9 @@ function reliefColour(elevationM: number, shade: number): [number, number, numbe
 const x = (lon: number) => ((lon - MAP_LON_MIN) / MAP_LON_SPAN) * W;
 const y = (lat: number) => H - ((lat - MAP_LAT_MIN) / MAP_LAT_SPAN) * H;
 
-async function fetchTerrainGrid(): Promise<number[]> {
-  const cached = readCachedTerrain(TERRAIN_CACHE_KEY, FINE_POINTS.length);
-  if (cached) return cached;
-  const data = (await fetchJson(wxApiPath("terrain-grid"))) as { elevation?: number[] } | null;
-  const values = data?.elevation;
-  if (!Array.isArray(values) || values.length !== FINE_POINTS.length) {
-    throw new Error("missing terrain grid");
-  }
-  writeCachedTerrain(TERRAIN_CACHE_KEY, values);
-  return values;
-}
-
-/** Bilinear sample of the solver's fine terrain grid, clamped at its edges. */
-function sampleTerrain(grid: number[], lat: number, lon: number): number {
-  const fx = ((lon - FINE_LON_MIN) / FINE_LON_SPAN) * (FINE_COLS - 1);
-  const fy = ((lat - FINE_LAT_MIN) / FINE_LAT_SPAN) * (FINE_ROWS - 1);
-  const x0 = Math.min(Math.max(Math.floor(fx), 0), FINE_COLS - 2);
-  const y0 = Math.min(Math.max(Math.floor(fy), 0), FINE_ROWS - 2);
-  const tx = Math.min(Math.max(fx - x0, 0), 1);
-  const ty = Math.min(Math.max(fy - y0, 0), 1);
-  const v00 = grid[y0 * FINE_COLS + x0];
-  const v10 = grid[y0 * FINE_COLS + x0 + 1];
-  const v01 = grid[(y0 + 1) * FINE_COLS + x0];
-  const v11 = grid[(y0 + 1) * FINE_COLS + x0 + 1];
-  return v00 * (1 - tx) * (1 - ty) + v10 * tx * (1 - ty) + v01 * (1 - tx) * ty + v11 * tx * ty;
-}
+/** A road polyline in the map's own coordinates. */
+const roadPoints = (line: RoadLine) =>
+  line.p.map(([lon, lat]) => `${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join(" ");
 
 type MapData = {
   times: string[];
@@ -199,11 +184,12 @@ export function WaveMap({
   const [mode, setMode] = useState<"linear" | "model">("linear");
   const [data, setData] = useState<MapData | null>(null);
   const [error, setError] = useState(false);
-  const [terrainGrid, setTerrainGrid] = useState<number[] | null>(null);
+  const [solveMosaic, setSolveMosaic] = useState<TerrainMosaic | null>(null);
   const [column, setColumn] = useState<WaveColumnRaw | null>(null);
   const [linearError, setLinearError] = useState(false);
   const [mosaic, setMosaic] = useState<TerrainMosaic | null>(null);
   const [mosaicError, setMosaicError] = useState(false);
+  const [roads, setRoads] = useState<RoadLine[] | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const definition = LEVELS.find((entry) => entry.hPa === level) ?? LEVELS[2];
@@ -233,10 +219,10 @@ export function WaveMap({
   useEffect(() => {
     let cancelled = false;
     const load = () => {
-      Promise.all([fetchTerrainGrid(), fetchWaveColumnRaw()])
-        .then(([nextGrid, nextColumn]) => {
+      Promise.all([fetchTerrainMosaic(SOLVE_BOUNDS, SOLVE_ZOOM), fetchWaveColumnRaw()])
+        .then(([nextMosaic, nextColumn]) => {
           if (!cancelled) {
-            setTerrainGrid(nextGrid);
+            setSolveMosaic(nextMosaic);
             setColumn(nextColumn);
             setLinearError(false);
           }
@@ -246,16 +232,14 @@ export function WaveMap({
         });
     };
     load();
-    const timer = setInterval(load, REFRESH_MS);
     return () => {
       cancelled = true;
-      clearInterval(timer);
     };
   }, []);
 
   useEffect(() => {
     let cancelled = false;
-    fetchTerrainMosaic(TERRAIN_BOUNDS)
+    fetchTerrainMosaic(TERRAIN_BOUNDS, 11)
       .then((next) => {
         if (!cancelled) {
           setMosaic(next);
@@ -270,32 +254,47 @@ export function WaveMap({
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    fetchRoadLines()
+      .then((next) => {
+        if (!cancelled) setRoads(next);
+      })
+      .catch(() => {
+        // Roads are orientation, not data — the map stands without them.
+        if (!cancelled) setRoads([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Solve every second node's wind-line transect once per hour (the level pick is free
   // after that). Pure math, so it rides a memo rather than an effect.
   const solvedField = useMemo(() => {
-    if (!terrainGrid || !column) return null;
+    if (!solveMosaic || !column) return null;
     const hour = waveColumnHour(column, selectedTime);
     const levels = columnLevelsAt(column.hourly, hour);
     const transectAzimuth = (waveAzimuth(levels) + 180) % 360;
-    const waveColumn = buildWaveColumn(levels, transectAzimuth);
-    if (!waveColumn) return null;
     const center: number[][] = [];
     let zM: number[] = [];
     for (const cell of SOLVE_NODES) {
       const terrain = PROFILE_DISTANCES.map((d) => {
         const point = alongTransect(cell, transectAzimuth, d);
-        return sampleTerrain(terrainGrid, point.lat, point.lon);
+        return sampleMosaic(solveMosaic, point.lat, point.lon);
       });
+      const waveColumn = buildWaveColumn(levels, transectAzimuth, Math.max(...terrain));
+      if (!waveColumn) return null;
       const solve = solveLinearWave({ terrainM: terrain, dxM: SOLVE_DX_M, column: waveColumn });
       if (!solve) return null;
       zM = solve.zM;
       center.push(solve.w.map((line) => line[PROFILE_CENTER]));
     }
     return { zM, center };
-  }, [terrainGrid, column, selectedTime]);
+  }, [solveMosaic, column, selectedTime]);
 
   // Inputs arrived but the solver came back empty — a data problem, not a pending one.
-  const linearUnavailable = linearError || (!solvedField && Boolean(terrainGrid && column));
+  const linearUnavailable = linearError || (!solvedField && Boolean(solveMosaic && column));
 
   let index = data?.defaultIndex ?? 0;
   if (data && selectedTime) {
@@ -409,7 +408,7 @@ export function WaveMap({
           const v11 = nodeValues[(ny + 1) * MAP_COLS + nx + 1];
           if (v00 !== null && v10 !== null && v01 !== null && v11 !== null) {
             const w = v00 * (1 - tx) * (1 - ty) + v10 * tx * (1 - ty) + v01 * (1 - tx) * ty + v11 * tx * ty;
-            const [wr, wg, wb] = cellRgb(w);
+            const [wr, wg, wb] = cellRgb(w, mode === "linear" ? "linear" : "hrrr");
             r = Math.round(r * (1 - WAVE_ALPHA) + wr * WAVE_ALPHA);
             g = Math.round(g * (1 - WAVE_ALPHA) + wg * WAVE_ALPHA);
             b = Math.round(b * (1 - WAVE_ALPHA) + wb * WAVE_ALPHA);
@@ -436,7 +435,7 @@ export function WaveMap({
       }
       context.stroke();
     }
-  }, [mosaic, nodeValues, contours]);
+  }, [mosaic, nodeValues, contours, mode]);
 
   // The LOA circle and this hour's cross-section line.
   const centre = { x: x(GLIDER_AREA.lon), y: y(GLIDER_AREA.lat) };
@@ -545,6 +544,28 @@ export function WaveMap({
           >
             <canvas ref={canvasRef} width={W} height={H} className="block h-auto w-full" />
             <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" aria-hidden="true">
+              {roads?.map((line, index) => (
+                <g key={index}>
+                  <polyline
+                    points={roadPoints(line)}
+                    className={line.k === 2 ? "fill-none stroke-white/50" : "fill-none stroke-white/35"}
+                    strokeWidth={line.k === 2 ? 2.2 : line.k === 1 ? 1.8 : 1.4}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <polyline
+                    points={roadPoints(line)}
+                    className={
+                      line.k === 2
+                        ? "fill-none stroke-slate-600/60"
+                        : line.k === 1
+                          ? "fill-none stroke-slate-500/45"
+                          : "fill-none stroke-slate-500/30"
+                    }
+                    strokeWidth={line.k === 2 ? 0.9 : 0.7}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </g>
+              ))}
               <circle
                 cx={centre.x}
                 cy={centre.y}
@@ -672,21 +693,16 @@ export function WaveMap({
               </g>
             </svg>
           </div>
-          <WaveLegend
-            caption={
-              mode === "linear"
-                ? "vertical velocity, m/s — linear-theory estimate; warm is lift, blue is sink"
-                : undefined
-            }
-          />
+          <WaveLegend scale={mode === "linear" ? "linear" : "hrrr"} />
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
             {mode === "linear"
-              ? `Linear-theory estimate at ${definition.ft.toLocaleString("en-US")} ft — every second node's terrain profile runs along this hour's wind and is solved with the HRRR column. `
+              ? `Linear-theory estimate at ${definition.ft.toLocaleString("en-US")} ft — every second node's terrain profile runs along this hour's wind and is solved with the HRRR column, the ridge-top flow doing the forcing. `
               : `Vertical velocity at ${definition.ft.toLocaleString("en-US")} ft over the Gorham country. `}
             The dashed circle is the LOA&apos;s Mount Washington Glider Area — a 10 NM radius around its
             centre — and the solid line is the cross-section above, this hour&apos;s wind line through
-            that centre. Shaded relief with 1,000 ft contours (terrain: AWS Terrain Tiles). Warm
-            bands are lift, blue is sink; pick any hour above and the whole picture turns with it.
+            that centre. Shaded relief with 1,000 ft contours and roads (terrain: AWS Terrain Tiles;
+            roads © OpenStreetMap contributors). Warm bands are lift, blue is sink; pick any hour
+            above and the whole picture turns with it.
           </p>
         </>
       ) : error || mosaicError || linearUnavailable ? (
