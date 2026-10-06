@@ -14,9 +14,11 @@
 //    density amplification's direction and power.
 import {
   buildWaveColumn,
+  DEFAULT_DAMPING_S,
   dominantWavelengthKm,
   saturateWave,
   solveLinearWave,
+  solveLinearWavePadded,
   type WaveColumn,
   type WaveColumnLayer,
 } from "../src/lib/linear-wave.ts";
@@ -133,34 +135,41 @@ const damping = 1e-9;
 const uniformSolve = solveLinearWave({ terrainM: sinusoid, dxM, column: uniformColumn, damping });
 if (!uniformSolve) throw new Error("uniform solve failed");
 
-// Independent reference: the same windowed terrain's spectrum, the closed-form per-mode
-// solution, and the density factor re-derived from the synthetic profile.
+// Independent reference: the same windowed, zero-padded terrain spectrum, the
+// closed-form per-mode solution, and the density factor re-derived from the synthetic
+// profile. The padding mirrors the solver's domain (it is part of the tested contract),
+// while the propagation stays a hand-written closed form.
 const reference = (zM: number, amp: number): number => {
   const m0 = Math.floor(n / 4);
-  const rawMean = sinusoid.reduce((sum, v) => sum + v, 0) / n;
   const windowed = sinusoid.map((h, i) => {
-    const centred = h - rawMean;
+    const centred = h - 400;
     if (i < m0) return centred * 0.5 * (1 - Math.cos((Math.PI * i) / m0));
     if (i > n - 1 - m0) return centred * 0.5 * (1 - Math.cos((Math.PI * (n - 1 - i)) / m0));
     return centred;
   });
+  let N = 1;
+  while (N < 3 * n) N *= 2;
+  const offset = Math.floor((N - n) / 2);
+  const s0 = offset + (n - 1) / 2;
+  const hp = new Float64Array(N);
+  for (let i = 0; i < n; i += 1) hp[offset + i] = windowed[i];
   const scaleHeight = (GAS_CONSTANT * 290) / G;
   const l2 = N2 / (U * U) - 1 / (4 * scaleHeight * scaleHeight);
   let peak = 0;
   for (let s = 0; s < n; s += 1) {
     const x = (s - (n - 1) / 2) * dxM;
     let value = 0;
-    for (let j = 1; j < n / 2; j += 1) {
-      const k = (2 * Math.PI * j) / (n * dxM);
+    for (let j = 1; j < N / 2; j += 1) {
+      const k = (2 * Math.PI * j) / (N * dxM);
       let hkRe = 0;
       let hkIm = 0;
-      for (let q = 0; q < n; q += 1) {
-        const px = (q - (n - 1) / 2) * dxM;
-        hkRe += windowed[q] * Math.cos(k * px);
-        hkIm -= windowed[q] * Math.sin(k * px);
+      for (let q = 0; q < N; q += 1) {
+        const px = (q - s0) * dxM;
+        hkRe += hp[q] * Math.cos(k * px);
+        hkIm -= hp[q] * Math.sin(k * px);
       }
-      hkRe /= n;
-      hkIm /= n;
+      hkRe /= N;
+      hkIm /= N;
       const q2 = l2 - k * k;
       const mRe = q2 >= 0 ? Math.sqrt(q2) : 0;
       const mIm = q2 >= 0 ? 0 : Math.sqrt(-q2);
@@ -309,10 +318,35 @@ if (wavelengthError > 0.05) {
   );
 }
 
+// The padded domain's TRUE edge at the shipped α: the wrap-around the earlier
+// window-edge metric could not separate from real upwind lift must stay under 15% of
+// the peak. This is the metric DEFAULT_DAMPING_S is calibrated on.
+const maxAbsLine = (line: number[]) => line.reduce((peak, v) => Math.max(peak, Math.abs(v)), 0);
+const shippedPadded = solveLinearWavePadded({ terrainM: twoRidge, dxM: TWO_DX, column: twoColumn });
+if (!shippedPadded) throw new Error("padded two-layer solve failed");
+const shippedLine = shippedPadded.w[twoLi];
+const shippedEdge = Math.max(
+  maxAbsLine(shippedLine.slice(0, 16)),
+  maxAbsLine(shippedLine.slice(shippedLine.length - 16)),
+);
+const shippedPeak = maxAbsLine(shippedLine);
+const shippedRatio = shippedPeak > 0 ? shippedEdge / shippedPeak : 0;
+console.log(
+  `wave solver: two-layer duct true edge at α=${DEFAULT_DAMPING_S}: ${(100 * shippedRatio).toFixed(2)}% of the peak ` +
+    `(pad ${shippedPadded.padLength}) ${shippedRatio < 0.15 ? "ok" : "FAILED"}`,
+);
+if (!(shippedRatio < 0.15)) {
+  throw new Error(
+    `padded-domain wrap contamination ${(100 * shippedRatio).toFixed(1)}% exceeds 15% at α=${DEFAULT_DAMPING_S}`,
+  );
+}
+
 // -------------------------------------------------- 3-D ridge reduces to the 2-D line
 //
 // A ridge with no cross-wind variation has ĥ(k, l≠0) = 0, so Smith's 3-D solve must
-// reproduce the 2-D transect solve exactly (both tapers cover flat ground). <1% RMS.
+// reproduce the 2-D transect solve. The comparison runs on the SAME unpadded 256-point
+// domain (`pad: false`): the production 2-D solve pads, and comparing two different
+// k-grids would measure the quadrature difference (~1% here) rather than the transform.
 const N3 = 256;
 const DX3 = 500;
 const ridge3 = Array.from({ length: N3 }, (_, i) => {
@@ -323,8 +357,14 @@ const grid3 = new Float64Array(N3 * N3);
 for (let j = 0; j < N3; j += 1) {
   for (let i = 0; i < N3; i += 1) grid3[j * N3 + i] = ridge3[i];
 }
-const ridge2d = solveLinearWave({ terrainM: ridge3, dxM: DX3, column: uniformColumn, damping: 1e-3 });
-const ridge3d = solveLinearWave3D({ terrainM: grid3, size: N3, dxM: DX3, column: uniformColumn, damping: 1e-3 });
+const ridge2d = solveLinearWave({
+  terrainM: ridge3,
+  dxM: DX3,
+  column: uniformColumn,
+  damping: DEFAULT_DAMPING_S,
+  pad: false,
+});
+const ridge3d = solveLinearWave3D({ terrainM: grid3, size: N3, dxM: DX3, column: uniformColumn, damping: DEFAULT_DAMPING_S });
 if (!ridge2d || !ridge3d) throw new Error("3-D ridge solve failed");
 let ridgeLi = 0;
 for (let i = 1; i < ridge3d.zM.length; i += 1) {
@@ -358,7 +398,7 @@ for (let j = 0; j < N3; j += 1) {
     hill3[j * N3 + i] = 400 + 700 * Math.exp(-(x * x + y * y) / (2 * SIGMA3 * SIGMA3));
   }
 }
-const hillSolve = solveLinearWave3D({ terrainM: hill3, size: N3, dxM: DX3, column: uniformColumn, damping: 1e-3 });
+const hillSolve = solveLinearWave3D({ terrainM: hill3, size: N3, dxM: DX3, column: uniformColumn, damping: DEFAULT_DAMPING_S });
 if (!hillSolve) throw new Error("3-D hill solve failed");
 let hillLi = 0;
 for (let i = 1; i < hillSolve.zM.length; i += 1) {

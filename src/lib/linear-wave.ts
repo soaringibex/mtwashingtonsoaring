@@ -32,6 +32,10 @@
 //   rate (α, s⁻¹) and every trapped resonance stays finite. Measured 2026-10-06, the
 //   flat δ = 0.05 left the trapped train wrapping the periodic domain (upwind edge
 //   60% of the lee peak); α = 1e-3 brings it to the 10% criterion.
+// - The solve runs on a zero-padded periodic domain: a power of two with at least one
+//   profile length of zeros on each side (73 → 256, 111 → 512). The wrap then sits far
+//   outside the terrain, so a weakly damped trapped train cannot masquerade as upwind
+//   lift at the window edge; `solveLinearWave` still returns the input length.
 // - The output is saturated (`saturateWave`), never the solver: linear theory is
 //   unbounded on blocked days, so the amplitude is scaled by Fr below 1 and capped
 //   at half the layer's along-transect wind.
@@ -43,6 +47,8 @@
 // calls it with κ² = k² and the 3-D Smith (1980) solver with κ² = k² + l².
 //
 // Complex numbers are [re, im] pairs.
+
+import { fft1d } from "./fft.ts";
 
 export type WaveColumnLevel = {
   hPa: number;
@@ -84,6 +90,13 @@ export type SolveInput = {
   column: WaveColumn;
   /** Rayleigh friction α, s⁻¹. Larger α damps the trapped wave train harder. */
   damping?: number;
+  /**
+   * Zero-pad the periodic domain (default true: a power of two with a full profile
+   * length of zeros on each side). Set false only to compare against a solver on the
+   * SAME domain — the 3-D reduction test does, because two different k-grids differ by
+   * quadrature (~1%) and hide the transform check behind that.
+   */
+  pad?: boolean;
 };
 
 export type SolveResult = {
@@ -101,13 +114,17 @@ const G = 9.81;
 const GAS_CONSTANT = 287.05; // dry air, J kg⁻¹ K⁻¹
 
 /**
- * The default Rayleigh friction, s⁻¹. Chosen by measurement (live 2026-10-06 16:00):
- * the upwind-edge ratio (outermost taper samples / lee peak) crosses the 10% criterion
- * between 7.5e-4 and 1e-3 on the refreshed 310° bucket (1e-3 → 8.4%; 2e-4 → 53.5%),
- * and sits at ~10% for 1e-3 on the earlier 295° bucket. The old flat δ = 0.05 measured
- * 36–60% on the same metric.
+ * The default Rayleigh friction, s⁻¹. Chosen by measurement (live 2026-10-06 16:00,
+ * 310° bucket, on the padded domain): contamination at the padded domain's TRUE edge
+ * (outermost 16 samples / peak) crosses the 15% criterion at α ≈ 2e-4. Across two
+ * consecutive HRRR cycles the crossing landed at 14.9% and 15.7% for 2e-4 (the
+ * refreshed-cycle table: 1e-4 → 39.6%, 1.5e-4 → 24.9%, 2e-4 → 15.7%, 2.5e-4 → 9.8%,
+ * 3e-4 → 6.0%). The earlier window-edge metric could not separate wrap-around from
+ * real upwind lift (Kilkenny/Pliny terrain sits 20–35 km upwind of the Glider Area)
+ * and drove the pick to 1e-3, a 17-minute damping time that halved the primary's
+ * amplitude (2.4 vs 4.4 m/s at 10k ft).
  */
-export const DEFAULT_DAMPING_S = 1e-3;
+export const DEFAULT_DAMPING_S = 2e-4;
 
 const cAdd = (a: C, b: C): C => [a[0] + b[0], a[1] + b[1]];
 const cMul = (a: C, b: C): C => [a[0] * b[0] - a[1] * b[1], a[0] * b[1] + a[1] * b[0]];
@@ -326,15 +343,47 @@ export function verticalResponse(column: WaveColumn, kappa2: number, damping: nu
   return at;
 }
 
-export function solveLinearWave(input: SolveInput): SolveResult | null {
+/**
+ * The padded solve length for a profile of `n` samples: a power of two with at least
+ * one profile length of zeros on each side (73 → 256, 111 → 512).
+ */
+export function paddedSolveLength(n: number): number {
+  return nearestPowerOfTwo(3 * n);
+}
+
+/** The smallest power of two ≥ n. */
+function nearestPowerOfTwo(n: number): number {
+  let length = 1;
+  while (length < n) length *= 2;
+  return length;
+}
+
+export type PaddedSolveResult = {
+  zM: number[];
+  /** w on the padded grid, length `paddedSolveLength(terrainM.length)`. */
+  w: number[][];
+  padLength: number;
+  /** Index of the input's first sample on the padded grid. */
+  offset: number;
+};
+
+/**
+ * The 2-D solve on a zero-padded periodic domain. The terrain's centred, tapered
+ * profile is embedded in a longer zero-filled array so the periodic wrap sits far
+ * outside the obstacle — a weakly damped trapped train then cannot masquerade as
+ * upwind lift at the window edge. `solveLinearWave` is the caller-facing wrapper;
+ * this variant exposes the padded grid so the live check can measure contamination
+ * at the domain's TRUE edge rather than at the (arbitrary) window edge.
+ */
+export function solveLinearWavePadded(input: SolveInput): PaddedSolveResult | null {
   const { terrainM, dxM, column } = input;
   const damping = input.damping ?? DEFAULT_DAMPING_S;
   const n = terrainM.length;
   if (n < 16 || !(dxM > 0) || column.layers.length < 3) return null;
 
-  // Taper the outer quarter of the profile. The profile is measured from the column's
-  // launch plane (not its own mean): the solve integrates the layers above that plane,
-  // and the surface boundary must reference the same origin.
+  // Taper the outer quarter of the input profile. The profile is measured from the
+  // column's launch plane (not its own mean): the solve integrates the layers above
+  // that plane, and the surface boundary must reference the same origin.
   const taper = new Array<number>(n).fill(1);
   const m = Math.floor(n / 4);
   for (let i = 0; i < m; i += 1) {
@@ -342,23 +391,33 @@ export function solveLinearWave(input: SolveInput): SolveResult | null {
     taper[i] = t;
     taper[n - 1 - i] = t;
   }
-  const ht = terrainM.map((h, i) => (h - column.baseM) * taper[i]);
+  const N = input.pad === false ? nearestPowerOfTwo(n) : paddedSolveLength(n);
+  const offset = Math.floor((N - n) / 2);
+  // s0 puts the input's centre sample at x = 0, so the central output samples land
+  // exactly on the caller's distance grid even when N − n is odd.
+  const s0 = offset + (n - 1) / 2;
+  const hp = new Float64Array(N);
+  for (let i = 0; i < n; i += 1) {
+    hp[offset + i] = (terrainM[i] - column.baseM) * taper[i];
+  }
 
-  const solutions: { k: number; ws: C[] }[] = [];
-  for (let j = 1; j < n / 2; j += 1) {
-    const k = (2 * Math.PI * j) / (n * dxM);
+  const solutions: { j: number; k: number; ws: C[] }[] = [];
+  for (let j = 1; j < N / 2; j += 1) {
+    const k = (2 * Math.PI * j) / (N * dxM);
 
-    // terrain Fourier component h_k = Σ h(x) e^{-ikx} / n, x centred on the array
+    // terrain Fourier component h_k = Σ h(x) e^{-ikx} / N on the padded grid
     let hkRe = 0;
     let hkIm = 0;
-    for (let s = 0; s < n; s += 1) {
-      const x = (s - (n - 1) / 2) * dxM;
+    for (let s = 0; s < N; s += 1) {
+      const value = hp[s];
+      if (value === 0) continue;
+      const x = (s - s0) * dxM;
       const phase = -k * x;
-      hkRe += ht[s] * Math.cos(phase);
-      hkIm += ht[s] * Math.sin(phase);
+      hkRe += value * Math.cos(phase);
+      hkIm += value * Math.sin(phase);
     }
-    hkRe /= n;
-    hkIm /= n;
+    hkRe /= N;
+    hkIm /= N;
     if (Math.hypot(hkRe, hkIm) < 1e-9) continue;
 
     const at = verticalResponse(column, k * k, damping);
@@ -366,27 +425,43 @@ export function solveLinearWave(input: SolveInput): SolveResult | null {
     // scale to satisfy the surface boundary at the base plane: w(0) = i k U h_k
     const w0: C = [-k * column.uSurfaceMs * hkIm, k * column.uSurfaceMs * hkRe];
     const scale = cDiv(w0, at[0]);
-    solutions.push({ k, ws: at.slice(1).map((value) => cMul(value, scale)) });
+    solutions.push({ j, k, ws: at.slice(1).map((value) => cMul(value, scale)) });
   }
   if (solutions.length === 0) return null;
 
-  // compose w(x, z) = 2·Re Σ_{k>0} w_k(z) e^{ikx}, with the anelastic amplification.
+  // Compose w on the padded grid by inverse FFT. The coefficients are re-phased to the
+  // FFT's index origin (e^{−ik s0 dx}), then the positive-k half alone is inverted and
+  // the real part doubled — the same 2·Re Σ_{k>0} the direct sum carried.
+  const specRe = new Float64Array(N);
+  const specIm = new Float64Array(N);
   const w: number[][] = column.layers.map((layer, levelIndex) => {
-    const gain = 2 * layer.amp;
-    const line = new Array<number>(n);
-    for (let s = 0; s < n; s += 1) {
-      const x = (s - (n - 1) / 2) * dxM;
-      let value = 0;
-      for (const { k, ws: wsAt } of solutions) {
-        const c = wsAt[levelIndex];
-        value += c[0] * Math.cos(k * x) - c[1] * Math.sin(k * x);
-      }
-      line[s] = value * gain;
+    specRe.fill(0);
+    specIm.fill(0);
+    for (const { j, k, ws: wsAt } of solutions) {
+      const phaseRe = Math.cos(k * s0 * dxM);
+      const phaseIm = -Math.sin(k * s0 * dxM);
+      const c = wsAt[levelIndex];
+      specRe[j] = c[0] * phaseRe - c[1] * phaseIm;
+      specIm[j] = c[0] * phaseIm + c[1] * phaseRe;
     }
+    fft1d(specRe, specIm, 0, 1, N, true);
+    const gain = 2 * layer.amp;
+    const line = new Array<number>(N);
+    for (let s = 0; s < N; s += 1) line[s] = gain * specRe[s];
     return line;
   });
 
-  return { zM: column.layers.map((layer) => layer.zTopM + column.baseM), w };
+  return { zM: column.layers.map((layer) => layer.zTopM + column.baseM), w, padLength: N, offset };
+}
+
+export function solveLinearWave(input: SolveInput): SolveResult | null {
+  const padded = solveLinearWavePadded(input);
+  if (!padded) return null;
+  const n = input.terrainM.length;
+  return {
+    zM: padded.zM,
+    w: padded.w.map((line) => line.slice(padded.offset, padded.offset + n)),
+  };
 }
 
 /** The exponent in the saturation's Fr^p, pinned so an Fr = 0.5 day keeps half. */

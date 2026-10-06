@@ -7,10 +7,11 @@
 //
 // Prints: the dividing-streamline launch (z_d, Fr), |w| at 10k/16k ft, the dominant
 // wavelength along the transect, the sign changes inside the LOA circle, and the
-// upwind-taper contamination ratio. --scan sweeps the Rayleigh friction α table used
-// to pick DEFAULT_DAMPING_S; --3d builds the map's 128 km/500 m rotated grid from the
-// same z10 tiles the map uses and compares the centre transect with the 2-D solve.
-// Optional: --base <url> (default the production deployment).
+// wrap-around contamination at the PADDED domain's true edge. --scan sweeps the
+// Rayleigh friction α table used to pick DEFAULT_DAMPING_S; --3d builds the map's
+// 128 km/500 m rotated grid from the same z10 tiles the map uses and compares the
+// centre transect with the 2-D solve. Optional: --base <url>, --damping <x> to
+// override the default α for a probe run.
 
 import { inflateSync } from "node:zlib";
 import {
@@ -18,7 +19,8 @@ import {
   divideStreamline,
   dominantWavelengthKm,
   saturateWave,
-  solveLinearWave,
+  solveLinearWavePadded,
+  type SolveResult,
   type WaveColumnLevel,
 } from "../src/lib/linear-wave.ts";
 import { buildRotatedTerrainGrid, solveLinearWave3D } from "../src/lib/linear-wave-3d.ts";
@@ -32,6 +34,8 @@ const BASE = argOf("--base", "https://mtwashingtonsoaring.vercel.app");
 const HOUR = Number(argOf("--hour", String(new Date().getHours())));
 const ALPHAS = [0, 1e-4, 2e-4, 5e-4, 1e-3];
 const SCAN = args.includes("--scan");
+const DAMPING_ARG = argOf("--damping", "");
+const DAMPING_OVERRIDE = DAMPING_ARG ? Number(DAMPING_ARG) : undefined;
 const ALPHAS_OF_ARG = argOf("--alphas", "")
   .split(",")
   .map((value) => Number(value))
@@ -103,13 +107,12 @@ const signChangesInsideCircle = (line: number[]): number => {
   return changes;
 };
 
-/** |w| in the outermost samples of the upwind taper, over the lee peak. */
-const upwindEdgeRatio = (line: number[]): number => {
-  const taper = Math.floor(line.length / 4);
-  const edge = Math.max(1, Math.floor(taper / 4)); // the outer edge of the taper region
+/** |w| in the outermost samples of the PADDED domain, over the global peak. */
+const paddedEdgeRatio = (line: number[]): number => {
+  const edge = Math.max(1, Math.min(16, Math.floor(line.length / 8)));
   const peak = maxAbs(line);
   if (!(peak > 0)) return 0;
-  return maxAbs(line.slice(0, edge)) / peak;
+  return Math.max(maxAbs(line.slice(0, edge)), maxAbs(line.slice(line.length - edge))) / peak;
 };
 
 const get = async (path: string): Promise<unknown> => {
@@ -160,13 +163,17 @@ const clipDepth = clipped.reduce((sum, h, i) => sum + (h - terrain[i]), 0) / ter
 console.log(`clipping: blocked air raised the mean profile by ${clipDepth.toFixed(1)} m`);
 
 const report = (label: string, alpha: number | undefined) => {
-  const raw = solveLinearWave({
+  const damping = alpha ?? DAMPING_OVERRIDE;
+  const padded = solveLinearWavePadded({
     terrainM: clipped,
     dxM: DX_M,
     column: columnBase,
-    ...(alpha === undefined ? {} : { damping: alpha }),
+    ...(damping === undefined ? {} : { damping }),
   });
-  if (!raw) throw new Error("solve failed");
+  if (!padded) throw new Error("solve failed");
+  const count = clipped.length;
+  const central = padded.w.map((line) => line.slice(padded.offset, padded.offset + count));
+  const raw: SolveResult = { zM: padded.zM, w: central };
   const li10 = nearestLevel(raw.zM, 3048);
   const li16 = nearestLevel(raw.zM, 4877);
   const saturated = saturateWave(raw, columnBase, divider.froude);
@@ -175,14 +182,14 @@ const report = (label: string, alpha: number | undefined) => {
   console.log(
     `${label}: |w|@10k ${maxAbs(line10).toFixed(2)} m/s raw (${maxAbs(saturated.w[li10]).toFixed(2)} saturated, ` +
       `lift scale ${scale.toFixed(2)}), |w|@16k ${maxAbs(raw.w[li16]).toFixed(2)} m/s, ` +
-      `λ@10k ${dominantWavelengthKm(line10, DX_M)?.toFixed(2)} km, ` +
+      `λ@10k ${dominantWavelengthKm(line10, DX_M)?.toFixed(2)} km (padded ${dominantWavelengthKm(padded.w[li10], DX_M)?.toFixed(2)}), ` +
       `circle sign changes ${signChangesInsideCircle(line10)}, lee bands ${liftBands(line10)}, ` +
-      `upwind edge ${(100 * upwindEdgeRatio(line10)).toFixed(1)}% of peak`,
+      `true edge ${(100 * paddedEdgeRatio(padded.w[li10])).toFixed(1)}% of peak (pad ${padded.padLength})`,
   );
 };
 
 if (SCAN) {
-  console.log("Rayleigh scan (raw solve, no saturation) — pick the smallest α keeping the edge < 10%:");
+  console.log("Rayleigh scan (raw solve, no saturation) — pick the smallest α keeping the true edge < 15%:");
   for (const alpha of SCAN_ALPHAS) report(`α ${String(alpha).padEnd(8)}`, alpha);
 } else {
   report("solve", undefined);
@@ -389,11 +396,31 @@ if (args.includes("--3d")) {
   for (let i = 0; i < grid.length; i += 1) clippedGrid[i] = Math.max(grid[i], gridDivider.zD);
 
   const solveStart = performance.now();
-  const raw3 = solveLinearWave3D({ terrainM: clippedGrid, size: G3, dxM: DX3, column: gridColumn });
+  const raw3 = solveLinearWave3D({
+    terrainM: clippedGrid,
+    size: G3,
+    dxM: DX3,
+    column: gridColumn,
+    ...(DAMPING_OVERRIDE === undefined ? {} : { damping: DAMPING_OVERRIDE }),
+  });
   const solveMs = performance.now() - solveStart;
   if (!raw3) throw new Error("3-D solve failed");
   const sat3 = saturateWave(raw3, gridColumn, gridDivider.froude);
   const level3d = nearestLevel(raw3.zM, 3048);
+
+  // The 3-D grid is not padded (256² stays inside the timing budget), so the wrap
+  // metric is the outermost 16 samples of each side of the field, over the peak.
+  const line3d = raw3.w[level3d];
+  let gridPeak3 = 0;
+  let gridEdge3 = 0;
+  for (let y = 0; y < G3; y += 1) {
+    for (let x = 0; x < G3; x += 1) {
+      const v = Math.abs(line3d[y * G3 + x]);
+      if (v > gridPeak3) gridPeak3 = v;
+      if ((x < 16 || x >= G3 - 16 || y < 16 || y >= G3 - 16) && v > gridEdge3) gridEdge3 = v;
+    }
+  }
+  const edgeRatio3 = gridPeak3 > 0 ? gridEdge3 / gridPeak3 : 0;
 
   // The centre transect: cross = 0 sits between rows 127/128, so average them.
   const centreLine = new Array<number>(G3);
@@ -402,23 +429,32 @@ if (args.includes("--3d")) {
     centreLine[i] = 0.5 * (clippedGrid[127 * G3 + i] + clippedGrid[128 * G3 + i]);
     centreField[i] = 0.5 * (sat3.w[level3d][127 * G3 + i] + sat3.w[level3d][128 * G3 + i]);
   }
-  const raw2 = solveLinearWave({ terrainM: centreLine, dxM: DX3, column: gridColumn });
-  if (!raw2) throw new Error("2-D centre-line solve failed");
-  const sat2 = saturateWave(raw2, gridColumn, gridDivider.froude);
-  const level2d = nearestLevel(raw2.zM, 3048);
+  const padded2 = solveLinearWavePadded({
+    terrainM: centreLine,
+    dxM: DX3,
+    column: gridColumn,
+    ...(DAMPING_OVERRIDE === undefined ? {} : { damping: DAMPING_OVERRIDE }),
+  });
+  if (!padded2) throw new Error("2-D centre-line solve failed");
+  const central2: SolveResult = {
+    zM: padded2.zM,
+    w: padded2.w.map((line) => line.slice(padded2.offset, padded2.offset + G3)),
+  };
+  const sat2 = saturateWave(central2, gridColumn, gridDivider.froude);
+  const level2d = nearestLevel(central2.zM, 3048);
 
   console.log(
     `grid: mean ${gridMean.toFixed(0)} m, crest ${gridCrest.toFixed(0)} m, z_d ${gridDivider.zD.toFixed(0)} m ` +
-      `(${(gridDivider.zD * FT_PER_M).toFixed(0)} ft), Fr ${gridDivider.froude.toFixed(2)}, ${gridColumn.layers.length} layers`,
+      `(${(gridDivider.zD * FT_PER_M).toFixed(0)} ft), Fr ${gridDivider.froude.toFixed(2)}, ${gridColumn.layers.length} layers, α ${DAMPING_OVERRIDE ?? "default"}`,
   );
   console.log(
     `2-D centre line: λ@10k ${dominantWavelengthKm(sat2.w[level2d], DX3)?.toFixed(2)} km, ` +
-      `peak |w|@10k ${maxAbs(sat2.w[level2d]).toFixed(2)} m/s, upwind edge ${(100 * upwindEdgeRatio(sat2.w[level2d])).toFixed(1)}%`,
+      `peak |w|@10k ${maxAbs(sat2.w[level2d]).toFixed(2)} m/s, true edge ${(100 * paddedEdgeRatio(padded2.w[level2d])).toFixed(1)}% (pad ${padded2.padLength})`,
   );
   console.log(
     `3-D centre row:  λ@10k ${dominantWavelengthKm(centreField, DX3)?.toFixed(2)} km, ` +
       `peak |w|@10k ${maxAbs(centreField).toFixed(2)} m/s at ${raw3.zM[level3d].toFixed(0)} m; ` +
-      `2-D same level ${maxAbs(sat2.w[level2d]).toFixed(2)} m/s`,
+      `2-D same level ${maxAbs(sat2.w[level2d]).toFixed(2)} m/s; true edge ${(100 * edgeRatio3).toFixed(1)}% (256²)`,
   );
   console.log(`timing: tiles ${tileMs.toFixed(0)} ms, 3-D solve ${solveMs.toFixed(0)} ms (${G3}² × ${gridColumn.layers.length} layers)`);
 }
