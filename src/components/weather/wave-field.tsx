@@ -1,5 +1,5 @@
 // Shared pieces of the wave-field views: the vertical-velocity handling and the colour
-// ramp both the cross-section and the map read from.
+// ramp the cross-section, the map and the map's canvas all read from.
 
 /**
  * Open-Meteo serves HRRR's vertical velocity at pressure levels already in m/s
@@ -11,19 +11,28 @@ export function wMs(value: number | null | undefined): number | null {
 }
 
 /**
- * The divergent ramp both wave-field views share. Thresholds sit in the range the
+ * The divergent ramp every wave-field view shares. Thresholds sit in the range the
  * HRRR pressure-level field actually reaches over the Presidentials — peaks of a few
- * tenths of a m/s, not metres — so the banding keeps its contrast.
+ * tenths of a m/s, not metres — so the banding keeps its contrast. `rgb` mirrors the
+ * Tailwind classes for the canvas pass.
  */
+const WAVE_BANDS: { min: number; className: string; rgb: [number, number, number] }[] = [
+  { min: 0.5, className: "fill-red-600/85", rgb: [220, 38, 38] },
+  { min: 0.3, className: "fill-orange-500/85", rgb: [249, 115, 22] },
+  { min: 0.15, className: "fill-amber-400/85", rgb: [251, 191, 36] },
+  { min: 0.05, className: "fill-amber-200/85", rgb: [253, 230, 138] },
+  { min: -0.05, className: "fill-slate-200/70", rgb: [226, 232, 240] },
+  { min: -0.15, className: "fill-sky-200/85", rgb: [186, 230, 253] },
+  { min: -0.3, className: "fill-sky-300/85", rgb: [125, 211, 252] },
+  { min: -Infinity, className: "fill-sky-500/85", rgb: [14, 165, 233] },
+];
+
 export function cellFill(w: number): string {
-  if (w >= 0.5) return "fill-red-600/85";
-  if (w >= 0.3) return "fill-orange-500/85";
-  if (w >= 0.15) return "fill-amber-400/85";
-  if (w >= 0.05) return "fill-amber-200/85";
-  if (w >= -0.05) return "fill-slate-200/70";
-  if (w >= -0.15) return "fill-sky-200/85";
-  if (w >= -0.3) return "fill-sky-300/85";
-  return "fill-sky-500/85";
+  return WAVE_BANDS.find((band) => w >= band.min)?.className ?? "fill-sky-500/85";
+}
+
+export function cellRgb(w: number): [number, number, number] {
+  return WAVE_BANDS.find((band) => w >= band.min)?.rgb ?? [14, 165, 233];
 }
 
 export const WAVE_LEGEND: { className: string; label: string }[] = [

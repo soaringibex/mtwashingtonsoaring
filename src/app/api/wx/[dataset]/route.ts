@@ -1,10 +1,11 @@
 // Every Wx Brief datum, proxied and cached.
 //
-// Open-Meteo's free tier counts each requested location against a per-IP, per-minute
-// budget, so fetching from every visitor's browser spent ~400 of their own budget per
-// cold page load. Here the upstream API is fetched once per dataset per refresh window
-// (the Data Cache) and the response is cached at the edge on top of that, so users only
-// ever talk to us.
+// Open-Meteo's free tier counts each requested location against shared per-IP budgets
+// (600/minute, 5,000/hour, 10,000/day — fine for a non-commercial club site, and a cold
+// page now fits in one minute's budget), so fetching from every visitor's browser spent
+// ~400 of their own budget per load. Here the upstream API is fetched once per dataset
+// per refresh window (the Data Cache) and the response is cached at the edge on top of
+// that, so users only ever talk to us.
 
 import { buildUpstreamRequest } from "@/lib/wx-datasets";
 
@@ -44,6 +45,10 @@ export async function GET(
           : [],
       );
       return Response.json({ elevation }, { headers });
+    }
+    if (upstream.locationsMerge) {
+      const locations = payloads.flatMap((payload) => (Array.isArray(payload) ? payload : [payload]));
+      return Response.json(locations, { headers });
     }
     return Response.json(payloads[0], { headers });
   } catch (error) {

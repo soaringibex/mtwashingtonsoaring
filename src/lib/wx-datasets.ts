@@ -28,18 +28,25 @@ export const MODEL_DISTANCES = Array.from(
 );
 export const CROSS_LEVELS = [950, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 150];
 
-/** The map's 10 x 10 model grid over Gorham and the Presidential Range. */
-export const MAP_ROWS = 10;
-export const MAP_COLS = 10;
+/**
+ * The map's model grid — 19 x 13 (~2.7 km east-west, ~3.9 km north-south) over Gorham,
+ * the Presidential Range, Bartlett and the LOA circle's reach. Sized so a fully cold
+ * page stays inside Open-Meteo's ~600 locations-per-minute budget (~540 all told).
+ */
+export const MAP_COLS = 19;
+export const MAP_ROWS = 13;
 export const MAP_LAT_MIN = 44.06;
-export const MAP_LAT_STEP = 0.04;
+export const MAP_LAT_SPAN = 0.42;
 export const MAP_LON_MIN = -71.55;
-export const MAP_LON_STEP = 0.0671;
+export const MAP_LON_SPAN = 0.604;
 export const MAP_GRID = (() => {
   const points: { lat: number; lon: number }[] = [];
   for (let row = 0; row < MAP_ROWS; row += 1) {
     for (let col = 0; col < MAP_COLS; col += 1) {
-      points.push({ lat: MAP_LAT_MIN + row * MAP_LAT_STEP, lon: MAP_LON_MIN + col * MAP_LON_STEP });
+      points.push({
+        lat: MAP_LAT_MIN + (row * MAP_LAT_SPAN) / (MAP_ROWS - 1),
+        lon: MAP_LON_MIN + (col * MAP_LON_SPAN) / (MAP_COLS - 1),
+      });
     }
   }
   return points;
@@ -131,6 +138,19 @@ export type UpstreamRequest = {
   revalidate: number;
   /** Elevation responses merge into one `{ elevation }` payload. */
   elevationMerge?: boolean;
+  /** Chunked location responses merge into one array of locations. */
+  locationsMerge?: boolean;
+};
+
+/** Keep upstream URLs under the 8 KB limit — roughly 200 locations of overhead. */
+const LOCATION_CHUNK = 200;
+
+const locationChunks = (points: { lat: number; lon: number }[]) => {
+  const chunks: { lat: number; lon: number }[][] = [];
+  for (let start = 0; start < points.length; start += LOCATION_CHUNK) {
+    chunks.push(points.slice(start, start + LOCATION_CHUNK));
+  }
+  return chunks;
 };
 
 const bucketParam = (params: URLSearchParams): number | null => {
@@ -140,10 +160,7 @@ const bucketParam = (params: URLSearchParams): number | null => {
 };
 
 /** The upstream request for a dataset, or null when the parameters are not in the whitelist. */
-export function buildUpstreamRequest(
-  dataset: string,
-  params: URLSearchParams,
-): UpstreamRequest | null {
+export function buildUpstreamRequest(dataset: string, params: URLSearchParams): UpstreamRequest | null {
   switch (dataset) {
     case "column":
       return {
@@ -153,7 +170,7 @@ export function buildUpstreamRequest(
             `&models=ncep_hrrr_conus&wind_speed_unit=ms&temperature_unit=celsius` +
             `&timezone=America%2FNew_York&forecast_days=2`,
         ],
-        revalidate: 600,
+        revalidate: 900,
       };
 
     case "wave-forecast": {
@@ -167,7 +184,7 @@ export function buildUpstreamRequest(
             `&models=${models}&wind_speed_unit=kn&temperature_unit=celsius` +
             `&timezone=America%2FNew_York&forecast_days=2`,
         ],
-        revalidate: 600,
+        revalidate: 900,
       };
     }
 
@@ -182,18 +199,20 @@ export function buildUpstreamRequest(
             `&models=ncep_hrrr_conus&temperature_unit=celsius` +
             `&timezone=America%2FNew_York&forecast_days=2`,
         ],
-        revalidate: 600,
+        revalidate: 900,
       };
     }
 
     case "map-field":
       return {
-        urls: [
-          `${FORECAST}?${coordsOf(MAP_GRID)}` +
+        urls: locationChunks(MAP_GRID).map(
+          (chunk) =>
+            `${FORECAST}?${coordsOf(chunk)}` +
             `&hourly=${levelVars(MAP_LEVELS.map((entry) => entry.hPa), ["vertical_velocity"])}` +
             `&models=ncep_hrrr_conus&timezone=America%2FNew_York&forecast_days=2`,
-        ],
-        revalidate: 600,
+        ),
+        revalidate: 900,
+        locationsMerge: true,
       };
 
     case "terrain-line": {
@@ -214,7 +233,7 @@ export function buildUpstreamRequest(
             `&models=${FORECAST_MODELS}&wind_speed_unit=kn&temperature_unit=fahrenheit` +
             `&timezone=America%2FNew_York&forecast_days=2`,
         ],
-        revalidate: 600,
+        revalidate: 900,
       };
 
     case "summit-hourly":
@@ -225,7 +244,7 @@ export function buildUpstreamRequest(
             `&models=${FORECAST_MODELS}&wind_speed_unit=kn&temperature_unit=fahrenheit` +
             `&timezone=America%2FNew_York&forecast_days=2&elevation=1916`,
         ],
-        revalidate: 600,
+        revalidate: 900,
       };
 
     case "summit-current":

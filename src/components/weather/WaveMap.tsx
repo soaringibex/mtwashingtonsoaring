@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 import { flyingChips, localStampFrom } from "@/lib/wx-window";
-import { cellFill, wMs, WaveLegend } from "@/components/weather/wave-field";
+import { cellRgb, wMs, WaveLegend } from "@/components/weather/wave-field";
 import { buildWaveColumn, solveLinearWave } from "@/lib/linear-wave";
 import {
   columnLevelsAt,
@@ -15,6 +15,7 @@ import {
   type WaveColumnRaw,
 } from "@/lib/wave-column";
 import {
+  AREA_RADIUS_NM,
   FINE_COLS,
   FINE_LAT_MIN,
   FINE_LAT_SPAN,
@@ -22,26 +23,103 @@ import {
   FINE_LON_SPAN,
   FINE_POINTS,
   FINE_ROWS,
-  MAP_COLS as COLS,
-  MAP_GRID as GRID,
-  MAP_LAT_MIN as LAT_MIN,
-  MAP_LAT_STEP as LAT_STEP,
+  GLIDER_AREA,
+  KM_PER_NM,
+  MAP_COLS,
+  MAP_GRID,
+  MAP_LAT_MIN,
+  MAP_LAT_SPAN,
   MAP_LEVELS as LEVELS,
-  MAP_LON_MIN as LON_MIN,
-  MAP_LON_STEP as LON_STEP,
-  MAP_ROWS as ROWS,
+  MAP_LON_MIN,
+  MAP_LON_SPAN,
+  MAP_ROWS,
   alongTransect,
   wxApiPath,
 } from "@/lib/wx-datasets";
+import { contourSegments, fetchTerrainMosaic, mosaicElevation, type TerrainMosaic } from "@/lib/terrain-tiles";
 
 const REFRESH_MS = 45 * 60 * 1000;
 
-/** Each cell is solved from a 1.6 km terrain profile through its centre. */
+/** The world (canvas) size — the map's true projected aspect, ~40 m per pixel. */
+const W = 1200;
+const METRES_PER_DEG_LAT = 110900;
+const METRES_PER_DEG_LON = 111320 * Math.cos((44.26 * Math.PI) / 180);
+const H = Math.round((W * MAP_LAT_SPAN * METRES_PER_DEG_LAT) / (MAP_LON_SPAN * METRES_PER_DEG_LON));
+
+/** The tiles cover a touch beyond the map so the relief runs to every edge. */
+const TERRAIN_BOUNDS = {
+  west: MAP_LON_MIN - 0.02,
+  south: MAP_LAT_MIN - 0.02,
+  east: MAP_LON_MIN + MAP_LON_SPAN + 0.02,
+  north: MAP_LAT_MIN + MAP_LAT_SPAN + 0.02,
+};
+
+/** Every second model node is solved — the linear field is smooth at that scale. */
+const SOLVE_STEP = 2;
+const SOLVE_COLS = Math.floor((MAP_COLS - 1) / SOLVE_STEP) + 1;
+const SOLVE_ROWS = Math.floor((MAP_ROWS - 1) / SOLVE_STEP) + 1;
+const SOLVE_NODES = MAP_GRID.filter(
+  (_, i) => Math.floor(i / MAP_COLS) % SOLVE_STEP === 0 && (i % MAP_COLS) % SOLVE_STEP === 0,
+);
+
 const SOLVE_DX_M = 1600;
 const PROFILE_DISTANCES = Array.from({ length: 49 }, (_, i) => (i - 24) * 1.6);
 const PROFILE_CENTER = 24;
 
 const TERRAIN_CACHE_KEY = "mws-wave-terrain-grid-v1";
+
+const PLACES = [
+  { name: "Gorham · 2G8", lat: 44.393, lon: -71.196, primary: true },
+  { name: "Mt Washington", lat: 44.2705, lon: -71.3032, primary: true },
+  { name: "Pinkham Notch", lat: 44.257, lon: -71.253, primary: false },
+  { name: "Bretton Woods", lat: 44.258, lon: -71.441, primary: false },
+  { name: "Crawford Notch", lat: 44.215, lon: -71.415, primary: false },
+  { name: "Bartlett", lat: 44.078, lon: -71.283, primary: false },
+];
+
+/** Contours every 1,000 ft from 1,000 to 6,000 ft. */
+const CONTOURS = [305, 610, 914, 1219, 1524, 1829].map((levelM) => ({ levelM }));
+
+const WAVE_ALPHA = 0.36;
+
+/** Light from the northwest (map convention), 45° altitude. */
+const LIGHT = { east: -0.5, north: 0.5, up: Math.SQRT1_2 };
+
+const RELIEF_RAMP: [number, [number, number, number]][] = [
+  [150, [52, 76, 60]],
+  [400, [84, 108, 74]],
+  [650, [122, 132, 88]],
+  [900, [160, 148, 108]],
+  [1150, [172, 146, 116]],
+  [1400, [166, 162, 164]],
+  [1650, [210, 210, 212]],
+  [1950, [238, 239, 242]],
+];
+
+function reliefColour(elevationM: number, shade: number): [number, number, number] {
+  const low = RELIEF_RAMP[0];
+  const high = RELIEF_RAMP[RELIEF_RAMP.length - 1];
+  const e = Math.min(Math.max(elevationM, low[0]), high[0]);
+  let lower = low;
+  let upper = high;
+  for (let i = 0; i < RELIEF_RAMP.length - 1; i += 1) {
+    if (e >= RELIEF_RAMP[i][0] && e <= RELIEF_RAMP[i + 1][0]) {
+      lower = RELIEF_RAMP[i];
+      upper = RELIEF_RAMP[i + 1];
+      break;
+    }
+  }
+  const t = (e - lower[0]) / (upper[0] - lower[0] || 1);
+  const factor = Math.min(Math.max(0.45 + 0.75 * shade, 0.3), 1.38);
+  return [
+    Math.round((lower[1][0] + (upper[1][0] - lower[1][0]) * t) * factor),
+    Math.round((lower[1][1] + (upper[1][1] - lower[1][1]) * t) * factor),
+    Math.round((lower[1][2] + (upper[1][2] - lower[1][2]) * t) * factor),
+  ];
+}
+
+const x = (lon: number) => ((lon - MAP_LON_MIN) / MAP_LON_SPAN) * W;
+const y = (lat: number) => H - ((lat - MAP_LAT_MIN) / MAP_LAT_SPAN) * H;
 
 async function fetchTerrainGrid(): Promise<number[]> {
   const cached = readCachedTerrain(TERRAIN_CACHE_KEY, FINE_POINTS.length);
@@ -55,7 +133,7 @@ async function fetchTerrainGrid(): Promise<number[]> {
   return values;
 }
 
-/** Bilinear sample of the fine terrain grid, clamped at its edges. */
+/** Bilinear sample of the solver's fine terrain grid, clamped at its edges. */
 function sampleTerrain(grid: number[], lat: number, lon: number): number {
   const fx = ((lon - FINE_LON_MIN) / FINE_LON_SPAN) * (FINE_COLS - 1);
   const fy = ((lat - FINE_LAT_MIN) / FINE_LAT_SPAN) * (FINE_ROWS - 1);
@@ -70,34 +148,26 @@ function sampleTerrain(grid: number[], lat: number, lon: number): number {
   return v00 * (1 - tx) * (1 - ty) + v10 * tx * (1 - ty) + v01 * (1 - tx) * ty + v11 * tx * ty;
 }
 
-const PLACES = [
-  { name: "Gorham · 2G8", lat: 44.393, lon: -71.196, primary: true },
-  { name: "Mt Washington", lat: 44.2705, lon: -71.3032, primary: true },
-  { name: "Pinkham Notch", lat: 44.257, lon: -71.253, primary: false },
-  { name: "Crawford Notch", lat: 44.215, lon: -71.415, primary: false },
-  { name: "Bartlett", lat: 44.078, lon: -71.283, primary: false },
-];
-
 type MapData = {
   times: string[];
   offsetSeconds: number;
   defaultIndex: number;
-  elevationFt: number[];
   /** hPa → [location][hour] — every level in one fetch, so level switches are free. */
   w: Record<number, (number | null)[][]>;
   chips: { time: string; label: string }[];
 };
 
+const GRID_LENGTH = MAP_ROWS * MAP_COLS;
+
 async function fetchMap(): Promise<MapData> {
   const data = (await fetchJson(wxApiPath("map-field"))) as unknown;
   const locations = (Array.isArray(data) ? data : [data]) as {
-    elevation?: number;
     utc_offset_seconds?: number;
     hourly?: Record<string, (number | null)[]>;
   }[];
   const first = locations[0];
   const times = (first?.hourly?.time ?? []) as unknown as string[];
-  if (locations.length !== GRID.length || times.length === 0) throw new Error("missing wave map");
+  if (locations.length !== GRID_LENGTH || times.length === 0) throw new Error("missing wave map");
   const offsetSeconds = first?.utc_offset_seconds ?? 0;
 
   const now = Date.now();
@@ -114,26 +184,10 @@ async function fetchMap(): Promise<MapData> {
     );
   }
 
-  return {
-    times,
-    offsetSeconds,
-    defaultIndex,
-    elevationFt: locations.map((location) => (location.elevation ?? 0) * 3.28084),
-    w,
-    chips: flyingChips(times),
-  };
+  return { times, offsetSeconds, defaultIndex, w, chips: flyingChips(times) };
 }
 
-function terrainFill(elevationFt: number): string {
-  if (elevationFt >= 5000) return "fill-slate-600";
-  if (elevationFt >= 4000) return "fill-slate-500";
-  if (elevationFt >= 3000) return "fill-slate-400";
-  if (elevationFt >= 2000) return "fill-slate-300";
-  if (elevationFt >= 1200) return "fill-slate-200";
-  return "fill-slate-100";
-}
-
-/** Where the lift bands sit on the ground — vertical velocity over the Gorham country. */
+/** Where the lift bands sit on the ground — the wave field over shaded relief. */
 export function WaveMap({
   selectedTime,
   onSelectTime,
@@ -148,6 +202,9 @@ export function WaveMap({
   const [terrainGrid, setTerrainGrid] = useState<number[] | null>(null);
   const [column, setColumn] = useState<WaveColumnRaw | null>(null);
   const [linearError, setLinearError] = useState(false);
+  const [mosaic, setMosaic] = useState<TerrainMosaic | null>(null);
+  const [mosaicError, setMosaicError] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const definition = LEVELS.find((entry) => entry.hPa === level) ?? LEVELS[2];
 
@@ -196,8 +253,25 @@ export function WaveMap({
     };
   }, []);
 
-  // Solve every cell's wind-line transect once per hour (the level pick is free after
-  // that). Pure math, so it rides a memo rather than an effect.
+  useEffect(() => {
+    let cancelled = false;
+    fetchTerrainMosaic(TERRAIN_BOUNDS)
+      .then((next) => {
+        if (!cancelled) {
+          setMosaic(next);
+          setMosaicError(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setMosaicError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Solve every second node's wind-line transect once per hour (the level pick is free
+  // after that). Pure math, so it rides a memo rather than an effect.
   const solvedField = useMemo(() => {
     if (!terrainGrid || !column) return null;
     const hour = waveColumnHour(column, selectedTime);
@@ -207,7 +281,7 @@ export function WaveMap({
     if (!waveColumn) return null;
     const center: number[][] = [];
     let zM: number[] = [];
-    for (const cell of GRID) {
+    for (const cell of SOLVE_NODES) {
       const terrain = PROFILE_DISTANCES.map((d) => {
         const point = alongTransect(cell, transectAzimuth, d);
         return sampleTerrain(terrainGrid, point.lat, point.lon);
@@ -229,22 +303,155 @@ export function WaveMap({
     if (found >= 0) index = found;
   }
 
-  // The level pick reads straight from the fetched field — no per-level refetch, so
-  // there is no stale state to dim.
+  const hourIndex = column ? waveColumnHour(column, selectedTime) : 0;
+  const levels = column ? columnLevelsAt(column.hourly, hourIndex) : [];
+  const windFrom = waveAzimuth(levels);
 
-  // The linear view's per-cell values at the selected level — a free pick once the
-  // hour's cells have been solved.
-  let nodeValues: number[] | null = null;
-  if (solvedField) {
-    const targetM = definition.ft / 3.28084;
-    let levelIndex = 0;
-    for (let i = 1; i < solvedField.zM.length; i += 1) {
-      if (Math.abs(solvedField.zM[i] - targetM) < Math.abs(solvedField.zM[levelIndex] - targetM)) {
-        levelIndex = i;
+  // The overlay values on the full model grid, whatever the mode.
+  const nodeValues = useMemo<(number | null)[] | null>(() => {
+    if (mode === "linear") {
+      if (!solvedField) return null;
+      const targetM = definition.ft / 3.28084;
+      let levelIndex = 0;
+      for (let i = 1; i < solvedField.zM.length; i += 1) {
+        if (Math.abs(solvedField.zM[i] - targetM) < Math.abs(solvedField.zM[levelIndex] - targetM)) {
+          levelIndex = i;
+        }
+      }
+      // Upsample the solve grid (every second node) bilinearly to the full grid.
+      const values: number[] = [];
+      for (let row = 0; row < MAP_ROWS; row += 1) {
+        const sy = Math.min(row / SOLVE_STEP, SOLVE_ROWS - 1.001);
+        const y0 = Math.floor(sy);
+        const ty = sy - y0;
+        for (let col = 0; col < MAP_COLS; col += 1) {
+          const sx = Math.min(col / SOLVE_STEP, SOLVE_COLS - 1.001);
+          const x0 = Math.floor(sx);
+          const tx = sx - x0;
+          const v00 = solvedField.center[y0 * SOLVE_COLS + x0][levelIndex];
+          const v10 = solvedField.center[y0 * SOLVE_COLS + x0 + 1][levelIndex];
+          const v01 = solvedField.center[(y0 + 1) * SOLVE_COLS + x0][levelIndex];
+          const v11 = solvedField.center[(y0 + 1) * SOLVE_COLS + x0 + 1][levelIndex];
+          values.push(
+            v00 * (1 - tx) * (1 - ty) + v10 * tx * (1 - ty) + v01 * (1 - tx) * ty + v11 * tx * ty,
+          );
+        }
+      }
+      return values;
+    }
+    const series = data?.w[level];
+    if (!series) return null;
+    return series.map((values) => wMs(values[index]));
+  }, [mode, solvedField, definition.ft, data, level, index]);
+
+  // Contour lines never move — derive them once per mosaic.
+  const contours = useMemo(
+    () =>
+      mosaic
+        ? CONTOURS.map(({ levelM }) => ({ levelM, segments: contourSegments(mosaic, levelM, 5) }))
+        : [],
+    [mosaic],
+  );
+
+  // Paint the relief (with the wave field blended in) and the contours.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !mosaic) return;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    const { lonStep, latStep, west, north } = mosaic;
+    const mx0 = (MAP_LON_MIN - west) / lonStep;
+    const mxStep = MAP_LON_SPAN / (W - 1) / lonStep;
+    const my0 = (north - (MAP_LAT_MIN + MAP_LAT_SPAN)) / latStep;
+    const myStep = MAP_LAT_SPAN / (H - 1) / latStep;
+    const dxM = lonStep * METRES_PER_DEG_LON;
+    const dyM = latStep * METRES_PER_DEG_LAT;
+
+    // First pass: elevation at every canvas pixel.
+    const terrain = new Float32Array(W * H);
+    for (let py = 0; py < H; py += 1) {
+      const my = my0 + py * myStep;
+      const row = py * W;
+      for (let px = 0; px < W; px += 1) {
+        terrain[row + px] = mosaicElevation(mosaic, mx0 + px * mxStep, my);
       }
     }
-    nodeValues = solvedField.center.map((levels) => levels[levelIndex]);
-  }
+
+    // Second pass: relief colour + hillshade + the wave field.
+    const image = context.createImageData(W, H);
+    const pixels = image.data;
+    for (let py = 0; py < H; py += 1) {
+      const row = py * W;
+      const fy = Math.min(Math.max((py / (H - 1)) * (MAP_ROWS - 1), 0), MAP_ROWS - 1.001);
+      const ny = Math.floor(fy);
+      const ty = fy - ny;
+      for (let px = 0; px < W; px += 1) {
+        const i = row + px;
+        const e = terrain[i];
+        const left = terrain[i - (px > 0 ? 1 : 0)];
+        const right = terrain[i + (px < W - 1 ? 1 : 0)];
+        const up = terrain[i - (py > 0 ? W : 0)];
+        const down = terrain[i + (py < H - 1 ? W : 0)];
+        const dzdx = (right - left) / (2 * dxM);
+        const dzdy = (down - up) / (2 * dyM);
+        const norm = Math.sqrt(dzdx * dzdx + dzdy * dzdy + 1);
+        const shade = (-dzdx * LIGHT.east - dzdy * LIGHT.north + LIGHT.up) / norm;
+        let [r, g, b] = reliefColour(e, shade);
+
+        if (nodeValues) {
+          const fx = Math.min(Math.max((px / (W - 1)) * (MAP_COLS - 1), 0), MAP_COLS - 1.001);
+          const nx = Math.floor(fx);
+          const tx = fx - nx;
+          const v00 = nodeValues[ny * MAP_COLS + nx];
+          const v10 = nodeValues[ny * MAP_COLS + nx + 1];
+          const v01 = nodeValues[(ny + 1) * MAP_COLS + nx];
+          const v11 = nodeValues[(ny + 1) * MAP_COLS + nx + 1];
+          if (v00 !== null && v10 !== null && v01 !== null && v11 !== null) {
+            const w = v00 * (1 - tx) * (1 - ty) + v10 * tx * (1 - ty) + v01 * (1 - tx) * ty + v11 * tx * ty;
+            const [wr, wg, wb] = cellRgb(w);
+            r = Math.round(r * (1 - WAVE_ALPHA) + wr * WAVE_ALPHA);
+            g = Math.round(g * (1 - WAVE_ALPHA) + wg * WAVE_ALPHA);
+            b = Math.round(b * (1 - WAVE_ALPHA) + wb * WAVE_ALPHA);
+          }
+        }
+
+        const o = i * 4;
+        pixels[o] = r;
+        pixels[o + 1] = g;
+        pixels[o + 2] = b;
+        pixels[o + 3] = 255;
+      }
+    }
+    context.putImageData(image, 0, 0);
+
+    // Contours over the relief.
+    context.strokeStyle = "rgba(30, 41, 59, 0.42)";
+    context.lineWidth = 1;
+    for (const { segments } of contours) {
+      context.beginPath();
+      for (const segment of segments) {
+        context.moveTo((segment.x1 - mx0) / mxStep, (segment.y1 - my0) / myStep);
+        context.lineTo((segment.x2 - mx0) / mxStep, (segment.y2 - my0) / myStep);
+      }
+      context.stroke();
+    }
+  }, [mosaic, nodeValues, contours]);
+
+  // The LOA circle and this hour's cross-section line.
+  const centre = { x: x(GLIDER_AREA.lon), y: y(GLIDER_AREA.lat) };
+  const radiusMap = ((AREA_RADIUS_NM * KM_PER_NM * 1000) / METRES_PER_DEG_LON / MAP_LON_SPAN) * W;
+  const windward = alongTransect(GLIDER_AREA, windFrom, AREA_RADIUS_NM * KM_PER_NM);
+  const leeward = alongTransect(GLIDER_AREA, windFrom + 180, AREA_RADIUS_NM * KM_PER_NM);
+  const windwardPoint = { x: x(windward.lon), y: y(windward.lat) };
+  const leewardPoint = { x: x(leeward.lon), y: y(leeward.lat) };
+  const span = Math.hypot(leewardPoint.x - windwardPoint.x, leewardPoint.y - windwardPoint.y) || 1;
+  const direction = {
+    x: (leewardPoint.x - windwardPoint.x) / span,
+    y: (leewardPoint.y - windwardPoint.y) / span,
+  };
+
+  const ready = mosaic !== null && (mode === "linear" ? nodeValues !== null : data !== null);
 
   return (
     <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
@@ -329,110 +536,142 @@ export function WaveMap({
         <p className="text-[11px] text-slate-400">the level to scan for the wave</p>
       </div>
 
-      {data && (mode === "model" || nodeValues) ? (
+      {ready ? (
         <>
-          <svg
-            viewBox={`0 0 1000 ${(1000 * (LAT_STEP * (ROWS - 1))) / (LON_STEP * (COLS - 1) * Math.cos((44.25 * Math.PI) / 180))}`}
-            className="mt-4 w-full rounded-2xl ring-1 ring-slate-900/10"
+          <div
+            className="relative mt-4 overflow-hidden rounded-2xl ring-1 ring-slate-900/10"
             role="img"
-            aria-label={
-              mode === "linear"
-                ? `Linear-theory vertical velocity map at ${definition.ft.toLocaleString("en-US")} feet`
-                : `Vertical velocity map at ${definition.ft.toLocaleString("en-US")} feet`
-            }
+            aria-label={`Wave field over shaded relief at ${definition.ft.toLocaleString("en-US")} feet, with the LOA's 10 NM Glider Area circle and the cross-section line`}
           >
-            {(() => {
-              const W = 1000;
-              const H = (W * (LAT_STEP * (ROWS - 1))) / (LON_STEP * (COLS - 1) * Math.cos((44.25 * Math.PI) / 180));
-              const cellW = W / (COLS - 1);
-              const cellH = H / (ROWS - 1);
-              const x = (col: number) => col * cellW;
-              const y = (row: number) => H - (row + 1) * cellH;
-
-              const cells: React.ReactNode[] = [];
-              for (let row = 0; row < ROWS - 1; row += 1) {
-                for (let col = 0; col < COLS - 1; col += 1) {
-                  const corners = [
-                    row * COLS + col,
-                    row * COLS + col + 1,
-                    (row + 1) * COLS + col,
-                    (row + 1) * COLS + col + 1,
-                  ];
-                  const elevation =
-                    corners.reduce((sum, i) => sum + data.elevationFt[i], 0) / corners.length;
-                  cells.push(
-                    <rect
-                      key={`t-${row}-${col}`}
-                      x={x(col)}
-                      y={y(row)}
-                      width={cellW + 0.5}
-                      height={cellH + 0.5}
-                      className={terrainFill(elevation)}
-                    />,
-                  );
-                }
-              }
-              const overlay: React.ReactNode[] = [];
-              const linear = mode === "linear" ? nodeValues : null;
-              for (let row = 0; row < ROWS - 1; row += 1) {
-                for (let col = 0; col < COLS - 1; col += 1) {
-                  const corners = [
-                    row * COLS + col,
-                    row * COLS + col + 1,
-                    (row + 1) * COLS + col,
-                    (row + 1) * COLS + col + 1,
-                  ];
-                  const values = linear
-                    ? corners.map((i) => linear[i])
-                    : corners
-                        .map((i) => data.w[level]?.[i]?.[index] ?? null)
-                        .filter((value): value is number => value !== null);
-                  if (values.length === 0) continue;
-                  const w = values.reduce((sum, value) => sum + value, 0) / values.length;
-                  overlay.push(
-                    <rect
-                      key={`w-${row}-${col}`}
-                      x={x(col)}
-                      y={y(row)}
-                      width={cellW + 0.5}
-                      height={cellH + 0.5}
-                      className={cellFill(w)}
-                    />,
-                  );
-                }
-              }
-
-              return (
-                <>
-                  {cells}
-                  {overlay}
-                  {PLACES.map((place) => {
-                    const px = ((place.lon - LON_MIN) / (LON_STEP * (COLS - 1))) * W;
-                    const py =
-                      H - ((place.lat - LAT_MIN) / (LAT_STEP * (ROWS - 1))) * H;
-                    return (
-                      <g key={place.name}>
-                        <circle
-                          cx={px}
-                          cy={py}
-                          r={place.primary ? 4 : 3}
-                          className={place.primary ? "fill-slate-900" : "fill-slate-600"}
-                        />
-                        <text
-                          x={px + 8}
-                          y={py + 3.5}
-                          className={`text-[13px] ${place.primary ? "fill-slate-900 font-semibold" : "fill-slate-600"}`}
-                          style={{ paintOrder: "stroke", stroke: "#ffffff", strokeWidth: 3 }}
-                        >
-                          {place.name}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </>
-              );
-            })()}
-          </svg>
+            <canvas ref={canvasRef} width={W} height={H} className="block h-auto w-full" />
+            <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" aria-hidden="true">
+              <circle
+                cx={centre.x}
+                cy={centre.y}
+                r={radiusMap}
+                className="fill-sky-500/5 stroke-slate-900/50"
+                strokeDasharray="9 7"
+                strokeWidth={1.4}
+                vectorEffect="non-scaling-stroke"
+              />
+              <line
+                x1={windwardPoint.x}
+                y1={windwardPoint.y}
+                x2={leewardPoint.x}
+                y2={leewardPoint.y}
+                className="stroke-slate-900/80"
+                strokeWidth={2}
+                vectorEffect="non-scaling-stroke"
+              />
+              <circle cx={windwardPoint.x} cy={windwardPoint.y} r={3} className="fill-slate-900" />
+              <circle cx={leewardPoint.x} cy={leewardPoint.y} r={3} className="fill-slate-900" />
+              <path
+                d="M0,0 L-11,-4.5 L-11,4.5 Z"
+                className="fill-slate-900"
+                transform={`translate(${leewardPoint.x + direction.x * 6} ${leewardPoint.y + direction.y * 6}) rotate(${(Math.atan2(direction.y, direction.x) * 180) / Math.PI})`}
+              />
+              {[
+                { point: windwardPoint, label: "upwind" },
+                { point: leewardPoint, label: "downwind" },
+              ].map(({ point, label }) => {
+                const outward = label === "upwind" ? -1 : 1;
+                return (
+                  <text
+                    key={label}
+                    x={point.x + direction.x * outward * 22}
+                    y={point.y + direction.y * outward * 22 + 4}
+                    textAnchor="middle"
+                    className="fill-slate-700 text-[13px]"
+                    style={{ paintOrder: "stroke", stroke: "#ffffff", strokeWidth: 3 }}
+                  >
+                    {label}
+                  </text>
+                );
+              })}
+              <circle cx={centre.x} cy={centre.y} r={3.5} className="fill-slate-900" />
+              <text
+                x={centre.x + 10}
+                y={centre.y - 8}
+                className="fill-slate-700 text-[13px]"
+                style={{ paintOrder: "stroke", stroke: "#ffffff", strokeWidth: 3 }}
+              >
+                Glider Area centre
+              </text>
+              {PLACES.map((place) => {
+                const px = x(place.lon);
+                const py = y(place.lat);
+                return (
+                  <g key={place.name}>
+                    <circle
+                      cx={px}
+                      cy={py}
+                      r={place.primary ? 4 : 3}
+                      className={place.primary ? "fill-slate-900" : "fill-slate-700"}
+                    />
+                    <text
+                      x={px + 9}
+                      y={py + 3.5}
+                      className={`text-[13px] ${place.primary ? "fill-slate-900 font-semibold" : "fill-slate-700"}`}
+                      style={{ paintOrder: "stroke", stroke: "#ffffff", strokeWidth: 3 }}
+                    >
+                      {place.name}
+                    </text>
+                  </g>
+                );
+              })}
+              <g>
+                <line
+                  x1={26}
+                  y1={H - 26}
+                  x2={26 + radiusMap}
+                  y2={H - 26}
+                  className="stroke-slate-900/70"
+                  strokeWidth={1.5}
+                  vectorEffect="non-scaling-stroke"
+                />
+                {[0, 0.5, 1].map((tick) => (
+                  <line
+                    key={tick}
+                    x1={26 + radiusMap * tick}
+                    y1={H - 31}
+                    x2={26 + radiusMap * tick}
+                    y2={H - 21}
+                    className="stroke-slate-900/70"
+                    strokeWidth={1.5}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                ))}
+                {[
+                  { t: 0, label: "0", anchor: "middle" },
+                  { t: 0.5, label: "5", anchor: "middle" },
+                  { t: 1, label: "10 NM", anchor: "middle" },
+                ].map(({ t, label }) => (
+                  <text
+                    key={label}
+                    x={26 + radiusMap * t}
+                    y={H - 36}
+                    textAnchor="middle"
+                    className="fill-slate-700 text-[13px]"
+                    style={{ paintOrder: "stroke", stroke: "#ffffff", strokeWidth: 3 }}
+                  >
+                    {label}
+                  </text>
+                ))}
+              </g>
+              <g transform={`translate(${W - 36} 36)`}>
+                <path d="M0,-15 L5.5,7 L0,2.5 L-5.5,7 Z" className="fill-slate-900" />
+                <text
+                  x={0}
+                  y={26}
+                  textAnchor="middle"
+                  className="fill-slate-900 text-[13px] font-semibold"
+                  style={{ paintOrder: "stroke", stroke: "#ffffff", strokeWidth: 3 }}
+                >
+                  N
+                </text>
+              </g>
+            </svg>
+          </div>
           <WaveLegend
             caption={
               mode === "linear"
@@ -442,15 +681,17 @@ export function WaveMap({
           />
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
             {mode === "linear"
-              ? `Linear-theory estimate at ${definition.ft.toLocaleString("en-US")} ft — every cell's terrain profile runs along this hour's wind and is solved with the HRRR column. The steady wave shows as crest-to-crest stripes just east of the ridge, the one to tow toward from 2G8.`
-              : `Vertical velocity at ${definition.ft.toLocaleString("en-US")} ft over the Gorham country. The westerly flow makes the lift band just east of the ridge crest the one to tow toward from 2G8.`}{" "}
-            Warm bands are lift, blue is sink. Pick any hour above; the wave panel shares the
-            selection.
+              ? `Linear-theory estimate at ${definition.ft.toLocaleString("en-US")} ft — every second node's terrain profile runs along this hour's wind and is solved with the HRRR column. `
+              : `Vertical velocity at ${definition.ft.toLocaleString("en-US")} ft over the Gorham country. `}
+            The dashed circle is the LOA&apos;s Mount Washington Glider Area — a 10 NM radius around its
+            centre — and the solid line is the cross-section above, this hour&apos;s wind line through
+            that centre. Shaded relief with 1,000 ft contours (terrain: AWS Terrain Tiles). Warm
+            bands are lift, blue is sink; pick any hour above and the whole picture turns with it.
           </p>
         </>
-      ) : error || linearUnavailable ? (
+      ) : error || mosaicError || linearUnavailable ? (
         <p className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600 ring-1 ring-slate-900/5">
-          {mode === "linear" && linearUnavailable && !error
+          {mode === "linear" && linearUnavailable && !error && !mosaicError
             ? "The linear wave solve is unavailable right now. "
             : "The wave map is unavailable right now. "}
           <a
