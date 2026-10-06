@@ -70,18 +70,31 @@ export type WaveTop = {
   ceilingFt: number | null;
   /** Top of that cloud layer, ft. */
   cloudTopFt: number | null;
+  /** Where l² falls below the terrain wavenumber — the resonant wave's cap, ft. */
+  reflectionFt: number | null;
 };
 
 const RIDGE_FT = 6288;
 const FT_PER_M = 3.28084;
+/**
+ * Terrain wavenumber squared for the Presidential Range: k = 2π/λ with a cross-ridge
+ * scale of about 11 km. Below l² = k² the shorter wave components turn evanescent and
+ * reflect — the level pilots read as the Scorer "bend".
+ */
+const TERRAIN_K2 = (2 * Math.PI) ** 2 / (11000 * 11000);
 
 /**
  * The estimated top of the usable wave: the highest level the wave still reaches —
  * the flow keeps crossing the ridge (≥ 5 kt eastward) and stays stable layer by layer,
  * capped at the estimated tropopause — then pulled down to the base of the lowest
- * significant cloud layer when that ceiling sits below.
+ * significant cloud layer when that ceiling sits below. Separately reports the
+ * reflection level, where l² falls below the terrain wavenumber: the resonant wave
+ * caps there, though longer wavelengths keep propagating above it.
  */
-export function estimateWaveTop(levels: WaveLevel[]): WaveTop | null {
+export function estimateWaveTop(
+  levels: WaveLevel[],
+  scorerLevels?: { hPa: number; altM: number; scorer: number | null }[],
+): WaveTop | null {
   const sorted = [...levels].sort((a, b) => b.hPa - a.hPa); // ground first
   if (sorted.length < 4) return null;
 
@@ -139,11 +152,28 @@ export function estimateWaveTop(levels: WaveLevel[]): WaveTop | null {
   const cloudTopFt = cloudTopM === null ? null : Math.round((cloudTopM * FT_PER_M) / 100) * 100;
   const limiting = ceilingFt !== null && ceilingFt < physicalTopFt;
 
+  // The reflection level: the first level above the ridge whose l² sits below the
+  // terrain wavenumber — the resonant component's cap.
+  let reflectionM: number | null = null;
+  if (scorerLevels) {
+    const ascending = [...scorerLevels].sort((a, b) => a.altM - b.altM);
+    for (const level of ascending) {
+      if (level.altM <= ridgeM) continue;
+      if (level.scorer === null) continue;
+      if (level.scorer < TERRAIN_K2) {
+        reflectionM = level.altM;
+        break;
+      }
+    }
+  }
+  const reflectionFt = reflectionM === null ? null : Math.round((reflectionM * FT_PER_M) / 100) * 100;
+
   return {
     topFt: limiting ? ceilingFt : physicalTopFt,
     physicalTopFt,
     ceilingFt: limiting ? ceilingFt : null,
     cloudTopFt: limiting ? cloudTopFt : null,
+    reflectionFt,
   };
 }
 

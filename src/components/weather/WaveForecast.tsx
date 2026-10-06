@@ -122,8 +122,9 @@ async function fetchWaveDayFrom(
     if (!complete) continue;
 
     const score = computeWaveScore(levels);
-    const waveTop = estimateWaveTop(levels);
-    if (!score || !waveTop) continue;
+    if (!score) continue;
+    const waveTop = estimateWaveTop(levels, score.scorerLevels);
+    if (!waveTop) continue;
     hours.push({ time, hour, label: hourLabel(hour), waveTop, ...score });
   }
   if (hours.length === 0) throw new Error("empty wave window");
@@ -346,6 +347,21 @@ function WaveTopMeteogram({ hours }: { hours: WaveHour[] }) {
     )
     .join(" ");
 
+  let reflectionPath = "";
+  let penDown = false;
+  hours.forEach((hour, index) => {
+    const value =
+      hour.waveTop.reflectionFt !== null && hour.waveTop.reflectionFt < hour.waveTop.topFt
+        ? hour.waveTop.reflectionFt
+        : null;
+    if (value === null) {
+      penDown = false;
+      return;
+    }
+    reflectionPath += `${penDown ? " L" : " M"} ${x(index).toFixed(1)} ${y(value).toFixed(1)}`;
+    penDown = true;
+  });
+
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
@@ -415,17 +431,46 @@ function WaveTopMeteogram({ hours }: { hours: WaveHour[] }) {
         strokeLinecap="round"
         vectorEffect="non-scaling-stroke"
       />
+      {reflectionPath ? (
+        <path
+          d={reflectionPath}
+          fill="none"
+          className="stroke-sky-400"
+          strokeWidth={1.4}
+          strokeDasharray="4 3"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      ) : null}
 
       {hours.map((hour, index) => (
         <circle key={hour.time} cx={x(index)} cy={y(hour.waveTop.topFt)} r={2.4} className="fill-sky-600">
           <title>
             {hour.label} · top {hour.waveTop.topFt.toLocaleString("en-US")} ft
+            {hour.waveTop.reflectionFt !== null
+              ? ` · resonant cap ${hour.waveTop.reflectionFt.toLocaleString("en-US")} ft`
+              : ""}
             {hour.waveTop.ceilingFt !== null
               ? ` · cloud ceiling ${hour.waveTop.ceilingFt.toLocaleString("en-US")} ft`
               : ""}
           </title>
         </circle>
       ))}
+
+      {hours.map((hour, index) =>
+        hour.waveTop.reflectionFt !== null && hour.waveTop.reflectionFt < hour.waveTop.topFt ? (
+          <circle
+            key={`reflection-${hour.time}`}
+            cx={x(index)}
+            cy={y(hour.waveTop.reflectionFt)}
+            r={2}
+            className="fill-sky-400"
+          >
+            <title>{`${hour.label} · resonant cap ${hour.waveTop.reflectionFt.toLocaleString("en-US")} ft`}</title>
+          </circle>
+        ) : null,
+      )}
 
       {hours.map((hour, index) =>
         index % 2 === 0 ? (
@@ -589,10 +634,15 @@ export function WaveForecast() {
                 Usable wave top · by hour
               </p>
               <p className="text-[11px] text-slate-400">
-                estimated climbing top · cloud layer shaded where it caps the climb
+                solid: climbing envelope · dashed: resonant wave cap · cloud shaded where it caps
               </p>
             </div>
             <WaveTopMeteogram hours={day.hours} />
+            <p className="mt-2 text-[11px] leading-5 text-slate-400">
+              The dashed line is where the Scorer parameter falls below the terrain wavenumber —
+              the resonant wave caps there; longer wavelengths can still carry lift above it, up to
+              the solid envelope.
+            </p>
           </div>
 
           <p className="mt-4 text-[11px] leading-5 text-slate-400">
