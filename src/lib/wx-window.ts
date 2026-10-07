@@ -58,10 +58,19 @@ export function localStampFrom(time: string, offsetSeconds: number): string {
 export function flyingChips(times: string[]): { time: string; label: string }[] {
   const window = flyingWindow(times);
   if (!window) return [];
+  const seen = new Set<number>();
   return times
     .filter((time) => time.startsWith(window.date))
     .map((time) => ({ time, hour: Number(time.slice(11, 13)) }))
     .filter((entry) => inWindow(entry.hour, window))
+    // One chip per clock hour: datasets may carry sub-hourly steps (the WRF
+    // field is 15-minute), and four identical "4 PM" buttons is a bug. The
+    // first occurrence wins, which is the ":00" stamp the field carries.
+    .filter((entry) => {
+      if (seen.has(entry.hour)) return false;
+      seen.add(entry.hour);
+      return true;
+    })
     .map((entry) => ({ time: entry.time, label: hourLabel(entry.hour) }));
 }
 
