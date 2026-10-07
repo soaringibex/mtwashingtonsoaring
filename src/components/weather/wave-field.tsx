@@ -12,7 +12,7 @@ export function wMs(value: number | null | undefined): number | null {
   return typeof value === "number" ? value : null;
 }
 
-export type WaveScale = "linear" | "hrrr";
+export type WaveScale = "linear" | "hrrr" | "wrf";
 
 type Band = { min: number; className: string; rgb: [number, number, number] };
 
@@ -50,7 +50,27 @@ const LINEAR_BANDS: Band[] = [
   { min: -Infinity, className: "fill-indigo-900/85", rgb: [49, 46, 129] },
 ];
 
-const WAVE_BANDS: Record<WaveScale, Band[]> = { hrrr: HRRR_BANDS, linear: LINEAR_BANDS };
+/**
+ * The WRF 1 km field is an explicit simulation: its crest cores reach ±10 m/s
+ * (≈ ±20 kt), so the HRRR ramp pinned the whole cross-section to one saturated
+ * blob. This ramp runs out to 12 kt, so the wave train reads as bands.
+ */
+const WRF_BANDS: Band[] = [
+  { min: 6.1734, className: "fill-purple-900/85", rgb: [88, 28, 135] }, // ≥12 kt
+  { min: 4.1155, className: "fill-rose-700/85", rgb: [190, 18, 60] }, // 8
+  { min: 2.5722, className: "fill-red-600/85", rgb: [220, 38, 38] }, // 5
+  { min: 1.5433, className: "fill-orange-500/85", rgb: [249, 115, 22] }, // 3
+  { min: 0.7717, className: "fill-amber-400/85", rgb: [251, 191, 36] }, // 1.5
+  { min: 0.2572, className: "fill-amber-200/85", rgb: [253, 230, 138] }, // 0.5
+  { min: -0.2572, className: "fill-slate-200/70", rgb: [226, 232, 240] },
+  { min: -0.7717, className: "fill-sky-200/85", rgb: [186, 230, 253] },
+  { min: -1.5433, className: "fill-sky-300/85", rgb: [125, 211, 252] },
+  { min: -2.5722, className: "fill-sky-500/85", rgb: [14, 165, 233] },
+  { min: -4.1155, className: "fill-sky-700/85", rgb: [3, 105, 161] },
+  { min: -Infinity, className: "fill-indigo-900/85", rgb: [49, 46, 129] },
+];
+
+const WAVE_BANDS: Record<WaveScale, Band[]> = { hrrr: HRRR_BANDS, linear: LINEAR_BANDS, wrf: WRF_BANDS };
 
 export function cellFill(w: number, scale: WaveScale = "hrrr"): string {
   const bands = WAVE_BANDS[scale];
@@ -87,11 +107,26 @@ const WAVE_LEGEND: Record<WaveScale, { className: string; label: string }[]> = {
     { className: "bg-rose-700/85", label: "2.5" },
     { className: "bg-purple-900/85", label: "≥4" },
   ],
+  wrf: [
+    { className: "bg-indigo-900/85", label: "≤−12" },
+    { className: "bg-sky-700/85", label: "−8" },
+    { className: "bg-sky-500/85", label: "−5" },
+    { className: "bg-sky-300/85", label: "−3" },
+    { className: "bg-sky-200/85", label: "−1.5" },
+    { className: "bg-slate-200/70", label: "−0.5" },
+    { className: "bg-amber-200/85", label: "0.5" },
+    { className: "bg-amber-400/85", label: "1.5" },
+    { className: "bg-orange-500/85", label: "3" },
+    { className: "bg-red-600/85", label: "5" },
+    { className: "bg-rose-700/85", label: "8" },
+    { className: "bg-purple-900/85", label: "≥12" },
+  ],
 };
 
 const WAVE_CAPTIONS: Record<WaveScale, string> = {
   hrrr: "climb rate, kt (HRRR) — warm is lift, blue is sink",
   linear: "climb rate, kt — linear-theory estimate; warm is lift, blue is sink",
+  wrf: "climb rate, kt (WRF 1 km) — warm is lift, blue is sink",
 };
 
 /** The swatch row shared by both views. */

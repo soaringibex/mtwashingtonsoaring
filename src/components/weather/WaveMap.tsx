@@ -5,6 +5,7 @@ import { fetchJson } from "@/lib/fetch-json";
 import { flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellRgb, wMs, WaveLegend } from "@/components/weather/wave-field";
 import { parseWrfRun, wrfRunFresh, type WrfRun } from "@/lib/wrf-run";
+import { parseWrfWind, wrfWindFrom, type WrfWind } from "@/lib/wrf-wind";
 import { buildWaveColumn, divideStreamline, saturateWave, solveLinearWave } from "@/lib/linear-wave";
 import { sampleField } from "@/lib/linear-wave-3d";
 import {
@@ -218,6 +219,7 @@ export function WaveMap({
   const [data, setData] = useState<MapData | null>(null);
   const [wrfRun, setWrfRun] = useState<WrfRun | null>(null);
   const [wrfAvailable, setWrfAvailable] = useState(false);
+  const [wrfWind, setWrfWind] = useState<WrfWind | null>(null);
   const [wrfData, setWrfData] = useState<MapData | null>(null);
   const [wrfError, setWrfError] = useState(false);
   const [error, setError] = useState(false);
@@ -272,6 +274,27 @@ export function WaveMap({
             setWrfRun(null);
             setWrfAvailable(false);
           }
+        });
+    };
+    load();
+    const timer = setInterval(load, REFRESH_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
+
+  // The WRF's own wind at the Glider Area — the line and (via the shared
+  // selection) the cross-section axis must use it in WRF mode.
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => {
+      fetchJson(wxApiPath("wrf-wind"))
+        .then((payload) => {
+          if (!cancelled) setWrfWind(parseWrfWind(payload));
+        })
+        .catch(() => {
+          if (!cancelled) setWrfWind(null);
         });
     };
     load();
@@ -461,6 +484,13 @@ export function WaveMap({
   const windFrom = waveAzimuth(levels);
   const windBucket = column && levels.length > 0 ? azimuthBucket(windFrom) : null;
 
+  // In WRF mode the line follows the WRF's OWN wind at the displayed frame —
+  // the wind that modelled the wave — not the live sounding (which has no such
+  // hour when an archive is on screen).
+  const modelWindFrom =
+    effectiveMode === "wrf" && activeData ? wrfWindFrom(wrfWind, activeData.times[index]) : null;
+  const shownWindFrom = modelWindFrom ?? windFrom;
+
   // The transect solves run on the undisturbed inflow sounding — the local Gorham
   // column is inside the wave on a NW day, and the amplitude scales with the base-plane
   // wind. Falls back to the local column when the upwind fetch cannot be had.
@@ -616,7 +646,7 @@ export function WaveMap({
           const v11 = nodeValues[(ny + 1) * MAP_COLS + nx + 1];
           if (v00 !== null && v10 !== null && v01 !== null && v11 !== null) {
             const w = v00 * (1 - tx) * (1 - ty) + v10 * tx * (1 - ty) + v01 * (1 - tx) * ty + v11 * tx * ty;
-            const [wr, wg, wb] = cellRgb(w, effectiveMode === "linear" ? "linear" : "hrrr");
+            const [wr, wg, wb] = cellRgb(w, effectiveMode === "linear" ? "linear" : effectiveMode === "wrf" ? "wrf" : "hrrr");
             r = Math.round(r * (1 - WAVE_ALPHA) + wr * WAVE_ALPHA);
             g = Math.round(g * (1 - WAVE_ALPHA) + wg * WAVE_ALPHA);
             b = Math.round(b * (1 - WAVE_ALPHA) + wb * WAVE_ALPHA);
@@ -648,8 +678,8 @@ export function WaveMap({
   // The LOA circle and this hour's cross-section line.
   const centre = { x: x(GLIDER_AREA.lon), y: y(GLIDER_AREA.lat) };
   const radiusMap = ((AREA_RADIUS_NM * KM_PER_NM * 1000) / METRES_PER_DEG_LON / MAP_LON_SPAN) * W;
-  const windward = alongTransect(GLIDER_AREA, windFrom, AREA_RADIUS_NM * KM_PER_NM);
-  const leeward = alongTransect(GLIDER_AREA, windFrom + 180, AREA_RADIUS_NM * KM_PER_NM);
+  const windward = alongTransect(GLIDER_AREA, shownWindFrom, AREA_RADIUS_NM * KM_PER_NM);
+  const leeward = alongTransect(GLIDER_AREA, shownWindFrom + 180, AREA_RADIUS_NM * KM_PER_NM);
   const windwardPoint = { x: x(windward.lon), y: y(windward.lat) };
   const leewardPoint = { x: x(leeward.lon), y: y(leeward.lat) };
   const span = Math.hypot(leewardPoint.x - windwardPoint.x, leewardPoint.y - windwardPoint.y) || 1;
@@ -918,7 +948,7 @@ export function WaveMap({
               </g>
             </svg>
           </div>
-          <WaveLegend scale={effectiveMode === "linear" ? "linear" : "hrrr"} />
+          <WaveLegend scale={effectiveMode === "linear" ? "linear" : effectiveMode === "wrf" ? "wrf" : "hrrr"} />
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
             {effectiveMode === "linear"
               ? `${mapTheoryNote} at ${definition.ft.toLocaleString("en-US")} ft — ${mapLaunchNote || "anchored at the range's mean height with the flow there doing the forcing"}. `

@@ -66,6 +66,7 @@ export type WxDataset =
   | "summit-current"
   | "wrf-map-field"
   | "wrf-cross-section"
+  | "wrf-wind"
   | "wrf-run";
 
 /** The client-side path for a dataset. */
@@ -236,6 +237,11 @@ export function buildUpstreamRequest(dataset: string, params: URLSearchParams): 
       if (azimuth === null) return null;
       const base = wrfBlobPrefix();
       return base ? { urls: [`${base}cross-section-${azimuth}.json`], revalidate: 900 } : null;
+    }
+
+    case "wrf-wind": {
+      const base = wrfBlobPrefix();
+      return base ? { urls: [`${base}wrf-wind.json`], revalidate: 900 } : null;
     }
 
     case "wrf-run": {

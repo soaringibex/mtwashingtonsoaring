@@ -5,6 +5,7 @@ import { fetchJson } from "@/lib/fetch-json";
 import { compassName, flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellFill, wMs, WaveLegend } from "@/components/weather/wave-field";
 import { parseWrfRun, wrfRunFresh, type WrfRun } from "@/lib/wrf-run";
+import { parseWrfWind, wrfWindFrom, type WrfWind } from "@/lib/wrf-wind";
 import { fetchTerrainMosaic, type TerrainMosaic } from "@/lib/terrain-tiles";
 import {
   SOLVE_BOUNDS,
@@ -117,6 +118,7 @@ export function WaveCrossSection({
   const [field, setField] = useState<{ bucket: number; data: CrossData } | null>(null);
   const [wrfRun, setWrfRun] = useState<WrfRun | null>(null);
   const [wrfAvailable, setWrfAvailable] = useState(false);
+  const [wrfWind, setWrfWind] = useState<WrfWind | null>(null);
   const [wrfField, setWrfField] = useState<{ bucket: number; data: CrossData } | null>(null);
   const [wrfError, setWrfError] = useState(false);
   const [linearError, setLinearError] = useState(false);
@@ -238,15 +240,52 @@ export function WaveCrossSection({
     };
   }, []);
 
+  // The WRF's own wind at the Glider Area — the axis the cross-section uses in
+  // WRF mode (the live sounding cannot speak for an archive hour).
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => {
+      fetchJson(wxApiPath("wrf-wind"))
+        .then((payload) => {
+          if (!cancelled) setWrfWind(parseWrfWind(payload));
+        })
+        .catch(() => {
+          if (!cancelled) setWrfWind(null);
+        });
+    };
+    load();
+    const timer = setInterval(load, REFRESH_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
+
+  // The transect axis is the WRF's OWN wind at the displayed frame — the wind
+  // that modelled the wave. (Today's sounding cannot speak for an archive, and
+  // clamping it to "nearest available hour" drew the line across the wrong day.)
+  const wrfFrameTime = (() => {
+    const frame = wrfField?.data;
+    if (!frame) return selectedTime ?? null;
+    let at = frame.defaultIndex ?? 0;
+    if (selectedTime) {
+      const found = frame.times.indexOf(selectedTime);
+      if (found >= 0) at = found;
+    }
+    return frame.times[at] ?? null;
+  })();
+  const modelWindFrom = wrfWindFrom(wrfWind, wrfFrameTime);
+  const wrfBucket = modelWindFrom !== null ? azimuthBucket(modelWindFrom) : bucket;
+
   // The WRF cross-section for the hour's bucket loads eagerly; a failed or
   // non-fresh run simply leaves the option on HRRR.
   useEffect(() => {
-    if (bucket === null) return;
+    if (wrfBucket === null) return;
     let cancelled = false;
-    fetchModelField("wrf-cross-section", bucket)
+    fetchModelField("wrf-cross-section", wrfBucket)
       .then((next) => {
         if (!cancelled) {
-          setWrfField({ bucket, data: next });
+          setWrfField({ bucket: wrfBucket, data: next });
           setWrfError(false);
         }
       })
@@ -256,7 +295,7 @@ export function WaveCrossSection({
     return () => {
       cancelled = true;
     };
-  }, [bucket]);
+  }, [wrfBucket]);
 
   // A run that is missing, stale, not "ok" or whose field failed to load falls
   // back to HRRR — the WRF option is simply not offered.
@@ -294,8 +333,9 @@ export function WaveCrossSection({
       : "";
 
   const activeField = effectiveMode === "wrf" ? wrfField : field;
+  const activeBucket = effectiveMode === "wrf" ? wrfBucket : bucket;
   const data = activeField?.data ?? null;
-  const staleField = activeField !== null && bucket !== null && activeField.bucket !== bucket;
+  const staleField = activeField !== null && activeBucket !== null && activeField.bucket !== activeBucket;
 
   let index = data?.defaultIndex ?? 0;
   if (data && selectedTime) {
@@ -303,7 +343,8 @@ export function WaveCrossSection({
     if (found >= 0) index = found;
   }
 
-  const windLabel = `${compassName(windFrom)} ${Math.round(windFrom)}°`;
+  const shownWindFrom = effectiveMode === "wrf" && modelWindFrom !== null ? modelWindFrom : windFrom;
+  const windLabel = `${compassName(shownWindFrom)} ${Math.round(shownWindFrom)}°`;
 
   const fieldOptions: { value: "linear" | "model" | "wrf"; label: string }[] = [
     { value: "linear", label: "Linear estimate" },
@@ -491,7 +532,7 @@ export function WaveCrossSection({
           <polygon
             key={`${i}-${j}`}
             points={`${x(a.distanceKm).toFixed(1)},${y(za0).toFixed(1)} ${x(b.distanceKm).toFixed(1)},${y(zb0).toFixed(1)} ${x(b.distanceKm).toFixed(1)},${y(zb1).toFixed(1)} ${x(a.distanceKm).toFixed(1)},${y(za1).toFixed(1)}`}
-            className={cellFill(w, "hrrr")}
+            className={cellFill(w, effectiveMode === "wrf" ? "wrf" : "hrrr")}
           />,
         );
       }
@@ -525,7 +566,7 @@ export function WaveCrossSection({
             ridge crest
           </text>
         </svg>
-        <WaveLegend scale="hrrr" />
+        <WaveLegend scale={effectiveMode === "wrf" ? "wrf" : "hrrr"} />
       </>
     );
   }
@@ -561,7 +602,8 @@ export function WaveCrossSection({
           </button>
         ))}
         <p className="text-[11px] text-slate-400">
-          the line runs along the 800 hPa wind, {windLabel}, through the Glider Area centre
+          the line runs along {effectiveMode === "wrf" ? "the WRF's" : "the"} 800 hPa wind, {windLabel},
+          through the Glider Area centre
         </p>
       </div>
 
