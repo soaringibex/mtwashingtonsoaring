@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run check:assets && next build",
+    "build": "npm run check:assets && npm run wrf-contract && next build",
     "start": "next start",
     "lint": "eslint",
     "check:assets": "node scripts/check-assets.mjs",
-    "check:wave": "node scripts/check-wave-solver.mts"
+    "check:wave": "node scripts/check-wave-solver.mts",
+    "wrf-contract": "node scripts/write-wrf-contract.mts"
   },
   "dependencies": {
     "next": "16.3.8",
