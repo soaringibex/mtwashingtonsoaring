@@ -6,7 +6,16 @@ import { flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellRgb, wMs, WaveLegend } from "@/components/weather/wave-field";
 import { parseWrfRun, wrfRunFresh, type WrfRun } from "@/lib/wrf-run";
 import { buildWaveColumn, divideStreamline, saturateWave, solveLinearWave } from "@/lib/linear-wave";
-import { buildRotatedTerrainGrid, sampleField, solveLinearWave3D } from "@/lib/linear-wave-3d";
+import { sampleField } from "@/lib/linear-wave-3d";
+import {
+  MAP_CENTER,
+  METRES_PER_DEG_LAT,
+  METRES_PER_DEG_LON,
+  SOLVE_BOUNDS,
+  SOLVE_ZOOM,
+  solveWaveFieldCached,
+  waveSolveKey,
+} from "@/lib/wave-solve";
 import { fetchRoadLines, type RoadLine } from "@/lib/roads";
 import {
   columnLevelsAt,
@@ -45,8 +54,6 @@ const FT_PER_M = 3.28084;
 
 /** The world (canvas) size — the map's true projected aspect, ~32 m per pixel. */
 const W = 1500;
-const METRES_PER_DEG_LAT = 110900;
-const METRES_PER_DEG_LON = 111320 * Math.cos((44.26 * Math.PI) / 180);
 const H = Math.round((W * MAP_LAT_SPAN * METRES_PER_DEG_LAT) / (MAP_LON_SPAN * METRES_PER_DEG_LON));
 
 /** The tiles cover a touch beyond the map so the relief runs to every edge. */
@@ -58,20 +65,14 @@ const TERRAIN_BOUNDS = {
 };
 
 /**
- * The solves run as long parallel transects across the map, then the nodes sample them.
- * A per-node 48-km profile tapered the range away for the lee rows — a crest 16 km
- * upwind was scaled to 81% and 24 km to zero, suppressing the wave train exactly where
- * it matters — so each transect now spans 120 km of terrain along the flow, at z10's
- * ~110 m resolution, sampled at 1.2 km.
+ * The primary solve is the shared 3-D field in @/lib/wave-solve — one launch plane,
+ * one sounding, and the cross-section reads the same solution. The fallback below
+ * runs only if that solve cannot: long parallel transects across the map, which the
+ * nodes then sample. A per-node 48-km profile tapered the range away for the lee rows
+ * — a crest 16 km upwind was scaled to 81% and 24 km to zero, suppressing the wave
+ * train exactly where it matters — so each transect spans 120 km of terrain along the
+ * flow, at z10's ~110 m resolution, sampled at 1.2 km.
  */
-const SOLVE_BOUNDS = {
-  west: MAP_LON_MIN - 1.0,
-  south: MAP_LAT_MIN - 0.72,
-  east: MAP_LON_MIN + MAP_LON_SPAN + 1.0,
-  north: MAP_LAT_MIN + MAP_LAT_SPAN + 0.72,
-};
-const SOLVE_ZOOM = 10;
-
 // The band must cover the map's corners — 33.5 km cross-flow on the 135° diagonal — and
 // the transects must reach past the corner nodes' 33.5 km along-flow in the untapered
 // span (the taper eats the outer quarter: 111 samples place it beyond 33.6 km).
@@ -79,7 +80,6 @@ const TRANSECT_COUNT = 29;
 const TRANSECT_SPACING_KM = 2.4;
 const TRANSECT_DX_M = 1200;
 const TRANSECT_SAMPLES = 111;
-const MAP_CENTER = { lat: MAP_LAT_MIN + MAP_LAT_SPAN / 2, lon: MAP_LON_MIN + MAP_LON_SPAN / 2 };
 
 const PLACES = [
   { name: "Gorham · 2G8", lat: 44.393, lon: -71.196, primary: true },
@@ -137,12 +137,6 @@ const y = (lat: number) => H - ((lat - MAP_LAT_MIN) / MAP_LAT_SPAN) * H;
 /** A road polyline in the map's own coordinates. */
 const roadPoints = (line: RoadLine) =>
   line.p.map(([lon, lat]) => `${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join(" ");
-
-// The 3-D solve grid: 256 × 256 at 500 m (a 128 km square), centred on the map and
-// rotated so x runs downwind. Measured at ~230 ms in Node for a 32-layer column, so
-// 256/500 stays inside the solve budget; the transects remain the fallback.
-const SOLVE3_SIZE = 256;
-const SOLVE3_DX_M = 500;
 
 type MapSolve3D = {
   kind: "3d";
@@ -387,55 +381,31 @@ export function WaveMap({
     const crossE = Math.sin(radians + Math.PI / 2);
     const crossN = Math.cos(radians + Math.PI / 2);
     const azimuthDeg = (radians * 180) / Math.PI;
-    const metresPerDegLat = METRES_PER_DEG_LAT;
-    const metresPerDegLon = METRES_PER_DEG_LON;
 
-    // 3-D first: the terrain grid is centred on the map, rotated so x runs downwind,
-    // and launched from the dividing streamline of the whole grid.
-    const grid = buildRotatedTerrainGrid({
-      size: SOLVE3_SIZE,
-      dxM: SOLVE3_DX_M,
-      centreLat: MAP_CENTER.lat,
-      centreLon: MAP_CENTER.lon,
-      metresPerDegLat,
-      metresPerDegLon,
+    // The shared 3-D solve — one launch plane, one sounding — which the cross-section
+    // below reads as a vertical cut along this same line. Launched from the dividing
+    // streamline of the whole grid; the terrain below z_d is clipped away.
+    const field = solveWaveFieldCached(
+      waveSolveKey(azimuthBucket(waveAzimuth(localLevels)), selectedTime ?? "default", levels),
+      solveMosaic,
+      levels,
       azimuthDeg,
-      sample: (lat, lon) => sampleMosaic(solveMosaic, lat, lon),
-    });
-    let gridMean = 0;
-    let gridCrest = -Infinity;
-    for (let i = 0; i < grid.length; i += 1) {
-      gridMean += grid[i];
-      if (grid[i] > gridCrest) gridCrest = grid[i];
-    }
-    gridMean /= grid.length;
-    const divider = divideStreamline(levels, azimuthDeg, gridMean, gridCrest);
-    for (let i = 0; i < grid.length; i += 1) grid[i] = Math.max(grid[i], divider.zD);
-    const waveColumn = buildWaveColumn(levels, azimuthDeg, divider.zD);
-    if (waveColumn) {
-      const raw = solveLinearWave3D({
-        terrainM: grid,
-        size: SOLVE3_SIZE,
-        dxM: SOLVE3_DX_M,
-        column: waveColumn,
-      });
-      if (raw) {
-        const solve = saturateWave(raw, waveColumn, divider.froude);
-        return {
-          kind: "3d",
-          zM: solve.zM,
-          fields: solve.w,
-          size: SOLVE3_SIZE,
-          dxM: SOLVE3_DX_M,
-          alongE,
-          alongN,
-          crossE,
-          crossN,
-          metresPerDegLat,
-          metresPerDegLon,
-          centreDivider: { launchM: divider.zD, froude: divider.froude },
-        };
-      }
+    );
+    if (field) {
+      return {
+        kind: "3d",
+        zM: field.zM,
+        fields: field.w,
+        size: field.size,
+        dxM: field.dxM,
+        alongE: field.alongE,
+        alongN: field.alongN,
+        crossE: field.crossE,
+        crossN: field.crossN,
+        metresPerDegLat: field.metresPerDegLat,
+        metresPerDegLon: field.metresPerDegLon,
+        centreDivider: { launchM: field.launchM, froude: field.froude },
+      };
     }
 
     // Fallback: the map's original long parallel transects, each launched from its own

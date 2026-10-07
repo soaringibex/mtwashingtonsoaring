@@ -1,6 +1,6 @@
 // The pieces both wave-field views share for the linear solve: the free-atmosphere
-// column (fetched once per view through the cached /api/wx route) and the local
-// terrain cache that keeps static elevation off the wire.
+// column and the upwind sounding (each fetched per view through the cached /api/wx
+// route) plus the hour/bucket bookkeeping that keeps the two views aligned.
 
 import { fetchJson } from "@/lib/fetch-json";
 import { WAVE_LEVELS } from "@/lib/wave-score";
@@ -233,36 +233,4 @@ export function waveAzimuth(levels: WaveColumnLevel[]): number {
     if (level && Number.isFinite(level.dirDeg) && level.speedMs > 5) return level.dirDeg;
   }
   return 305;
-}
-
-// Terrain never moves, and the upstream API counts every location against a per-minute
-// budget — so terrain grids are cached locally (a year) on top of the server's own cache.
-
-const TERRAIN_CACHE_MS = 365 * 24 * 60 * 60 * 1000;
-
-export function readCachedTerrain(key: string, length: number): number[] | null {
-  try {
-    const cached = localStorage.getItem(key);
-    if (!cached) return null;
-    const parsed = JSON.parse(cached) as { ts?: number; elevations?: number[] };
-    if (
-      typeof parsed.ts === "number" &&
-      Date.now() - parsed.ts < TERRAIN_CACHE_MS &&
-      Array.isArray(parsed.elevations) &&
-      parsed.elevations.length === length
-    ) {
-      return parsed.elevations;
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
-
-export function writeCachedTerrain(key: string, elevations: number[]): void {
-  try {
-    localStorage.setItem(key, JSON.stringify({ ts: Date.now(), elevations }));
-  } catch {
-    // storage unavailable — the grid just isn't cached
-  }
 }

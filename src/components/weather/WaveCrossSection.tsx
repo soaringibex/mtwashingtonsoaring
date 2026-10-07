@@ -1,57 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 import { compassName, flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellFill, wMs, WaveLegend } from "@/components/weather/wave-field";
 import { parseWrfRun, wrfRunFresh, type WrfRun } from "@/lib/wrf-run";
-import { buildWaveColumn, divideStreamline, saturateWave, solveLinearWave, type SolveResult } from "@/lib/linear-wave";
+import { fetchTerrainMosaic, type TerrainMosaic } from "@/lib/terrain-tiles";
+import {
+  SOLVE_BOUNDS,
+  SOLVE_ZOOM,
+  sliceWaveField,
+  solveWaveFieldCached,
+  waveSolveKey,
+} from "@/lib/wave-solve";
 import {
   columnLevelsAt,
   fetchUpwindColumnRaw,
   fetchWaveColumnRaw,
-  readCachedTerrain,
   waveAzimuth,
   waveColumnHour,
-  writeCachedTerrain,
   type WaveColumnRaw,
 } from "@/lib/wave-column";
 import {
   AREA_RADIUS_NM,
+  GLIDER_AREA,
   KM_PER_NM,
   MODEL_DISTANCES,
   CROSS_LEVELS as MODEL_LEVELS,
-  SOLVE_DISTANCES,
-  SOLVE_DX_M,
   WINDOW_KM,
   azimuthBucket,
   wxApiPath,
 } from "@/lib/wx-datasets";
 
 /**
- * The transect follows the LOA. The Mount Washington Glider Area is a circle of
- * radius 10 NM centred at 44°17′26″N 071°13′40″W (the Boston ARTCC letter of
- * agreement), and the cross-section runs along this hour's 800 hPa wind through
- * that centre — the chart is the slice inside the circle.
+ * The cross-section is the vertical cut of the wave map's 3-D solve along the LOA.
+ * The Mount Washington Glider Area is a circle of radius 10 NM centred at
+ * 44°17′26″N 071°13′40″W (the Boston ARTCC letter of agreement); the cut runs along
+ * this hour's 800 hPa wind through that centre — the chart is the slice inside the
+ * circle — and both views read the same shared field (@/lib/wave-solve), so they can
+ * never tell different stories about the day.
  */
 
 const REFRESH_MS = 45 * 60 * 1000;
 const FT_PER_M = 3.28084;
-
-async function fetchTerrainLine(bucket: number): Promise<number[]> {
-  const key = `mws-wave-terrain-line-v1-${bucket}`;
-  const cached = readCachedTerrain(key, SOLVE_DISTANCES.length);
-  if (cached) return cached;
-  const data = (await fetchJson(wxApiPath("terrain-line", { azimuth: bucket }))) as {
-    elevation?: number[];
-  } | null;
-  const values = data?.elevation;
-  if (!Array.isArray(values) || values.length !== SOLVE_DISTANCES.length) {
-    throw new Error("missing terrain line");
-  }
-  writeCachedTerrain(key, values);
-  return values;
-}
 
 type CrossLevel = {
   hPa: number;
@@ -121,7 +112,7 @@ export function WaveCrossSection({
 }) {
   const [mode, setMode] = useState<"linear" | "model" | "wrf">("linear");
   const [column, setColumn] = useState<WaveColumnRaw | null>(null);
-  const [terrainLine, setTerrainLine] = useState<{ bucket: number; elevationsM: number[] } | null>(null);
+  const [mosaic, setMosaic] = useState<TerrainMosaic | null>(null);
   const [upwind, setUpwind] = useState<{ bucket: number; column: WaveColumnRaw } | null>(null);
   const [field, setField] = useState<{ bucket: number; data: CrossData } | null>(null);
   const [wrfRun, setWrfRun] = useState<WrfRun | null>(null);
@@ -157,7 +148,6 @@ export function WaveCrossSection({
   const hourIndex = column ? waveColumnHour(column, selectedTime) : 0;
   const levels = column ? columnLevelsAt(column.hourly, hourIndex) : [];
   const windFrom = waveAzimuth(levels);
-  const transectAzimuth = (windFrom + 180) % 360;
   const bucket = column && levels.length > 0 ? azimuthBucket(windFrom) : null;
 
   // The solve runs on the undisturbed inflow sounding — the local Gorham column is
@@ -178,21 +168,30 @@ export function WaveCrossSection({
     };
   }, [bucket]);
 
-  // The terrain line and the model field follow the chosen hour's direction.
+  // The solve terrain — the same z10 mosaic (and the same shared fetch promise) the
+  // map uses, so this view adds no network and both solve on one terrain.
+  useEffect(() => {
+    let cancelled = false;
+    fetchTerrainMosaic(SOLVE_BOUNDS, SOLVE_ZOOM)
+      .then((next) => {
+        if (!cancelled) {
+          setMosaic(next);
+          setLinearError(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLinearError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // The model field follows the chosen hour's direction.
   useEffect(() => {
     if (bucket === null) return;
     let cancelled = false;
     const load = () => {
-      fetchTerrainLine(bucket)
-        .then((elevationsM) => {
-          if (!cancelled) {
-            setTerrainLine({ bucket, elevationsM });
-            setLinearError(false);
-          }
-        })
-        .catch(() => {
-          if (!cancelled) setLinearError(true);
-        });
       fetchModelField("cross-section", bucket)
         .then((next) => {
           if (!cancelled) {
@@ -263,40 +262,35 @@ export function WaveCrossSection({
   // back to HRRR — the WRF option is simply not offered.
   const effectiveMode = mode === "wrf" && (!wrfAvailable || wrfError) ? "model" : mode;
 
-  // The linear solve for the selected hour — pure math (~0.1 ms), so it runs in render.
-  let solve: SolveResult | null = null;
-  let launchM = 0;
-  let froude = 1;
-  if (column && terrainLine && levels.length > 0) {
-    // Only a sounding for THIS bucket is usable — a stale one would solve on the
-    // previous direction until the new fetch resolves.
-    const upwindColumn = upwind !== null && upwind.bucket === bucket ? upwind.column : null;
+  // The vertical cut of the shared 3-D solve along this hour's wind line. The map
+  // above reads the same solve (it is cached by key), so a glancing day reads weak in
+  // both views — no separate 2-D reduction that disagrees with the map.
+  const slice = useMemo(() => {
+    if (!mosaic || !column) return null;
+    const hour = waveColumnHour(column, selectedTime);
+    const localLevels = columnLevelsAt(column.hourly, hour);
+    const azimuth = waveAzimuth(localLevels);
+    const upwindColumn =
+      upwind !== null && upwind.bucket === azimuthBucket(azimuth) ? upwind.column : null;
     const solveLevels = upwindColumn
       ? columnLevelsAt(upwindColumn.hourly, waveColumnHour(upwindColumn, selectedTime))
-      : levels;
-    const meanM =
-      terrainLine.elevationsM.reduce((sum, h) => sum + h, 0) / terrainLine.elevationsM.length;
-    const crestM = Math.max(...terrainLine.elevationsM);
-    // Sheppard's dividing streamline: the blocked air below it does not force the
-    // wave, so the obstacle is the terrain above z_d and the column is anchored there.
-    const divider = divideStreamline(solveLevels, transectAzimuth, meanM, crestM);
-    launchM = divider.zD;
-    froude = divider.froude;
-    const terrainAbove = terrainLine.elevationsM.map((h) => Math.max(h, divider.zD));
-    const waveColumn = buildWaveColumn(solveLevels, transectAzimuth, divider.zD);
-    if (waveColumn) {
-      const raw = solveLinearWave({ terrainM: terrainAbove, dxM: SOLVE_DX_M, column: waveColumn });
-      if (raw) solve = saturateWave(raw, waveColumn, divider.froude);
-    }
-  }
-  const linearUnavailable = linearError || (!solve && Boolean(terrainLine && column));
+      : localLevels;
+    const field = solveWaveFieldCached(
+      waveSolveKey(azimuthBucket(azimuth), selectedTime ?? "default", solveLevels),
+      mosaic,
+      solveLevels,
+      (azimuth + 180) % 360,
+    );
+    return field ? sliceWaveField(field, GLIDER_AREA.lat, GLIDER_AREA.lon) : null;
+  }, [mosaic, column, selectedTime, upwind]);
+  const linearUnavailable = linearError || (!slice && Boolean(mosaic && column));
 
-  // The caption carries the launch plane the solve actually used (1a).
+  // The caption carries the launch plane the shared solve actually used.
   const launchNote =
-    solve && launchM > 0
+    slice && slice.launchM > 0
       ? `, launched from the dividing streamline at ${(
-          Math.round((launchM * FT_PER_M) / 100) * 100
-        ).toLocaleString("en-US")} ft (Fr ${froude.toFixed(2)})`
+          Math.round((slice.launchM * FT_PER_M) / 100) * 100
+        ).toLocaleString("en-US")} ft (Fr ${slice.froude.toFixed(2)})`
       : "";
 
   const activeField = effectiveMode === "wrf" ? wrfField : field;
@@ -382,31 +376,35 @@ export function WaveCrossSection({
 
   let content: React.ReactNode = null;
   if (effectiveMode === "linear") {
-    if (solve && terrainLine) {
-      const lastLevel = solve.zM.length - 1;
-      const topFt = solve.zM[lastLevel] * FT_PER_M;
+    if (slice) {
+      const lastLevel = slice.zM.length - 1;
+      const topFt = slice.zM[lastLevel] * FT_PER_M;
       const yMax = Math.ceil(Math.min(topFt + 1500, 55000) / 5000) * 5000;
       const y = (altFt: number) =>
         padT + (1 - Math.min(Math.max(altFt, 0), yMax) / yMax) * plotH;
       const altTicks: number[] = [];
       for (let alt = 10000; alt <= yMax; alt += 10000) altTicks.push(alt);
 
-      const shown = SOLVE_DISTANCES.map((d, i) => ({ d, i })).filter(
-        ({ d }) => d >= xMin && d <= xMax,
-      );
+      // Every second 500 m sample: the chart keeps 1 km columns while the solve —
+      // and the map above — stay at 500 m.
+      const shown: { d: number; i: number }[] = [];
+      for (let i = 0; i < slice.offsetsM.length; i += 2) {
+        const d = slice.offsetsM[i] / 1000;
+        if (d >= xMin && d <= xMax) shown.push({ d, i });
+      }
 
       const cells: React.ReactNode[] = [];
       for (let s = 0; s < shown.length - 1; s += 1) {
         const a = shown[s];
         const b = shown[s + 1];
         for (let j = 0; j < lastLevel; j += 1) {
-          const zBot = solve.zM[j] * FT_PER_M;
-          const zTop = solve.zM[j + 1] * FT_PER_M;
+          const zBot = slice.zM[j] * FT_PER_M;
+          const zTop = slice.zM[j + 1] * FT_PER_M;
           const corners = [
-            solve.w[j][a.i],
-            solve.w[j][b.i],
-            solve.w[j + 1][a.i],
-            solve.w[j + 1][b.i],
+            slice.w[j][a.i],
+            slice.w[j][b.i],
+            slice.w[j + 1][a.i],
+            slice.w[j + 1][b.i],
           ];
           const value = corners.reduce((sum, v) => sum + v, 0) / corners.length;
           cells.push(
@@ -422,10 +420,7 @@ export function WaveCrossSection({
         }
       }
 
-      const profile = SOLVE_DISTANCES.map((d, i) => ({
-        d,
-        ft: terrainLine.elevationsM[i] * FT_PER_M,
-      })).filter(({ d }) => d >= xMin && d <= xMax);
+      const profile = shown.map(({ d, i }) => ({ d, ft: slice.terrainM[i] * FT_PER_M }));
       const terrainPath =
         `M ${x(xMin).toFixed(1)},${(padT + plotH).toFixed(1)} ` +
         profile.map(({ d, ft }) => `L ${x(d).toFixed(1)},${y(ft).toFixed(1)}`).join(" ") +
@@ -438,7 +433,7 @@ export function WaveCrossSection({
             viewBox={`0 0 ${W} ${H}`}
             className="mt-3 w-full"
             role="img"
-            aria-label="Linear-theory vertical velocity cross-section along the wind through the Mount Washington Glider Area"
+            aria-label="3-D linear-theory vertical velocity cross-section along the wind through the Mount Washington Glider Area"
           >
             {cells}
             {axes(altTicks, y)}
@@ -599,7 +594,7 @@ export function WaveCrossSection({
           {content}
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
             {effectiveMode === "linear"
-              ? `Linear-theory estimate: the steady wave equation solved from the terrain profile and the HRRR column${launchNote}, on this hour's wind line (${windLabel}) through the LOA's Glider Area centre — the chart is the slice inside the 10 NM circle. The amplitude is Fr-scaled below 1 and capped at half the carrying flow. The model's own pressure-level vertical velocity is much smoother; switch the field to HRRR for comparison.`
+              ? `Linear-theory estimate: the 3-D steady wave equation on the real terrain${launchNote}, sliced along this hour's wind line (${windLabel}) through the LOA's Glider Area centre — the chart is the slice inside the 10 NM circle, the vertical cut of the same solve the wave map above shows. The amplitude is Fr-scaled below 1 and capped at half the carrying flow. The model's own pressure-level vertical velocity is much smoother; switch the field to HRRR for comparison.`
               : effectiveMode === "wrf"
                 ? `The WRF 1 km field${wrfRun ? ` (${wrfRun.label} cycle)` : ""}: the model's own vertical velocity along this hour's wind line (${windLabel}) through the LOA's Glider Area centre, grey being the terrain.`
                 : `The model's own vertical velocity along this hour's wind line (${windLabel}) through the LOA's Glider Area centre, grey being the terrain.`}{" "}

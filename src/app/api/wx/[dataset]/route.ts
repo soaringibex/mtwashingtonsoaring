@@ -38,14 +38,6 @@ export async function GET(
     }
     const payloads = (await Promise.all(responses.map((response) => response.json()))) as unknown[];
 
-    if (upstream.elevationMerge) {
-      const elevation = payloads.flatMap((payload) =>
-        Array.isArray((payload as { elevation?: unknown }).elevation)
-          ? ((payload as { elevation: number[] }).elevation)
-          : [],
-      );
-      return Response.json({ elevation }, { headers });
-    }
     if (upstream.locationsMerge) {
       const locations = payloads.flatMap((payload) => (Array.isArray(payload) ? payload : [payload]));
       return Response.json(locations, { headers });

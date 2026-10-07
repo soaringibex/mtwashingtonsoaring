@@ -52,10 +52,6 @@ export {
 export const GORHAM = { lat: 44.3931, lon: -71.1996 };
 export const SUMMIT = { lat: 44.2705, lon: -71.3032 };
 
-/** The cross-section solve line — 1 km samples, wide enough that the taper stays outside the circle. */
-export const SOLVE_DX_M = 1000;
-export const SOLVE_DISTANCES = Array.from({ length: 73 }, (_, i) => i - 36);
-
 /** The wind card's pressure levels, in hPa. */
 export const WIND_DAY_LEVELS = [1000, 975, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200];
 
@@ -65,7 +61,6 @@ export type WxDataset =
   | "wave-forecast"
   | "cross-section"
   | "map-field"
-  | "terrain-line"
   | "wind-day"
   | "summit-hourly"
   | "summit-current"
@@ -82,7 +77,6 @@ export function wxApiPath(dataset: WxDataset, params?: Record<string, string | n
 }
 
 const FORECAST = "https://api.open-meteo.com/v1/forecast";
-const ELEVATION = "https://api.open-meteo.com/v1/elevation";
 
 const coordsOf = (points: { lat: number; lon: number }[]) =>
   `latitude=${points.map((p) => p.lat.toFixed(4)).join(",")}` +
@@ -91,21 +85,10 @@ const coordsOf = (points: { lat: number; lon: number }[]) =>
 const levelVars = (levels: readonly number[], variables: string[]) =>
   levels.flatMap((hPa) => variables.map((variable) => `${variable}_${hPa}hPa`)).join(",");
 
-/** The elevation endpoint takes at most 100 coordinates per request. */
-const elevationUrls = (points: { lat: number; lon: number }[]): string[] => {
-  const urls: string[] = [];
-  for (let start = 0; start < points.length; start += 100) {
-    urls.push(`${ELEVATION}?${coordsOf(points.slice(start, start + 100))}`);
-  }
-  return urls;
-};
-
 export type UpstreamRequest = {
   urls: string[];
   /** Seconds the upstream response stays fresh. */
   revalidate: number;
-  /** Elevation responses merge into one `{ elevation }` payload. */
-  elevationMerge?: boolean;
   /** Chunked location responses merge into one array of locations. */
   locationsMerge?: boolean;
 };
@@ -210,13 +193,6 @@ export function buildUpstreamRequest(dataset: string, params: URLSearchParams): 
         revalidate: 900,
         locationsMerge: true,
       };
-
-    case "terrain-line": {
-      const azimuth = bucketParam(params);
-      if (azimuth === null) return null;
-      const points = SOLVE_DISTANCES.map((d) => alongTransect(GLIDER_AREA, (azimuth + 180) % 360, d));
-      return { urls: elevationUrls(points), revalidate: 604800, elevationMerge: true };
-    }
 
     case "wind-day":
       return {
