@@ -3,7 +3,7 @@ import Image from "next/image";
 import { AltitudeRail } from "@/components/accomplishments/AltitudeRail";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/ui/Container";
-import { awards, climbTiers, type Award } from "@/lib/accomplishments";
+import { awards, climbTiers, nhRecords, type Award } from "@/lib/accomplishments";
 
 export const metadata: Metadata = {
   title: "Accomplishments",
@@ -388,6 +388,54 @@ export default function AccomplishmentsPage() {
                     label="The unofficial high — Walter Weir, October 25, 1985, on the 47th anniversary of Barringer's first flight."
                     dark
                   />
+                </div>
+
+                <div className="mt-10 overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/10 px-6 py-5 sm:px-7">
+                    <h3 className="font-display text-lg font-bold tracking-tight text-white">
+                      The record book today
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      New Hampshire records, General category — as listed by the Soaring Society
+                      of America
+                    </p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[40rem] text-left text-sm">
+                      <thead>
+                        <tr className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-300">
+                          <th className="px-6 py-3 font-semibold sm:px-7">Class</th>
+                          <th className="px-4 py-3 font-semibold">Absolute altitude</th>
+                          <th className="px-4 py-3 font-semibold">Altitude gain</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {nhRecords.map((row) => (
+                          <tr key={row.gliderClass} className="border-t border-white/5 align-top">
+                            <td className="px-6 py-4 font-medium text-white sm:px-7">
+                              {row.gliderClass}
+                            </td>
+                            {[row.absolute, row.gain].map((entry) => (
+                              <td key={entry.date + entry.pilot} className="px-4 py-4">
+                                <p className="font-display text-base font-bold tabular-nums text-white">
+                                  {entry.ft.toLocaleString("en-US")} ft
+                                </p>
+                                <p className="mt-1 text-xs text-slate-300">
+                                  {entry.pilot} · {entry.date}
+                                </p>
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="border-t border-white/10 px-6 py-4 text-xs leading-6 text-slate-400 sm:px-7">
+                    No record stands in Motorglider Multiplace, 13.5-Meter, Ultralight Glider or
+                    Sports class. The highest flight in the table — 33,733 feet — is Malcolm
+                    Stevenson&apos;s motorglider flight on October 25, 1985, the 47th anniversary
+                    of Barringer&apos;s first wave flight.
+                  </p>
                 </div>
 
                 <figure className="relative isolate mt-10 h-72 overflow-hidden rounded-[2rem] shadow-2xl shadow-slate-950/40 sm:h-96">

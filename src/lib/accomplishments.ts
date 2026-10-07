@@ -208,6 +208,46 @@ export const awards: Award[] = [
   },
 ];
 
+export type RecordEntry = { ft: number; pilot: string; date: string };
+export type RecordRow = {
+  gliderClass: string;
+  absolute: RecordEntry;
+  gain: RecordEntry;
+};
+
+/**
+ * New Hampshire records, General category — as listed in the Soaring Society of
+ * America's record table. Motorglider Multiplace, 13.5-Meter, Ultralight Glider and
+ * Sports class carry no record.
+ */
+export const nhRecords: RecordRow[] = [
+  {
+    gliderClass: "Open Class Singleplace",
+    absolute: { ft: 32513, pilot: "Timothy Chow", date: "October 9, 2018" },
+    gain: { ft: 29537, pilot: "Timothy Chow", date: "October 9, 2018" },
+  },
+  {
+    gliderClass: "Open Class Multiplace",
+    absolute: { ft: 26414, pilot: "Alfred L. Speckman", date: "October 28, 1968" },
+    gain: { ft: 20669, pilot: "Alfred L. Speckman", date: "October 28, 1968" },
+  },
+  {
+    gliderClass: "Motorglider Singleplace",
+    absolute: { ft: 33733, pilot: "Malcolm Stevenson", date: "October 25, 1985" },
+    gain: { ft: 32595, pilot: "Malcolm Stevenson", date: "October 25, 1985" },
+  },
+  {
+    gliderClass: "15-Meter Class",
+    absolute: { ft: 31390, pilot: "Robert Newman", date: "October 22, 1974" },
+    gain: { ft: 24950, pilot: "Todd Pattist", date: "October 14, 1997" },
+  },
+  {
+    gliderClass: "Standard Class",
+    absolute: { ft: 29000, pilot: "William Nockles", date: "October 18, 1970" },
+    gain: { ft: 26000, pilot: "William Nockles", date: "October 18, 1970" },
+  },
+];
+
 export type ClimbTier = {
   id: string;
   label: string;

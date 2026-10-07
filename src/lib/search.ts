@@ -173,6 +173,13 @@ const history: SearchEntry[] = [
     keywords: "weir record altitude 33600 unofficial 1985",
   },
   {
+    title: "The New Hampshire record book — every class (SSA)",
+    href: "/accomplishments",
+    kind: "achievement",
+    text: "The General-category records by class: absolute altitude and altitude gain, from Timothy Chow's 32,513 ft to the 1970 Standard-class mark.",
+    keywords: "records classes ssa altitude gain speckman stevenson nockles pattist motorglider 15-meter standard",
+  },
+  {
     title: "Wylie Apte's White Mountain Airport",
     href: "/history",
     kind: "history",
