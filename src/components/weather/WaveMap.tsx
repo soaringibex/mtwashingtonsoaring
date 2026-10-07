@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 import { flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellRgb, wMs, WaveLegend } from "@/components/weather/wave-field";
+import { parseWrfRun, wrfRunFresh, type WrfRun } from "@/lib/wrf-run";
 import { buildWaveColumn, divideStreamline, saturateWave, solveLinearWave } from "@/lib/linear-wave";
 import { buildRotatedTerrainGrid, sampleField, solveLinearWave3D } from "@/lib/linear-wave-3d";
 import { fetchRoadLines, type RoadLine } from "@/lib/roads";
@@ -182,8 +183,8 @@ type MapData = {
 
 const GRID_LENGTH = MAP_ROWS * MAP_COLS;
 
-async function fetchMap(): Promise<MapData> {
-  const data = (await fetchJson(wxApiPath("map-field"))) as unknown;
+async function fetchMap(dataset: "map-field" | "wrf-map-field"): Promise<MapData> {
+  const data = (await fetchJson(wxApiPath(dataset))) as unknown;
   const locations = (Array.isArray(data) ? data : [data]) as {
     utc_offset_seconds?: number;
     hourly?: Record<string, (number | null)[]>;
@@ -219,8 +220,12 @@ export function WaveMap({
   onSelectTime: (time: string) => void;
 }) {
   const [level, setLevel] = useState(700); // 10,000 ft — the wave-connection level
-  const [mode, setMode] = useState<"linear" | "model">("linear");
+  const [mode, setMode] = useState<"linear" | "model" | "wrf">("linear");
   const [data, setData] = useState<MapData | null>(null);
+  const [wrfRun, setWrfRun] = useState<WrfRun | null>(null);
+  const [wrfAvailable, setWrfAvailable] = useState(false);
+  const [wrfData, setWrfData] = useState<MapData | null>(null);
+  const [wrfError, setWrfError] = useState(false);
   const [error, setError] = useState(false);
   const [solveMosaic, setSolveMosaic] = useState<TerrainMosaic | null>(null);
   const [column, setColumn] = useState<WaveColumnRaw | null>(null);
@@ -236,7 +241,7 @@ export function WaveMap({
   useEffect(() => {
     let cancelled = false;
     const load = () => {
-      fetchMap()
+      fetchMap("map-field")
         .then((next) => {
           if (!cancelled) {
             setData(next);
@@ -254,6 +259,60 @@ export function WaveMap({
       clearInterval(timer);
     };
   }, []);
+
+  // The WRF run stamp decides whether the "WRF 1 km" option exists at all; the
+  // field loads eagerly and a failed or non-fresh run leaves the option on HRRR.
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => {
+      fetchJson(wxApiPath("wrf-run"))
+        .then((payload) => {
+          if (!cancelled) {
+            const run = parseWrfRun(payload);
+            setWrfRun(run);
+            setWrfAvailable(wrfRunFresh(run, Date.now()));
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setWrfRun(null);
+            setWrfAvailable(false);
+          }
+        });
+    };
+    load();
+    const timer = setInterval(load, REFRESH_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => {
+      fetchMap("wrf-map-field")
+        .then((next) => {
+          if (!cancelled) {
+            setWrfData(next);
+            setWrfError(false);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setWrfError(true);
+        });
+    };
+    load();
+    const timer = setInterval(load, REFRESH_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
+
+  // A run that is missing, stale, not "ok" or whose field failed to load falls
+  // back to HRRR — the WRF option is simply not offered.
+  const effectiveMode = mode === "wrf" && (!wrfAvailable || wrfError) ? "model" : mode;
 
   useEffect(() => {
     let cancelled = false;
@@ -420,9 +479,10 @@ export function WaveMap({
   // Inputs arrived but the solver came back empty — a data problem, not a pending one.
   const linearUnavailable = linearError || (!solvedField && Boolean(solveMosaic && column));
 
-  let index = data?.defaultIndex ?? 0;
-  if (data && selectedTime) {
-    const found = data.times.indexOf(selectedTime);
+  const activeData = effectiveMode === "wrf" ? wrfData : data;
+  let index = activeData?.defaultIndex ?? 0;
+  if (activeData && selectedTime) {
+    const found = activeData.times.indexOf(selectedTime);
     if (found >= 0) index = found;
   }
 
@@ -449,9 +509,9 @@ export function WaveMap({
     };
   }, [windBucket]);
 
-  // The overlay values on the full model grid, whatever the mode.
+  // The overlay values on the full model grid, whatever the field.
   const nodeValues = useMemo<(number | null)[] | null>(() => {
-    if (mode === "linear") {
+    if (effectiveMode === "linear") {
       if (!solvedField) return null;
       const targetM = definition.ft / 3.28084;
       let levelIndex = 0;
@@ -504,10 +564,10 @@ export function WaveMap({
         return at(t0) * (1 - tFrac) + at(t0 + 1) * tFrac;
       });
     }
-    const series = data?.w[level];
+    const series = activeData?.w[level];
     if (!series) return null;
     return series.map((values) => wMs(values[index]));
-  }, [mode, solvedField, definition.ft, data, level, index]);
+  }, [effectiveMode, solvedField, definition.ft, activeData, level, index]);
 
   // Contour lines never move — derive them once per mosaic.
   const contours = useMemo(
@@ -586,7 +646,7 @@ export function WaveMap({
           const v11 = nodeValues[(ny + 1) * MAP_COLS + nx + 1];
           if (v00 !== null && v10 !== null && v01 !== null && v11 !== null) {
             const w = v00 * (1 - tx) * (1 - ty) + v10 * tx * (1 - ty) + v01 * (1 - tx) * ty + v11 * tx * ty;
-            const [wr, wg, wb] = cellRgb(w, mode === "linear" ? "linear" : "hrrr");
+            const [wr, wg, wb] = cellRgb(w, effectiveMode === "linear" ? "linear" : "hrrr");
             r = Math.round(r * (1 - WAVE_ALPHA) + wr * WAVE_ALPHA);
             g = Math.round(g * (1 - WAVE_ALPHA) + wg * WAVE_ALPHA);
             b = Math.round(b * (1 - WAVE_ALPHA) + wb * WAVE_ALPHA);
@@ -613,7 +673,7 @@ export function WaveMap({
       }
       context.stroke();
     }
-  }, [mosaic, terrainGrid, nodeValues, contours, mode]);
+  }, [mosaic, terrainGrid, nodeValues, contours, effectiveMode]);
 
   // The LOA circle and this hour's cross-section line.
   const centre = { x: x(GLIDER_AREA.lon), y: y(GLIDER_AREA.lat) };
@@ -628,12 +688,12 @@ export function WaveMap({
     y: (leewardPoint.y - windwardPoint.y) / span,
   };
 
-  const ready = mosaic !== null && (mode === "linear" ? nodeValues !== null : data !== null);
+  const ready = mosaic !== null && (effectiveMode === "linear" ? nodeValues !== null : activeData !== null);
 
   // The caption carries the launch plane the solve actually used (1a) and which
   // theory produced the field (3-D on the map, or the transect fallback).
   const mapLaunchNote =
-    mode === "linear" && solvedField?.centreDivider
+    effectiveMode === "linear" && solvedField?.centreDivider
       ? `launched from the dividing streamline at ${(
           Math.round((solvedField.centreDivider.launchM * FT_PER_M) / 100) * 100
         ).toLocaleString("en-US")} ft (Fr ${solvedField.centreDivider.froude.toFixed(2)}) at the map centre, with the amplitude Fr-scaled and capped at half the carrying flow`
@@ -643,6 +703,13 @@ export function WaveMap({
       ? "2-D linear theory along parallel transects (the 3-D solve was unavailable)"
       : "3-D linear theory on the real terrain, every horizontal Fourier mode of the DEM riding the HRRR column";
 
+  const fieldOptions: { value: "linear" | "model" | "wrf"; label: string }[] = [
+    { value: "linear", label: "Linear estimate" },
+    { value: "model", label: "HRRR field" },
+  ];
+  if (wrfAvailable) fieldOptions.push({ value: "wrf", label: "WRF 1 km" });
+  const fieldStamp = effectiveMode === "wrf" ? `WRF 1 km${wrfRun ? ` · ${wrfRun.label}` : ""}` : "HRRR";
+
   return (
     <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -650,7 +717,9 @@ export function WaveMap({
           Wave map · where the lift bands sit
         </p>
         <p className="text-xs text-slate-400">
-          {data ? `${localStampFrom(data.times[index], data.offsetSeconds)} · HRRR` : "HRRR"}
+          {activeData
+            ? `${localStampFrom(activeData.times[index], activeData.offsetSeconds)} · ${fieldStamp}`
+            : fieldStamp}
         </p>
       </div>
 
@@ -658,19 +727,14 @@ export function WaveMap({
         <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
           Field
         </span>
-        {(
-          [
-            ["linear", "Linear estimate"],
-            ["model", "HRRR field"],
-          ] as const
-        ).map(([value, label]) => (
+        {fieldOptions.map(({ value, label }) => (
           <button
             key={value}
             type="button"
-            aria-pressed={mode === value}
+            aria-pressed={effectiveMode === value}
             onClick={() => setMode(value)}
             className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
-              mode === value
+              effectiveMode === value
                 ? "bg-sky-100 text-sky-700 ring-1 ring-sky-200"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
@@ -680,10 +744,10 @@ export function WaveMap({
         ))}
       </div>
 
-      {data ? (
+      {activeData ? (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          {data.chips.map((chip) => {
-            const active = chip.time === data.times[index];
+          {activeData.chips.map((chip) => {
+            const active = chip.time === activeData.times[index];
             return (
               <button
                 key={chip.time}
@@ -884,11 +948,11 @@ export function WaveMap({
               </g>
             </svg>
           </div>
-          <WaveLegend scale={mode === "linear" ? "linear" : "hrrr"} />
+          <WaveLegend scale={effectiveMode === "linear" ? "linear" : "hrrr"} />
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
-            {mode === "linear"
+            {effectiveMode === "linear"
               ? `${mapTheoryNote} at ${definition.ft.toLocaleString("en-US")} ft — ${mapLaunchNote || "anchored at the range's mean height with the flow there doing the forcing"}. `
-              : `Vertical velocity at ${definition.ft.toLocaleString("en-US")} ft over the Gorham country. `}
+              : `Vertical velocity at ${definition.ft.toLocaleString("en-US")} ft over the Gorham country — ${fieldStamp}. `}
             The dashed circle is the LOA&apos;s Mount Washington Glider Area — a 10 NM radius around its
             centre — and the solid line is the cross-section above, this hour&apos;s wind line through
             that centre. Shaded relief with 1,000 ft contours and roads (terrain: AWS Terrain Tiles;
@@ -898,7 +962,7 @@ export function WaveMap({
         </>
       ) : error || mosaicError || linearUnavailable ? (
         <p className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600 ring-1 ring-slate-900/5">
-          {mode === "linear" && linearUnavailable && !error && !mosaicError
+          {effectiveMode === "linear" && linearUnavailable && !error && !mosaicError
             ? "The linear wave solve is unavailable right now. "
             : "The wave map is unavailable right now. "}
           <a

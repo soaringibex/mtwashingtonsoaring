@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 import { compassName, flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellFill, wMs, WaveLegend } from "@/components/weather/wave-field";
+import { parseWrfRun, wrfRunFresh, type WrfRun } from "@/lib/wrf-run";
 import { buildWaveColumn, divideStreamline, saturateWave, solveLinearWave, type SolveResult } from "@/lib/linear-wave";
 import {
   columnLevelsAt,
@@ -67,8 +68,11 @@ type CrossData = {
   chips: { time: string; label: string }[];
 };
 
-async function fetchModelField(azimuth: number): Promise<CrossData> {
-  const data = (await fetchJson(wxApiPath("cross-section", { azimuth }))) as unknown;
+async function fetchModelField(
+  dataset: "cross-section" | "wrf-cross-section",
+  azimuth: number,
+): Promise<CrossData> {
+  const data = (await fetchJson(wxApiPath(dataset, { azimuth }))) as unknown;
   const locations = (Array.isArray(data) ? data : [data]) as {
     elevation?: number;
     utc_offset_seconds?: number;
@@ -115,11 +119,15 @@ export function WaveCrossSection({
   selectedTime: string | null;
   onSelectTime: (time: string) => void;
 }) {
-  const [mode, setMode] = useState<"linear" | "model">("linear");
+  const [mode, setMode] = useState<"linear" | "model" | "wrf">("linear");
   const [column, setColumn] = useState<WaveColumnRaw | null>(null);
   const [terrainLine, setTerrainLine] = useState<{ bucket: number; elevationsM: number[] } | null>(null);
   const [upwind, setUpwind] = useState<{ bucket: number; column: WaveColumnRaw } | null>(null);
   const [field, setField] = useState<{ bucket: number; data: CrossData } | null>(null);
+  const [wrfRun, setWrfRun] = useState<WrfRun | null>(null);
+  const [wrfAvailable, setWrfAvailable] = useState(false);
+  const [wrfField, setWrfField] = useState<{ bucket: number; data: CrossData } | null>(null);
+  const [wrfError, setWrfError] = useState(false);
   const [linearError, setLinearError] = useState(false);
   const [error, setError] = useState(false);
 
@@ -185,7 +193,7 @@ export function WaveCrossSection({
         .catch(() => {
           if (!cancelled) setLinearError(true);
         });
-      fetchModelField(bucket)
+      fetchModelField("cross-section", bucket)
         .then((next) => {
           if (!cancelled) {
             setField({ bucket, data: next });
@@ -203,6 +211,57 @@ export function WaveCrossSection({
       clearInterval(timer);
     };
   }, [bucket]);
+
+  // The WRF run stamp decides whether the "WRF 1 km" option exists at all.
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => {
+      fetchJson(wxApiPath("wrf-run"))
+        .then((payload) => {
+          if (!cancelled) {
+            const run = parseWrfRun(payload);
+            setWrfRun(run);
+            setWrfAvailable(wrfRunFresh(run, Date.now()));
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setWrfRun(null);
+            setWrfAvailable(false);
+          }
+        });
+    };
+    load();
+    const timer = setInterval(load, REFRESH_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
+
+  // The WRF cross-section for the hour's bucket loads eagerly; a failed or
+  // non-fresh run simply leaves the option on HRRR.
+  useEffect(() => {
+    if (bucket === null) return;
+    let cancelled = false;
+    fetchModelField("wrf-cross-section", bucket)
+      .then((next) => {
+        if (!cancelled) {
+          setWrfField({ bucket, data: next });
+          setWrfError(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setWrfError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [bucket]);
+
+  // A run that is missing, stale, not "ok" or whose field failed to load falls
+  // back to HRRR — the WRF option is simply not offered.
+  const effectiveMode = mode === "wrf" && (!wrfAvailable || wrfError) ? "model" : mode;
 
   // The linear solve for the selected hour — pure math (~0.1 ms), so it runs in render.
   let solve: SolveResult | null = null;
@@ -240,8 +299,9 @@ export function WaveCrossSection({
         ).toLocaleString("en-US")} ft (Fr ${froude.toFixed(2)})`
       : "";
 
-  const data = field?.data ?? null;
-  const staleField = field !== null && bucket !== null && field.bucket !== bucket;
+  const activeField = effectiveMode === "wrf" ? wrfField : field;
+  const data = activeField?.data ?? null;
+  const staleField = activeField !== null && bucket !== null && activeField.bucket !== bucket;
 
   let index = data?.defaultIndex ?? 0;
   if (data && selectedTime) {
@@ -250,6 +310,13 @@ export function WaveCrossSection({
   }
 
   const windLabel = `${compassName(windFrom)} ${Math.round(windFrom)}°`;
+
+  const fieldOptions: { value: "linear" | "model" | "wrf"; label: string }[] = [
+    { value: "linear", label: "Linear estimate" },
+    { value: "model", label: "HRRR field" },
+  ];
+  if (wrfAvailable) fieldOptions.push({ value: "wrf", label: "WRF 1 km" });
+  const fieldStamp = effectiveMode === "wrf" ? `WRF 1 km${wrfRun ? ` · ${wrfRun.label}` : ""}` : "HRRR";
 
   const W = 1000;
   const H = 330;
@@ -314,7 +381,7 @@ export function WaveCrossSection({
   );
 
   let content: React.ReactNode = null;
-  if (mode === "linear") {
+  if (effectiveMode === "linear") {
     if (solve && terrainLine) {
       const lastLevel = solve.zM.length - 1;
       const topFt = solve.zM[lastLevel] * FT_PER_M;
@@ -475,7 +542,7 @@ export function WaveCrossSection({
           Wave field · cross-section
         </p>
         <p className="text-xs text-slate-400">
-          {data ? `${localStampFrom(data.times[index], data.offsetSeconds)} · HRRR` : "HRRR"}
+          {data ? `${localStampFrom(data.times[index], data.offsetSeconds)} · ${fieldStamp}` : fieldStamp}
         </p>
       </div>
 
@@ -483,19 +550,14 @@ export function WaveCrossSection({
         <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
           Field
         </span>
-        {(
-          [
-            ["linear", "Linear estimate"],
-            ["model", "HRRR field"],
-          ] as const
-        ).map(([value, label]) => (
+        {fieldOptions.map(({ value, label }) => (
           <button
             key={value}
             type="button"
-            aria-pressed={mode === value}
+            aria-pressed={effectiveMode === value}
             onClick={() => setMode(value)}
             className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
-              mode === value
+              effectiveMode === value
                 ? "bg-sky-100 text-sky-700 ring-1 ring-sky-200"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
@@ -536,16 +598,18 @@ export function WaveCrossSection({
         <>
           {content}
           <p className="mt-3 text-[11px] leading-5 text-slate-400">
-            {mode === "linear"
+            {effectiveMode === "linear"
               ? `Linear-theory estimate: the steady wave equation solved from the terrain profile and the HRRR column${launchNote}, on this hour's wind line (${windLabel}) through the LOA's Glider Area centre — the chart is the slice inside the 10 NM circle. The amplitude is Fr-scaled below 1 and capped at half the carrying flow. The model's own pressure-level vertical velocity is much smoother; switch the field to HRRR for comparison.`
-              : `The model's own vertical velocity along this hour's wind line (${windLabel}) through the LOA's Glider Area centre, grey being the terrain.`}{" "}
+              : effectiveMode === "wrf"
+                ? `The WRF 1 km field${wrfRun ? ` (${wrfRun.label} cycle)` : ""}: the model's own vertical velocity along this hour's wind line (${windLabel}) through the LOA's Glider Area centre, grey being the terrain.`
+                : `The model's own vertical velocity along this hour's wind line (${windLabel}) through the LOA's Glider Area centre, grey being the terrain.`}{" "}
             Warm colours are lift, blue is sink — pick any hour above; the wave panel shares the
             selection.
           </p>
         </>
       ) : error || linearUnavailable ? (
         <p className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600 ring-1 ring-slate-900/5">
-          {mode === "linear" && linearUnavailable && !error
+          {effectiveMode === "linear" && linearUnavailable && !error
             ? "The linear wave solve is unavailable right now. "
             : "The cross-section is unavailable right now. "}
           <a
