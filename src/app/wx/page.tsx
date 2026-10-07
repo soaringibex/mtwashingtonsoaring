@@ -35,6 +35,26 @@ export default function WxPage() {
       <div className="bg-slate-50 py-10 sm:py-12">
         <Container>
           <div className="grid gap-6">
+            <section
+              aria-label="Disclaimer"
+              className="rounded-3xl bg-amber-50 p-6 ring-1 ring-amber-200/80 sm:p-7"
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="font-display text-xs font-semibold uppercase tracking-[0.28em] text-amber-800">
+                  Experimental — not for flight planning
+                </p>
+                <p className="text-xs text-amber-700/80">read this first</p>
+              </div>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-amber-900">
+                The Wx Brief is an experiment built by club members for the fun of looking at the
+                wave — not a weather service, and not a briefing. Its wave views are research-grade
+                estimates (the linear-theory field in particular can be wrong in both directions),
+                and everything here is only as good as the models behind it. For any flight, use
+                an official briefing, the winds and temperatures aloft forecast, the observatory
+                and field reports, and your own judgment — never this page alone.
+              </p>
+            </section>
+
             <WavePanel />
 
             <WindPanel />
