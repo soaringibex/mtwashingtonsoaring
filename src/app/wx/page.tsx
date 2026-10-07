@@ -7,7 +7,7 @@ import { WindPanel } from "@/components/weather/WindPanel";
 import { Container } from "@/components/ui/Container";
 
 export const metadata: Metadata = {
-  title: "Wx Brief",
+  title: "Wavecast",
   description:
     "The day's wave forecast for Mount Washington — a Scorer-parameter wave signal, the live column of wind aloft, the summit forecast hour by hour, nearby field reports, and the forecasts to read before you fly.",
 };
@@ -46,7 +46,7 @@ export default function WxPage() {
                 <p className="text-xs text-amber-700/80">read this first</p>
               </div>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-amber-900">
-                The Wx Brief is an experiment built by club members for the fun of looking at the
+                Wavecast is an experiment built by club members for the fun of looking at the
                 wave — not a weather service, and not a briefing. Its wave views are research-grade
                 estimates (the linear-theory field in particular can be wrong in both directions),
                 and everything here is only as good as the models behind it. For any flight, use

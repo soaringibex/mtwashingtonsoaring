@@ -1,4 +1,4 @@
-// Every Wx Brief datum, proxied and cached.
+// Every Wavecast datum, proxied and cached.
 //
 // Open-Meteo's free tier counts each requested location against shared per-IP budgets
 // (600/minute, 5,000/hour, 10,000/day — fine for a non-commercial club site, and a cold

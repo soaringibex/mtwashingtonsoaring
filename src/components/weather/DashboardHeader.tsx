@@ -61,7 +61,7 @@ export function DashboardHeader() {
           </span>
           <div>
             <h1 className="font-display text-lg font-bold leading-tight tracking-tight">
-              Wx Brief
+              Wavecast
             </h1>
             <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-sky-300">
               Mt Washington · station dashboard

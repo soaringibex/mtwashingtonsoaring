@@ -1,5 +1,5 @@
 // The day's vertical wind columns over Mount Washington, one per hour — shared by the
-// home page card (latest hour) and the Wx Brief dashboard (hour selection).
+// home page card (latest hour) and the Wavecast dashboard (hour selection).
 
 import { fetchJson } from "@/lib/fetch-json";
 import { mergedSeries } from "@/lib/forecast-model";

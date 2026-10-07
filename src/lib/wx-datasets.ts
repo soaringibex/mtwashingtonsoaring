@@ -1,4 +1,4 @@
-// The single home of every Wx Brief datum's shape — coordinates, pressure levels, and
+// The single home of every Wavecast datum's shape — coordinates, pressure levels, and
 // the upstream URL each dataset maps to.
 //
 // Open-Meteo's free tier counts every requested location against a per-minute, per-IP

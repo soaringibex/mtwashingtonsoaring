@@ -15,7 +15,7 @@ export const site = {
   },
   nav: [
     { href: "/flying", label: "Flying here", beta: false },
-    { href: "/wx", label: "Wx Brief", beta: true },
+    { href: "/wx", label: "Wavecast", beta: true },
     { href: "/stories", label: "Stories", beta: false },
     { href: "/history", label: "History", beta: false },
     { href: "/accomplishments", label: "Accomplishments", beta: false },
