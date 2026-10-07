@@ -152,11 +152,18 @@ const history: SearchEntry[] = [
     keywords: "1969 diamonds best day record",
   },
   {
-    title: "The New Hampshire altitude record — 31,900 ft (1969)",
+    title: "The New Hampshire altitude record — 32,513 ft (2018)",
     href: "/history",
     kind: "history",
-    text: "Bob Neumann's flight established the state altitude record, still the official mark.",
-    keywords: "neumann record altitude 31900",
+    text: "Timothy Chow's flight on October 9, 2018 raised the state altitude record above Bob Neumann's 1969 mark.",
+    keywords: "chow record altitude 32513 2018",
+  },
+  {
+    title: "Bob Neumann's 31,900 ft (1969)",
+    href: "/history",
+    kind: "history",
+    text: "The 1969 state altitude record — it stood for forty-nine years.",
+    keywords: "neumann record altitude 31900 1969",
   },
   {
     title: "Walter Weir's 33,600 ft climb (1985)",

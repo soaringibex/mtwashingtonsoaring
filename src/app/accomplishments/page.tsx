@@ -372,10 +372,15 @@ export default function AccomplishmentsPage() {
                   the wing.
                 </p>
 
-                <div className="mt-10 grid gap-4 sm:grid-cols-2">
+                <div className="mt-10 grid gap-4 sm:grid-cols-3">
+                  <Stat
+                    value="32,513 ft"
+                    label="The New Hampshire altitude record — Timothy Chow, October 9, 2018, flying the Mount Washington wave."
+                    dark
+                  />
                   <Stat
                     value="31,900 ft"
-                    label="The New Hampshire altitude record — Bob Neumann, flying the Mount Washington wave in 1969."
+                    label="Bob Neumann's 1969 flight — the state record for the next forty-nine years."
                     dark
                   />
                   <Stat

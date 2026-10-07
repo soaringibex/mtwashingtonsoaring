@@ -155,9 +155,9 @@ export default function HistoryPage() {
             <p>
               Records from this original series of wave camps survive, and several hundred diamond
               climbs were recorded during this period. The very best single day occurred in 1969,
-              when 44 diamonds were claimed. In 1969 Bob Neumann established the current New
-              Hampshire altitude record (31,900 feet). This altitude has been exceeded unofficially
-              several times since then.
+              when 44 diamonds were claimed. In 1969 Bob Neumann established the New Hampshire
+              altitude record (31,900 feet) — the mark that stood for the next forty-nine years,
+              until Timothy Chow climbed to 32,513 feet on October 9, 2018.
             </p>
             <p>
               The Mount Washington wave became known to readers of Soaring in a series of

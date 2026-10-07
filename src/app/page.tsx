@@ -20,8 +20,8 @@ const stats = [
     label: "The highest surface wind speed ever measured — recorded on the summit in 1934.",
   },
   {
-    value: "31,900 ft",
-    label: "The New Hampshire altitude record, set in the Mount Washington wave in 1969.",
+    value: "32,513 ft",
+    label: "The New Hampshire altitude record — Timothy Chow, in the Mount Washington wave, October 2018.",
   },
   {
     value: "10+ days",
