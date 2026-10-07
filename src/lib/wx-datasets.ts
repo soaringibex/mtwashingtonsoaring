@@ -68,7 +68,10 @@ export type WxDataset =
   | "terrain-line"
   | "wind-day"
   | "summit-hourly"
-  | "summit-current";
+  | "summit-current"
+  | "wrf-map-field"
+  | "wrf-cross-section"
+  | "wrf-run";
 
 /** The client-side path for a dataset. */
 export function wxApiPath(dataset: WxDataset, params?: Record<string, string | number>): string {
@@ -123,6 +126,16 @@ const bucketParam = (params: URLSearchParams): number | null => {
   if (!Number.isInteger(azimuth) || azimuth % 5 !== 0 || azimuth < 0 || azimuth >= 360) return null;
   return azimuth;
 };
+
+/**
+ * The WRF pipeline's Blob prefix (https://<store>.public.blob.vercel-storage.com/wrf/).
+ * Unset outside camp — the WRF views read null as "no field" and stay on HRRR.
+ */
+function wrfBlobPrefix(): string | null {
+  const base = process.env.WRF_BLOB_BASE_URL;
+  if (!base) return null;
+  return base.endsWith("/") ? base : `${base}/`;
+}
 
 /** The upstream request for a dataset, or null when the parameters are not in the whitelist. */
 export function buildUpstreamRequest(dataset: string, params: URLSearchParams): UpstreamRequest | null {
@@ -236,6 +249,23 @@ export function buildUpstreamRequest(dataset: string, params: URLSearchParams): 
         ],
         revalidate: 300,
       };
+
+    case "wrf-map-field": {
+      const base = wrfBlobPrefix();
+      return base ? { urls: [`${base}map-field.json`], revalidate: 900 } : null;
+    }
+
+    case "wrf-cross-section": {
+      const azimuth = bucketParam(params);
+      if (azimuth === null) return null;
+      const base = wrfBlobPrefix();
+      return base ? { urls: [`${base}cross-section-${azimuth}.json`], revalidate: 900 } : null;
+    }
+
+    case "wrf-run": {
+      const base = wrfBlobPrefix();
+      return base ? { urls: [`${base}run.json`], revalidate: 300 } : null;
+    }
 
     default:
       return null;
