@@ -15,12 +15,12 @@ export const site = {
   },
   nav: [
     { href: "/flying", label: "Flying here", beta: false },
-    { href: "/wx", label: "Wavecast", beta: true },
     { href: "/stories", label: "Stories", beta: false },
     { href: "/history", label: "History", beta: false },
     { href: "/accomplishments", label: "Accomplishments", beta: false },
     { href: "/gallery", label: "Photos", beta: false },
     { href: "/more", label: "More", beta: false },
+    { href: "/wx", label: "Wavecast", beta: true },
   ],
 } as const;
 
