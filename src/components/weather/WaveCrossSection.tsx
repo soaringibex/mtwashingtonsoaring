@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { SectionNote } from "@/components/weather/SectionNote";
 import { fetchJson } from "@/lib/fetch-json";
 import { compassName, flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellFill, wMs, WaveLegend } from "@/components/weather/wave-field";
@@ -581,6 +582,12 @@ export function WaveCrossSection({
           {data ? `${localStampFrom(data.times[index], data.offsetSeconds)} · ${fieldStamp}` : fieldStamp}
         </p>
       </div>
+
+      <SectionNote>
+        A vertical slice of the air along today’s wind, through the middle of the Glider Area.
+        Warm colours are air rising, blue is air sinking — the warm column is where the wave’s
+        lift should be.
+      </SectionNote>
 
       <div className="mt-4 flex flex-wrap items-center gap-1.5">
         <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">

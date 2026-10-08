@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SectionNote } from "@/components/weather/SectionNote";
 import { WindProfileView } from "@/components/home/WindProfile";
 import { fetchJson } from "@/lib/fetch-json";
 import { mergedSeries } from "@/lib/forecast-model";
@@ -139,6 +140,11 @@ export function WindPanel() {
             </p>
             <p className="text-xs text-slate-400">Mt Washington</p>
           </div>
+
+          <SectionNote>
+            The wind and temperature above the summit, level by level. Wave flying wants a strong,
+            steady wind near ridge height — the levels just above the peaks are the ones to watch.
+          </SectionNote>
           {windError ? (
             <p className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600 ring-1 ring-slate-900/5">
               The wind profile is unavailable right now.{" "}
@@ -179,6 +185,11 @@ export function WindPanel() {
             6,288 ft{summit ? ` · ${summit.tomorrow ? "tomorrow" : "today"}` : ""}
           </p>
         </div>
+
+        <SectionNote>
+          The summit’s own hour-by-hour forecast — wind, gusts and temperature on the rockpile.
+          The quickest way to see whether the real mountain agrees with the wave views.
+        </SectionNote>
 
         {summit ? (
           <>

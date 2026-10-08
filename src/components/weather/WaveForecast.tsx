@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { SectionNote } from "@/components/weather/SectionNote";
 import { fetchJson } from "@/lib/fetch-json";
 import { mergedSeries } from "@/lib/forecast-model";
 import { computeWaveScore, estimateWaveTop, WAVE_LEVELS, type WaveLevel, type WaveScore, type WaveTop } from "@/lib/wave-score";
@@ -513,6 +514,12 @@ export function WaveForecast({
             : ""}
         </p>
       </div>
+
+      <SectionNote>
+        Wave lift needs wind crossing the ridge and stable air stacked above it. This card scores
+        how well the day has both, hour by hour — higher is a stronger signal. Treat it as a hint,
+        not a promise.
+      </SectionNote>
 
       {day && selected ? (
         <>

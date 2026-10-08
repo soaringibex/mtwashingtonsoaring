@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SectionNote } from "@/components/weather/SectionNote";
 import Link from "next/link";
 import { DashboardHeader } from "@/components/weather/DashboardHeader";
 import { FieldReports } from "@/components/weather/FieldReports";
@@ -68,6 +69,10 @@ export default function WxPage() {
                 </p>
                 <p className="text-xs text-slate-400">forecasts &amp; observations</p>
               </div>
+
+              <SectionNote>
+                The official forecasts and observations to cross-check before you fly.
+              </SectionNote>
               <div className="mt-4 flex flex-wrap gap-2">
                 {forecastLinks.map((link) => (
                   <a

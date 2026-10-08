@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SectionNote } from "@/components/weather/SectionNote";
 import { fetchJson } from "@/lib/fetch-json";
 
 const REFRESH_MS = 10 * 60 * 1000;
@@ -121,6 +122,12 @@ export function FieldReports() {
           </p>
         </div>
 
+        <SectionNote>
+          What the airports around the mountain are actually reporting right now — real
+          observations, not model output. The spread between fields shows how the wind changes
+          across the region.
+        </SectionNote>
+
         {reports ? (
           <>
             <div className="mt-4 divide-y divide-slate-100">
@@ -221,6 +228,11 @@ export function FieldReports() {
             </p>
           ) : null}
         </div>
+
+        <SectionNote>
+          The valley airports’ official aviation forecast, in its coded form. Most useful as a
+          heads-up on fronts and rain rolling through — it is not a wave forecast.
+        </SectionNote>
 
         {reports?.taf ? (
           <>

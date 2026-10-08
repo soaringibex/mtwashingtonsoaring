@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { SectionNote } from "@/components/weather/SectionNote";
 import { fetchJson } from "@/lib/fetch-json";
 import { flyingChips, localStampFrom } from "@/lib/wx-window";
 import { cellRgb, wMs, WaveLegend } from "@/components/weather/wave-field";
@@ -722,6 +723,12 @@ export function WaveMap({
             : fieldStamp}
         </p>
       </div>
+
+      <SectionNote>
+        The same wave from above, at the height you pick: where the rising bands should line up
+        around the mountains. Warm is lift, blue is sink, and the dashed circle is the Glider
+        Area.
+      </SectionNote>
 
       <div className="mt-4 flex flex-wrap items-center gap-1.5">
         <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
