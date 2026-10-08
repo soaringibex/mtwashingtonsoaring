@@ -41,7 +41,7 @@ export function Header() {
             >
               {item.label}
               {item.beta ? (
-                <span className="pointer-events-none absolute left-1/2 top-[calc(100%-2px)] -translate-x-1/2 rounded-full bg-slate-100 px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                <span className="pointer-events-none absolute right-3 top-[calc(100%-10px)] rounded-full bg-slate-100 px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">
                   beta
                 </span>
               ) : null}
