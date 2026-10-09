@@ -654,7 +654,7 @@ export function FlightGlobe3D() {
         const d = Math.hypot(p1.x - p2.x, p1.y - p2.y);
         if (pinch > 0) {
           const factor = pinch / d;
-          setCamera((c) => ({ ...c, zoom: Math.min(320, Math.max(35, (c.zoom ?? frame.dist) * factor)) }));
+          setCamera((c) => ({ ...c, zoom: Math.min(320, Math.max(2, (c.zoom ?? frame.dist) * factor)) }));
         }
         pinch = d;
         return;
@@ -684,7 +684,7 @@ export function FlightGlobe3D() {
       e.preventDefault();
       setCamera((c) => ({
         ...c,
-        zoom: Math.min(320, Math.max(35, (c.zoom ?? frame.dist) * (1 + e.deltaY * 0.0012))),
+        zoom: Math.min(320, Math.max(2, (c.zoom ?? frame.dist) * (1 + e.deltaY * 0.0012))),
       }));
     };
 
@@ -773,10 +773,9 @@ export function FlightGlobe3D() {
                   {new Intl.NumberFormat("en-US").format(flight.maxAltFt)} ft
                 </span>
               </p>
-              <p className="mt-1 text-[11px] text-slate-400">
-                {flight.wave ? "wave flight" : "thermal flight"}
-                {flight.ssa.length ? ` · ${flight.ssa.join(" · ")}` : ""}
-              </p>
+              {flight.ssa.length ? (
+                <p className="mt-1 text-[11px] text-slate-400">{flight.ssa.join(" · ")}</p>
+              ) : null}
             </div>
           );
         })() : null}

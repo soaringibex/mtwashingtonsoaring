@@ -2,9 +2,6 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/ui/PageHero";
 import { FlightArchive } from "@/components/flights/FlightArchive";
-import { ButtonLink } from "@/components/ui/ButtonLink";
-import { BadgeIcon, DiamondIcon, RecordIcon } from "@/components/flights/icons";
-import { countsAsFlight, waveCampFlights } from "@/lib/wave-camp-flights";
 
 export const metadata: Metadata = {
   title: "Flights",
@@ -13,8 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default function FlightsPage() {
-  const flights = waveCampFlights.filter(countsAsFlight);
-
   return (
     <>
       <PageHero
@@ -28,55 +23,6 @@ export default function FlightsPage() {
 
       <section className="py-16 sm:py-20">
         <Container width="5xl">
-          <div className="grid gap-3 rounded-3xl bg-slate-50 p-6 text-sm leading-6 text-slate-600 ring-1 ring-slate-900/5 sm:p-7">
-            <p>
-              <span className="font-semibold text-slate-900">What is here.</span>{" "}
-              {flights.length} flights took off from Gorham (2G8) in the camp Octobers of
-              2016–2025 and were logged on WeGlide, and every one is in the tables below (a two-seat flight both pilots logged appears under
-              each name but counts once). The peak altitude is read from the flight&apos;s own
-              GPS trace.
-            </p>
-            <p>
-              <span className="font-semibold text-slate-900">The marks.</span>{" "}
-              <span className="mr-1 inline-flex translate-y-0.5 items-center">
-                <BadgeIcon label="SSA Gold" />
-              </span>
-              <span className="mr-1 inline-flex translate-y-0.5 items-center">
-                <DiamondIcon label="SSA Diamond" />
-              </span>
-              a gold medal or diamond marks the rare flight that earned its pilot an SSA badge —
-              Gold or Diamond — checked against the SSA badge database, where the award date lands
-              on the flight. WeGlide&apos;s own stickers and pilot-mileage badges are left off.{" "}
-              <span className="mr-1 inline-flex translate-y-0.5 items-center">
-                <RecordIcon label="A record" />
-              </span>
-              a trophy marks a New Hampshire record.
-            </p>
-            <p>
-              <span className="font-semibold text-slate-900">One caveat.</span> Altitudes come from
-              each flight&apos;s GPS trace and read a little high — the official 32,513 ft record day
-              (Tim Chow, October 9, 2018) shows ~34,000 ft here. Treat the numbers as a comparison
-              between flights, not as calibrated MSL. The record itself is on the{" "}
-              <a href="/accomplishments" className="font-medium text-sky-700 hover:text-sky-600">
-                accomplishments page
-              </a>
-              . Flights, badges and traces live on{" "}
-              <a
-                href="https://weglide.org"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-sky-700 hover:text-sky-600"
-              >
-                WeGlide
-              </a>
-              .
-            </p>
-          </div>
-
-          <div className="mt-6">
-            <ButtonLink href="/flights/3d">See every year in 3D →</ButtonLink>
-          </div>
-
           <div className="mt-14">
             <FlightArchive />
           </div>

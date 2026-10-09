@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FlightMarks } from "@/components/flights/icons";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { countsAsFlight, waveCampFlights, type WaveCampFlight } from "@/lib/wave-camp-flights";
 
 /** The "high flights" filter: well above anything thermals or a tow reach here in October. */
@@ -117,6 +118,9 @@ export function FlightArchive() {
           {flights.filter(countsAsFlight).length}{" "}
           {flights.filter(countsAsFlight).length === 1 ? "flight" : "flights"} shown
         </span>
+        <ButtonLink href="/flights/3d" className="ml-auto">
+          See every year in 3D →
+        </ButtonLink>
       </div>
 
       <div className="mt-10 space-y-12">

@@ -191,6 +191,29 @@ async function main() {
         );
       }
 
+      if (target.zoom) {
+        const { x, y, deltaY, steps = 8 } = target.zoom;
+        for (let i = 0; i < steps; i += 1) {
+          await send(
+            ws,
+            "Input.dispatchMouseEvent",
+            { type: "mouseWheel", x, y, deltaX: 0, deltaY, pointerType: "mouse" },
+            sessionId,
+          );
+          await send(
+            ws,
+            "Runtime.evaluate",
+            { expression: `new Promise((r) => setTimeout(r, 90))`, awaitPromise: true },
+            sessionId,
+          );
+        }
+        await send(
+          ws,
+          "Runtime.evaluate",
+          { expression: `new Promise((r) => setTimeout(r, 700))`, awaitPromise: true },
+          sessionId,
+        );
+      }
       if (target.click) {
         const { x, y } = target.click;
         await send(
