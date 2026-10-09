@@ -85,6 +85,13 @@ const pages: SearchEntry[] = [
     keywords: "badges awards records climb altitude gold diamond lennie pin",
   },
   {
+    title: "Flights",
+    href: "/flights",
+    kind: "page",
+    text: "Every WeGlide-logged flight from the October wave camps at Gorham, 2016–2025 — peak GPS altitudes, badges, the state record, and a link to each trace.",
+    keywords: "flights log weglide gps altitude badge medal trophy record wave camp gorham 2016 2025 archive trace",
+  },
+  {
     title: "Photos",
     href: "/gallery",
     kind: "page",

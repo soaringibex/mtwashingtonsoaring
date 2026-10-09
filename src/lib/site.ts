@@ -18,6 +18,7 @@ export const site = {
     { href: "/stories", label: "Stories", beta: false },
     { href: "/history", label: "History", beta: false },
     { href: "/accomplishments", label: "Accomplishments", beta: false },
+    { href: "/flights", label: "Flights", beta: false },
     { href: "/gallery", label: "Photos", beta: false },
     { href: "/more", label: "More", beta: false },
     { href: "/wx", label: "Wavecast", beta: true },
