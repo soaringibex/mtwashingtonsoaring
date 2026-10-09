@@ -17,7 +17,7 @@ export function DocumentView({
   backHref: string;
   backLabel: string;
 }) {
-  const size = `${(text.bytes / 1e6).toFixed(1)} MB`;
+  const size = text.bytes ? `${(text.bytes / 1e6).toFixed(1)} MB` : null;
 
   return (
     <article className="py-16 sm:py-20">
@@ -35,14 +35,16 @@ export function DocumentView({
         {doc.description ? (
           <p className="mt-4 text-[1.0625rem] leading-8 text-slate-600">{doc.description}</p>
         ) : null}
-        <div className="mt-6 flex flex-wrap items-center gap-3">
-          <ButtonLink href={doc.href} variant="secondary">
-            Download the original PDF
-          </ButtonLink>
-          <span className="text-xs text-slate-400">
-            Original: PDF · {text.pages} {text.pages === 1 ? "page" : "pages"} · {size}
-          </span>
-        </div>
+        {doc.href ? (
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <ButtonLink href={doc.href} variant="secondary">
+              Download the original PDF
+            </ButtonLink>
+            <span className="text-xs text-slate-400">
+              Original: PDF · {text.pages} {text.pages === 1 ? "page" : "pages"} · {size}
+            </span>
+          </div>
+        ) : null}
 
         <Prose className="mt-10">
           {text.blocks.map((block, index) => {
@@ -122,17 +124,19 @@ export function DocumentView({
           })}
         </Prose>
 
-        <div className="mt-12 rounded-3xl bg-slate-50 p-7 ring-1 ring-slate-900/5">
-          <p className="text-sm leading-7 text-slate-600">
-            This page is a web transcription of the original document — the PDF is the
-            authoritative version, and the one to print and carry.
-          </p>
-          <div className="mt-5">
-            <ButtonLink href={doc.href} variant="secondary">
-              Download the original PDF ({size})
-            </ButtonLink>
+        {doc.href ? (
+          <div className="mt-12 rounded-3xl bg-slate-50 p-7 ring-1 ring-slate-900/5">
+            <p className="text-sm leading-7 text-slate-600">
+              This page is a web transcription of the original document — the PDF is the
+              authoritative version, and the one to print and carry.
+            </p>
+            <div className="mt-5">
+              <ButtonLink href={doc.href} variant="secondary">
+                Download the original PDF ({size})
+              </ButtonLink>
+            </div>
           </div>
-        </div>
+        ) : null}
       </Container>
     </article>
   );

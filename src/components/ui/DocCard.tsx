@@ -6,7 +6,7 @@ export function DocCard({ doc }: { doc: DocLink }) {
     ? "Read"
     : doc.external
       ? "Open link"
-      : doc.href.endsWith(".pdf")
+      : doc.href?.endsWith(".pdf")
         ? "Download PDF"
         : "Download";
 

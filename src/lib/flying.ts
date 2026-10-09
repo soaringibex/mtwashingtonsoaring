@@ -1,6 +1,7 @@
 export type DocLink = {
   title: string;
-  href: string;
+  /** Download of the original document — normally the PDF. Absent for web-native stories. */
+  href?: string;
   /** Web edition of the document, when one exists (the PDF stays as the download). */
   page?: string;
   description?: string;

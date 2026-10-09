@@ -38,7 +38,7 @@ export default function StoriesPage() {
                 </div>
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
                   {group.stories.map((story) => (
-                    <DocCard key={story.href} doc={story} />
+                    <DocCard key={story.page ?? story.href} doc={story} />
                   ))}
                 </div>
               </section>

@@ -14,6 +14,13 @@ export const storyGroups: StoryGroup[] = [
     blurb: "What it is actually like up there — including the days that go sideways.",
     stories: [
       {
+        title: "NH Speed Record in the Wave",
+        page: "/stories/nh-speed-record-in-the-wave",
+        description:
+          "Evan Ludeman's account of his 300 km out-and-return New Hampshire speed record in the wave — 89 mph. First published on the club mailing list, September 2026.",
+        meta: "Story",
+      },
+      {
         title: "The Mountains Win Again",
         href: "/files/the-mountains-win-again-2015.pdf",
         page: "/stories/the-mountains-win-again-2015",

@@ -10,8 +10,9 @@ export type DocBlock =
   | { type: "table"; caption?: string; headers: string[]; rows: string[][] };
 
 export type DocumentText = {
-  pages: number;
-  bytes: number;
+  /** PDF metrics — omitted for hand-authored entries that never had a PDF. */
+  pages?: number;
+  bytes?: number;
   blocks: DocBlock[];
 };
 
@@ -2651,6 +2652,72 @@ export const documentTexts: Record<string, DocumentText> = {
       {
         "type": "p",
         "text": ".\\,Q Ur\\JPY~ -Y-DWJ! ci R Jetfre;pA. rukg es Regional Counsel V"
+      }
+    ]
+  },
+  // Hand-authored — Evan Ludeman's story reached the site as an email to the club
+  // mailing list with photographs attached, not as a PDF, so this entry is not
+  // produced by scripts/extract-documents.mjs. Edit it here by hand.
+  "nh-speed-record-in-the-wave": {
+    "blocks": [
+      {
+        "type": "p",
+        "text": "Thanks to my friends at FSA… I bagged the 300k O&R NH speed record last Friday in the wave."
+      },
+      {
+        "type": "p",
+        "text": "I launched around 1300, found NW wind on the ridges at ~25, cloud base initially around 5000, rising fairly rapidly as things dried out from the previous day's rain. I ridge soared to Mt. Madison, well away from the rocks in eerie smooth, almost wave-like ridge lift, turned the corner, headed South along Rte 16 near cloud base working convective/rotor influenced cu in straight flight to the strong part of the primary system at Pinkham Notch. There was a great deal of cloud, poorly organized and chaotic, the clue was the clear area at the notch. The ascent was an invigorating 10–12 knots initially. I took it up to 17.9, then headed to my start point at Waterville Valley Ski Area."
+      },
+      {
+        "type": "p",
+        "text": "This must be the 5th or 6th run I've made on this course. With all the modern technology available, it isn't difficult to fly this route, but I have found quite challenging to fly it efficiently and fast. Friday I managed to keep the inevitable errors small-ish. The significant disappointment on the day was the slow rate of climb at Saddleback. I've seen better here on previous attempts, but this day was tough. We fly the weather we have! End result, 89 mph."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/nh-speed-record-in-the-wave/skysight-forecast-overlay.jpg",
+        "width": 1917,
+        "height": 1102
+      },
+      {
+        "type": "p",
+        "text": "Flight overlay on SkySight wave forecast."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/nh-speed-record-in-the-wave/contact-skysight-flight-computer.jpg",
+        "width": 1084,
+        "height": 610
+      },
+      {
+        "type": "p",
+        "text": "Contact! That's the SkySight wave forecast on my flight computer. While helpful when it works, it's an aggravating distraction when it doesn't, and my experience is mostly the latter. When it's working, SkySight is pretty good about showing the general areas in which you might expect lift and sink, key word \"general\". This is still a pilot's sport, it's not a video game, at least not yet (yay!!). The wind forecast was pretty good. 50–60 NW at altitude."
+      },
+      {
+        "type": "img",
+        "src": "/images/reading/nh-speed-record-in-the-wave/clearer-skies-over-maine.jpg",
+        "width": 4032,
+        "height": 3024
+      },
+      {
+        "type": "p",
+        "text": "Clearer skies over Maine. This is 18 miles out of Sugarloaf, headed North."
+      },
+      {
+        "type": "p",
+        "text": "Some notes: This was a total gas, just tremendous fun. Here are things that help:"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Good navigation — this is essential. You don't need SkySight on your flight computer. You do need to know where the likely hot spots are (3–4 miles downwind of the ridgeline). Saddleback is the very obvious wave generator at the North end. Old Speck & Bald Pate usually generate a useful wave.",
+          "Warm day or warm footwear — Friday it was 25 F at 18K!! Total luxury. In October plan for -5F. Rudder cable guides are a common air leak into the footwell, cover with e.g. felt weather strip and gorilla tape (this helps a lot!). I've also found that keeping your legs warm helps with toes. It's all about maintaining good circulation.",
+          "Fast glider — If you aren't going fast, you aren't going anywhere with a 50 kt cross wind.",
+          "Contingencies — like layers on an onion. Good database, back up nav. Back up comm. inReach. Whatever you need to make a late night or an overnight less annoying in the event of a landout. When tire meets turf… nothing beats a good (or at least willing :-)) crew."
+        ]
+      },
+      {
+        "type": "p",
+        "text": "— Evan"
       }
     ]
   }
