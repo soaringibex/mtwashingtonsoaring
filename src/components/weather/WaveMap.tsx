@@ -460,7 +460,7 @@ export function WaveMap({
         column: fallbackColumn,
       });
       if (!raw) return null;
-      const solve = saturateWave(raw, fallbackColumn, fallbackDivider.froude);
+      const solve = saturateWave(raw, fallbackColumn);
       zM = solve.zM;
       transects.push(solve.w);
       if (i === (TRANSECT_COUNT - 1) / 2) {
@@ -697,7 +697,7 @@ export function WaveMap({
     effectiveMode === "linear" && solvedField?.centreDivider
       ? `launched from the dividing streamline at ${(
           Math.round((solvedField.centreDivider.launchM * FT_PER_M) / 100) * 100
-        ).toLocaleString("en-US")} ft (Fr ${solvedField.centreDivider.froude.toFixed(2)}) at the map centre, with the amplitude Fr-scaled and capped at half the carrying flow`
+        ).toLocaleString("en-US")} ft (Fr ${solvedField.centreDivider.froude.toFixed(2)}) at the map centre, with the amplitude calibrated against past glider climbs and capped at half the carrying flow`
       : "";
   const mapTheoryNote =
     solvedField?.kind === "2d"

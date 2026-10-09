@@ -36,9 +36,10 @@
 //   profile length of zeros on each side (73 → 256, 111 → 512). The wrap then sits far
 //   outside the terrain, so a weakly damped trapped train cannot masquerade as upwind
 //   lift at the window edge; `solveLinearWave` still returns the input length.
-// - The output is saturated (`saturateWave`), never the solver: linear theory is
-//   unbounded on blocked days, so the amplitude is scaled by Fr below 1 and capped
-//   at half the layer's along-transect wind.
+// - The output is calibrated and bounded (`saturateWave`), never the solver: a fixed
+//   gain fitted to glider climbs, then a cap at half the layer's along-transect wind.
+//   Blocking is handled once, by the dividing-streamline launch plane — an extra
+//   ×Fr on the amplitude counted it twice (see `WAVE_GAIN`).
 // - The outgoing solution is integrated DOWNWARD from the top (numerically stable —
 //   the desired mode grows along the integration while spurious modes decay), then
 //   scaled once to satisfy the surface boundary.
@@ -114,17 +115,18 @@ const G = 9.81;
 const GAS_CONSTANT = 287.05; // dry air, J kg⁻¹ K⁻¹
 
 /**
- * The default Rayleigh friction, s⁻¹. Chosen by measurement (live 2026-10-06 16:00,
- * 310° bucket, on the padded domain): contamination at the padded domain's TRUE edge
- * (outermost 16 samples / peak) crosses the 15% criterion at α ≈ 2e-4. Across two
- * consecutive HRRR cycles the crossing landed at 14.9% and 15.7% for 2e-4 (the
- * refreshed-cycle table: 1e-4 → 39.6%, 1.5e-4 → 24.9%, 2e-4 → 15.7%, 2.5e-4 → 9.8%,
- * 3e-4 → 6.0%). The earlier window-edge metric could not separate wrap-around from
- * real upwind lift (Kilkenny/Pliny terrain sits 20–35 km upwind of the Glider Area)
- * and drove the pick to 1e-3, a 17-minute damping time that halved the primary's
- * amplitude (2.4 vs 4.4 m/s at 10k ft).
+ * The default Rayleigh friction, s⁻¹ — chosen against observations, not a numerical
+ * criterion. Hindcasting the map's 3-D solve for every hour of 172 Gorham October
+ * flights (2016–2025, fixed-interval loggers, 71,499 straight-flight samples above the
+ * crest), the correlation between modelled w and the gliders' measured air w peaked at
+ * α ≈ 1e-3 (2e-4 → 0.225, 5e-4 → 0.247, 1e-3 → 0.254, 2e-3 → 0.218, 3e-3 → 0.170 on
+ * 2016–2020) and held on the untouched 2021–2025 flights (0.269 → 0.318). Real lee-wave
+ * trains fade downstream faster than the lossless theory says; the stronger friction
+ * trades away the far-downstream train, and `WAVE_GAIN` restores the primary's
+ * amplitude. The earlier pick of 2e-4 came from a wrap-around criterion on a single
+ * live day; with the zero-padded 2-D domain the wrap no longer constrains α.
  */
-export const DEFAULT_DAMPING_S = 2e-4;
+export const DEFAULT_DAMPING_S = 1e-3;
 
 const cAdd = (a: C, b: C): C => [a[0] + b[0], a[1] + b[1]];
 const cMul = (a: C, b: C): C => [a[0] * b[0] - a[1] * b[1], a[0] * b[1] + a[1] * b[0]];
@@ -464,25 +466,29 @@ export function solveLinearWave(input: SolveInput): SolveResult | null {
   };
 }
 
-/** The exponent in the saturation's Fr^p, pinned so an Fr = 0.5 day keeps half. */
-const SATURATION_EXPONENT = 1;
+/**
+ * The amplitude gain on the linear solve, fitted to glider climbs. With α = 1e-3 and no
+ * Froude scaling, the strongest-lift decile of the 2016–2020 hindcast read 0.82 m/s
+ * against 1.64 m/s measured (×2.0); at gain 2 the held-out 2021–2025 decile read
+ * 2.28 m/s modelled vs 2.11 m/s measured. The old ×Fr factor (typical Fr 0.2–0.6 here)
+ * cut the amplitude 2–5× on days pilots climbed at 3–4 m/s.
+ */
+export const WAVE_GAIN = 2;
 
 /**
- * Bounded output for a physical day — applied to the solve, never inside it.
+ * Calibrated, bounded output for a physical day — applied to the solve, never inside it.
  *
- * Linear theory has no amplitude limit: as Fr → 0 (a deep blocked layer) it keeps
- * growing, and at resonance it can exceed the flow that carries it. Two rules:
- *  1. w × f(Fr), f = 1 for Fr ≥ 1 and Fr^1 below — pinned so Fr = 0.5 keeps half
- *     the linear amplitude.
+ *  1. w × WAVE_GAIN (observational calibration, see above). Blocking is NOT scaled
+ *     here: the dividing-streamline launch plane already removes the blocked terrain
+ *     from the forcing.
  *  2. |w| ≤ 0.5·U at each level, where U is that layer's along-transect wind: the
  *     vertical velocity cannot outrun the flow that carries it.
  */
-export function saturateWave(solve: SolveResult, column: WaveColumn, froude: number): SolveResult {
-  const scale = froude >= 1 ? 1 : Math.max(0, froude) ** SATURATION_EXPONENT;
+export function saturateWave(solve: SolveResult, column: WaveColumn): SolveResult {
   const w = solve.w.map((line, levelIndex) => {
     const u = column.layers[levelIndex]?.uMs ?? column.uSurfaceMs;
     const cap = 0.5 * Math.max(u, 0);
-    return line.map((value) => Math.min(Math.max(value * scale, -cap), cap));
+    return line.map((value) => Math.min(Math.max(value * WAVE_GAIN, -cap), cap));
   });
   return { zM: solve.zM, w };
 }

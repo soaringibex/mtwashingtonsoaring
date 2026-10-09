@@ -103,7 +103,7 @@ export function solveWaveField3D(
     column: waveColumn,
   });
   if (!raw) return null;
-  const solve = saturateWave(raw, waveColumn, divider.froude);
+  const solve = saturateWave(raw, waveColumn);
   return {
     zM: solve.zM,
     w: solve.w,

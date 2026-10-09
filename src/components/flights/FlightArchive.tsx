@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BadgeIcon, RecordIcon, WavePill } from "@/components/flights/icons";
 import { waveCampFlights, type WaveCampFlight } from "@/lib/wave-camp-flights";
 
 const ftFormat = new Intl.NumberFormat("en-US");
@@ -19,65 +20,14 @@ function formatDuration(minutes: number | null): string {
   return h > 0 ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m`;
 }
 
-/** A medal, for a flight that collected a badge. */
-function MedalIcon({ label }: { label: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className="size-4 text-sky-700" role="img" aria-label={label}>
-      <title>{label}</title>
-      <path
-        d="M8.5 2.5l3.5 6 3.5-6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="14.5" r="6" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M12 11.8l.95 1.9 2.05.3-1.5 1.45.35 2.05-1.85-1-1.85 1 .35-2.05-1.5-1.45 2.05-.3z" fill="currentColor" />
-    </svg>
-  );
-}
-
-/** A trophy, for a state record. */
-function TrophyIcon({ label }: { label: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className="size-4 text-amber-600" role="img" aria-label={label}>
-      <title>{label}</title>
-      <path
-        d="M7 4h10v3.5a5 5 0 01-10 0z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M7 5.5H4.5v1A3.5 3.5 0 008 10m9-4.5h2.5v1a3.5 3.5 0 01-3.5 3.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <path d="M12 12.5v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M8.5 20h7l-.8-3.5h-5.4z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 function Marks({ flight }: { flight: WaveCampFlight }) {
-  const badgeLabel = flight.badges.length
-    ? `${flight.badges.join(" · ")}${flight.badges.some((b) => b.includes("Altitude")) ? " (club pin)" : ""}`
-    : "";
   return (
     <span className="inline-flex items-center gap-2">
+      {flight.wave ? <WavePill /> : null}
       {flight.record ? (
-        <TrophyIcon label="New Hampshire state record — Open class absolute altitude and gain" />
+        <RecordIcon label="New Hampshire state record — Open class absolute altitude and gain" />
       ) : null}
-      {flight.badges.length ? <MedalIcon label={`Badges: ${badgeLabel}`} /> : null}
-      {flight.wave ? (
-        <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-700 ring-1 ring-sky-100">
-          wave
-        </span>
-      ) : null}
+      {flight.badges.length ? <BadgeIcon label={`Badges: ${flight.badges.join(" · ")}`} /> : null}
     </span>
   );
 }
@@ -177,7 +127,9 @@ export function FlightArchive() {
 
       <div className="mt-10 space-y-12">
         {years.map((year) => {
-          const rows = flights.filter((f) => f.date.startsWith(year));
+          const rows = flights
+            .filter((f) => f.date.startsWith(year))
+            .sort((a, b) => (b.maxAltFt ?? 0) - (a.maxAltFt ?? 0));
           const pilots = new Set(rows.map((f) => f.pilot)).size;
           const wave = rows.filter((f) => f.wave).length;
           const best = Math.max(...rows.map((f) => f.maxAltFt ?? 0));

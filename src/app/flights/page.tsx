@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/ui/PageHero";
 import { FlightArchive } from "@/components/flights/FlightArchive";
+import { BadgeIcon, RecordIcon, WavePill } from "@/components/flights/icons";
+import { WAVE_CLIMB_M, waveCampFlights } from "@/lib/wave-camp-flights";
 
 export const metadata: Metadata = {
   title: "Flights",
@@ -10,6 +12,9 @@ export const metadata: Metadata = {
 };
 
 export default function FlightsPage() {
+  const waveCount = waveCampFlights.filter((flight) => flight.wave).length;
+  const climbFt = Math.round((WAVE_CLIMB_M * 3.28084) / 100) * 100;
+
   return (
     <>
       <PageHero
@@ -25,31 +30,31 @@ export default function FlightsPage() {
         <Container width="5xl">
           <div className="grid gap-3 rounded-3xl bg-slate-50 p-6 text-sm leading-6 text-slate-600 ring-1 ring-slate-900/5 sm:p-7">
             <p>
-              <span className="font-semibold text-slate-900">What is here.</span> 229 flights took
-              off from Gorham (2G8) in the camp Octobers of 2016–2025 and were logged on WeGlide —
-              149 of them connected to the wave, and every one is in the tables below. The peak
-              altitude is read from the flight&apos;s own GPS trace.
+              <span className="font-semibold text-slate-900">What is here.</span>{" "}
+              {waveCampFlights.length} flights took off from Gorham (2G8) in the camp Octobers of
+              2016–2025 and were logged on WeGlide — {waveCount} of them connected to the wave, and
+              every one is in the tables below. The peak altitude is read from the flight&apos;s own
+              GPS trace.
             </p>
             <p>
               <span className="font-semibold text-slate-900">The marks.</span>{" "}
               <span className="mr-1 inline-flex translate-y-0.5 items-center">
-                <svg viewBox="0 0 24 24" className="size-4 text-sky-700" aria-hidden="true">
-                  <circle cx="12" cy="14.5" r="6" fill="none" stroke="currentColor" strokeWidth="1.8" />
-                  <path d="M8.5 2.5l3.5 6 3.5-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <WavePill />
               </span>
-              a medal means the flight collected a badge — a WeGlide achievement (Silver, Gold,
-              Diamond, Astronaut…) or one of the club&apos;s altitude pins; hover to see which.{" "}
+              a wave tag means the trace shows the flight&apos;s own flying caught the wave: after
+              release it gained at least {climbFt.toLocaleString("en-US")} feet in ten minutes of
+              straight flight, without circling (thermals turn through the same window and
+              don&apos;t count, however high they climb).{" "}
               <span className="mr-1 inline-flex translate-y-0.5 items-center">
-                <svg viewBox="0 0 24 24" className="size-4 text-amber-600" aria-hidden="true">
-                  <path d="M7 4h10v3.5a5 5 0 01-10 0z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-                  <path d="M12 12.5v4M8.5 20h7l-.8-3.5h-5.4z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <BadgeIcon label="A badge" />
               </span>
-              a trophy marks a New Hampshire record. A <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-700 ring-1 ring-sky-100">wave</span> tag
-              means the trace shows the flight climbed to 2,500 m or more, or reached 2,000 m on a
-              sustained wave climb well above the ridgeline — the flights without it took off in the
-              camp but stayed on thermals and slope lift below the crest.
+              a gold medal means the flight collected a badge — a WeGlide achievement (Silver,
+              Gold, Diamond, Astronaut…) or one of the club&apos;s altitude pins; hover to see
+              which.{" "}
+              <span className="mr-1 inline-flex translate-y-0.5 items-center">
+                <RecordIcon label="A record" />
+              </span>
+              a trophy marks a New Hampshire record.
             </p>
             <p>
               <span className="font-semibold text-slate-900">One caveat.</span> Altitudes come from

@@ -176,12 +176,10 @@ const report = (label: string, alpha: number | undefined) => {
   const raw: SolveResult = { zM: padded.zM, w: central };
   const li10 = nearestLevel(raw.zM, 3048);
   const li16 = nearestLevel(raw.zM, 4877);
-  const saturated = saturateWave(raw, columnBase, divider.froude);
-  const scale = divider.froude >= 1 ? 1 : Math.max(0, divider.froude);
+  const saturated = saturateWave(raw, columnBase);
   const line10 = raw.w[li10];
   console.log(
-    `${label}: |w|@10k ${maxAbs(line10).toFixed(2)} m/s raw (${maxAbs(saturated.w[li10]).toFixed(2)} saturated, ` +
-      `lift scale ${scale.toFixed(2)}), |w|@16k ${maxAbs(raw.w[li16]).toFixed(2)} m/s, ` +
+    `${label}: |w|@10k ${maxAbs(line10).toFixed(2)} m/s raw (${maxAbs(saturated.w[li10]).toFixed(2)} saturated), |w|@16k ${maxAbs(raw.w[li16]).toFixed(2)} m/s, ` +
       `λ@10k ${dominantWavelengthKm(line10, DX_M)?.toFixed(2)} km (padded ${dominantWavelengthKm(padded.w[li10], DX_M)?.toFixed(2)}), ` +
       `circle sign changes ${signChangesInsideCircle(line10)}, lee bands ${liftBands(line10)}, ` +
       `true edge ${(100 * paddedEdgeRatio(padded.w[li10])).toFixed(1)}% of peak (pad ${padded.padLength})`,
@@ -405,7 +403,7 @@ if (args.includes("--3d")) {
   });
   const solveMs = performance.now() - solveStart;
   if (!raw3) throw new Error("3-D solve failed");
-  const sat3 = saturateWave(raw3, gridColumn, gridDivider.froude);
+  const sat3 = saturateWave(raw3, gridColumn);
   const level3d = nearestLevel(raw3.zM, 3048);
 
   // The 3-D grid is not padded (256² stays inside the timing budget), so the wrap
@@ -440,7 +438,7 @@ if (args.includes("--3d")) {
     zM: padded2.zM,
     w: padded2.w.map((line) => line.slice(padded2.offset, padded2.offset + G3)),
   };
-  const sat2 = saturateWave(central2, gridColumn, gridDivider.froude);
+  const sat2 = saturateWave(central2, gridColumn);
   const level2d = nearestLevel(central2.zM, 3048);
 
   console.log(

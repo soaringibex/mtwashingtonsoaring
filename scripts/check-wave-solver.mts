@@ -21,6 +21,7 @@ import {
   solveLinearWavePadded,
   type WaveColumn,
   type WaveColumnLayer,
+  WAVE_GAIN,
 } from "../src/lib/linear-wave.ts";
 import { sampleField, solveLinearWave3D } from "../src/lib/linear-wave-3d.ts";
 import { fft2d } from "../src/lib/fft.ts";
@@ -214,24 +215,23 @@ if (failed) throw new Error("wave solver amplitude reference failed — check th
 
 // ------------------------------------------------------------- saturation rules
 //
-// Fr ≥ 1: the solve passes through unscaled, still capped at half each layer's flow.
-// Fr < 1: scaled by Fr (pinned p = 1), so Fr = 0.5 keeps half.
+// Every value is multiplied by WAVE_GAIN (the glider-climb calibration), then capped at
+// half each layer's along-transect wind. Blocking is not rescaled here.
 const layerStub = (uMs: number, amp: number): WaveColumnLayer => ({ zTopM: 1000, n2: 1e-4, uMs, l2: 1e-7, amp });
 const satColumn: WaveColumn = {
   layers: [layerStub(20, 1), layerStub(10, 1)],
   uSurfaceMs: 20,
   baseM: 0,
 };
-const satSolve = { zM: [1000, 2000], w: [[40, -40, 4], [4, -4, 0]] };
-const satHalf = saturateWave(satSolve, satColumn, 0.5);
-const satOne = saturateWave(satSolve, satColumn, 1.2);
-const expectHalf = [[10, -10, 2], [2, -2, 0]]; // ×0.5, then capped at 0.5·U (10, 5)
-const expectOne = [[10, -10, 4], [4, -4, 0]]; // uncapped except level0's 40 → 10
+const satSolve = { zM: [1000, 2000], w: [[40, -40, 1.5], [2, -2, 0]] };
+const sat = saturateWave(satSolve, satColumn);
+// ×WAVE_GAIN (2), then capped at 0.5·U per level (10, then 5): 1.5 → 3, 2 → 4 stay under
+const expectSat = [[10, -10, 1.5 * WAVE_GAIN], [2 * WAVE_GAIN, -2 * WAVE_GAIN, 0]];
 const close = (a: number[], b: number[]) => a.every((value, i) => Math.abs(value - b[i]) < 1e-12);
-if (!close(satHalf.w[0], expectHalf[0]) || !close(satHalf.w[1], expectHalf[1]) || !close(satOne.w[0], expectOne[0]) || !close(satOne.w[1], expectOne[1])) {
-  throw new Error(`saturation failed: half=${JSON.stringify(satHalf.w)}, one=${JSON.stringify(satOne.w)}`);
+if (WAVE_GAIN !== 2 || !close(sat.w[0], expectSat[0]) || !close(sat.w[1], expectSat[1])) {
+  throw new Error(`saturation failed: ${JSON.stringify(sat.w)} (gain ${WAVE_GAIN})`);
 }
-console.log("wave solver: saturation ok (Fr<1 halves and caps at 0.5·U; Fr≥1 only caps)");
+console.log(`wave solver: saturation ok (×${WAVE_GAIN} calibration gain, capped at 0.5·U)`);
 
 // --------------------------------------------- two-layer trapped resonance (Scorer)
 //
