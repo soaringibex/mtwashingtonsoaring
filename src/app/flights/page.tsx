@@ -48,9 +48,10 @@ export default function FlightsPage() {
               <span className="mr-1 inline-flex translate-y-0.5 items-center">
                 <BadgeIcon label="A badge" />
               </span>
-              a gold medal means the flight collected a badge — a WeGlide achievement (Silver,
-              Gold, Diamond, Astronaut…) or one of the club&apos;s altitude pins; hover to see
-              which.{" "}
+              a gold medal means the flight itself earned a badge — WeGlide&apos;s flight badges
+              (Astronaut for altitude, Silver/Gold/Diamond for climb and distance, Endurance,
+              Bring It Home, No Need to Circle) or one of the club&apos;s altitude pins; hover to
+              see which. Pilot milestones like weekend streaks are left off.{" "}
               <span className="mr-1 inline-flex translate-y-0.5 items-center">
                 <RecordIcon label="A record" />
               </span>

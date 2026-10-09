@@ -12,11 +12,16 @@
  *   climbing without circling. Thermal flights rack up thousands of degrees in the
  *   same window and don't qualify, however high they climb.
  *
- * `badges` are WeGlide achievements awarded on that flight plus the club's own
- * altitude pins; `record` marks a New Hampshire state record. Altitudes are
- * GPS-derived and read a little high — the official 32,513 ft record day (Chow,
- * 2018-10-09) reads ~34,000 ft here. Regenerating: re-run the WeGlide crawl and the
- * trace analysis; the flights page explains the method in prose.
+ * `badges` are WeGlide achievements that describe what THIS flight did — altitude
+ * (Astronaut), climb plus distance (Silver/Gold/Diamond), duration (Endurance), a
+ * long final glide (Bring It Home), a long run without circling (No Need to Circle)
+ * — plus the club's own altitude pins. WeGlide's pilot-milestone badges (weekend
+ * streaks, airports visited, total hours, vintage aircraft) are deliberately left
+ * out: they attach to whichever flight completes the run and say nothing about it.
+ * `record` marks a New Hampshire state record. Altitudes are GPS-derived and read a
+ * little high — the official 32,513 ft record day (Chow, 2018-10-09) reads ~34,000 ft
+ * here. Regenerating: re-run the WeGlide crawl and the trace analysis; the flights
+ * page explains the method in prose.
  */
 export type WaveCampFlight = {
   /** WeGlide flight id — the flight lives at https://weglide.org/flight/<id>. */
@@ -164,7 +169,7 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 222190, date: "2022-10-15", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 150, distanceKm: 47.3, maxAltFt: 6200, wave: false, badges: [], record: false },
   { id: 864898, date: "2022-10-15", pilot: "Tim Chow", aircraft: "L23 SuperBlanik", minutes: 39, distanceKm: 24.8, maxAltFt: 6200, wave: false, badges: [], record: false },
   { id: 464294, date: "2022-10-16", pilot: "David Joyce", aircraft: "ASW 20", minutes: 168, distanceKm: 109.4, maxAltFt: 6400, wave: false, badges: [], record: false },
-  { id: 342038, date: "2023-10-08", pilot: "Bill Batesole", aircraft: "Carat", minutes: 215, distanceKm: 99.0, maxAltFt: 20100, wave: true, badges: ["Nomad", "Sky Streak", "Astronaut ×3"], record: false },
+  { id: 342038, date: "2023-10-08", pilot: "Bill Batesole", aircraft: "Carat", minutes: 215, distanceKm: 99.0, maxAltFt: 20100, wave: true, badges: ["Astronaut ×3"], record: false },
   { id: 342372, date: "2023-10-08", pilot: "Emilie Phillips", aircraft: "SZD-50 Puchacz", minutes: 99, distanceKm: 45.7, maxAltFt: 12100, wave: true, badges: [], record: false },
   { id: 719649, date: "2023-10-08", pilot: "David Joyce", aircraft: "ASW 20", minutes: 154, distanceKm: 109.6, maxAltFt: 14600, wave: true, badges: ["Gold"], record: false },
   { id: 364364, date: "2023-10-08", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 83, distanceKm: 49.2, maxAltFt: 5300, wave: false, badges: [], record: false },
@@ -176,12 +181,12 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 355050, date: "2023-10-10", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 49, distanceKm: 33.6, maxAltFt: 9900, wave: false, badges: [], record: false },
   { id: 342308, date: "2023-10-12", pilot: "Glen Kelley", aircraft: "JS3 RES 18m", minutes: 88, distanceKm: 74.8, maxAltFt: 5700, wave: true, badges: [], record: false },
   { id: 719733, date: "2023-10-12", pilot: "David Joyce", aircraft: "ASW 20", minutes: 31, distanceKm: 22.2, maxAltFt: 4800, wave: false, badges: [], record: false },
-  { id: 343431, date: "2023-10-12", pilot: "David Baxter", aircraft: "L-13 Blaník", minutes: 23, distanceKm: 17.6, maxAltFt: 4700, wave: false, badges: ["Vintage Viper ×2", "Nomad"], record: false },
+  { id: 343431, date: "2023-10-12", pilot: "David Baxter", aircraft: "L-13 Blaník", minutes: 23, distanceKm: 17.6, maxAltFt: 4700, wave: false, badges: [], record: false },
   { id: 715937, date: "2023-10-12", pilot: "Tim Chow", aircraft: "Glasflügel 304", minutes: 147, distanceKm: 92.2, maxAltFt: 17700, wave: true, badges: [], record: false },
   { id: 342713, date: "2023-10-14", pilot: "Glen Kelley", aircraft: "JS3 RES 18m", minutes: 117, distanceKm: 86.7, maxAltFt: 7800, wave: true, badges: [], record: false },
   { id: 715939, date: "2023-10-14", pilot: "Tim Chow", aircraft: "L23 SuperBlanik", minutes: 69, distanceKm: 30.5, maxAltFt: 5700, wave: false, badges: [], record: false },
-  { id: 488708, date: "2024-10-11", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 185, distanceKm: 217.0, maxAltFt: 20600, wave: true, badges: ["Sky Streak", "Diamond"], record: false },
-  { id: 488697, date: "2024-10-11", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 141, distanceKm: 72.8, maxAltFt: 20100, wave: true, badges: ["Nomad ×2", "Astronaut ×3", "Gold"], record: false },
+  { id: 488708, date: "2024-10-11", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 185, distanceKm: 217.0, maxAltFt: 20600, wave: true, badges: ["Diamond"], record: false },
+  { id: 488697, date: "2024-10-11", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 141, distanceKm: 72.8, maxAltFt: 20100, wave: true, badges: ["Astronaut ×3", "Gold"], record: false },
   { id: 488701, date: "2024-10-11", pilot: "Emilie Phillips", aircraft: "ASW 27", minutes: 109, distanceKm: 130.1, maxAltFt: 17500, wave: true, badges: ["Astronaut ×3", "Bring It Home", "Gold Altitude"], record: false },
   { id: 841014, date: "2024-10-11", pilot: "Mauricio Poodts", aircraft: "DG 300", minutes: 82, distanceKm: 55.4, maxAltFt: 13200, wave: true, badges: ["Astronaut ×2"], record: false },
   { id: 488734, date: "2024-10-11", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 61, distanceKm: 32.2, maxAltFt: 7500, wave: true, badges: [], record: false },
@@ -190,7 +195,7 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 489036, date: "2024-10-12", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 21, distanceKm: 15.4, maxAltFt: 4900, wave: false, badges: [], record: false },
   { id: 489408, date: "2024-10-13", pilot: "Glen Kelley", aircraft: "JS3 TJ 15m", minutes: 123, distanceKm: 74.5, maxAltFt: 4900, wave: false, badges: [], record: false },
   { id: 489448, date: "2024-10-13", pilot: "Emilie Phillips", aircraft: "ASK 21", minutes: 66, distanceKm: 32.4, maxAltFt: 5100, wave: false, badges: [], record: false },
-  { id: 489488, date: "2024-10-13", pilot: "Tyson Sawyer", aircraft: "ASW 27", minutes: 154, distanceKm: 45.0, maxAltFt: 8100, wave: false, badges: ["Consistency"], record: false },
+  { id: 489488, date: "2024-10-13", pilot: "Tyson Sawyer", aircraft: "ASW 27", minutes: 154, distanceKm: 45.0, maxAltFt: 8100, wave: false, badges: [], record: false },
   { id: 489626, date: "2024-10-13", pilot: "David Sherrill", aircraft: "Duo Discus T", minutes: 57, distanceKm: 44.5, maxAltFt: 6900, wave: false, badges: [], record: false },
   { id: 493559, date: "2024-10-15", pilot: "David Joyce", aircraft: "Duo Discus T", minutes: 88, distanceKm: 48.2, maxAltFt: 8900, wave: true, badges: [], record: false },
   { id: 490742, date: "2024-10-15", pilot: "Richard Roelke", aircraft: "Duo Discus T", minutes: 88, distanceKm: 48.1, maxAltFt: 8800, wave: true, badges: [], record: false },
@@ -208,9 +213,9 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 491305, date: "2024-10-19", pilot: "John Beckley", aircraft: "ASW 24", minutes: 186, distanceKm: 46.8, maxAltFt: 9100, wave: false, badges: [], record: false },
   { id: 490794, date: "2024-10-19", pilot: "Eric Foertsch", aircraft: "LS 4", minutes: 148, distanceKm: 54.0, maxAltFt: 9300, wave: true, badges: [], record: false },
   { id: 490752, date: "2024-10-19", pilot: "David Baxter", aircraft: "L23 SuperBlanik", minutes: 28, distanceKm: 25.1, maxAltFt: 6200, wave: false, badges: [], record: false },
-  { id: 491038, date: "2024-10-20", pilot: "Glen Kelley", aircraft: "JS3 TJ 15m", minutes: 202, distanceKm: 138.4, maxAltFt: 11800, wave: true, badges: ["Consistency"], record: false },
+  { id: 491038, date: "2024-10-20", pilot: "Glen Kelley", aircraft: "JS3 TJ 15m", minutes: 202, distanceKm: 138.4, maxAltFt: 11800, wave: true, badges: [], record: false },
   { id: 490986, date: "2024-10-20", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 131, distanceKm: 53.6, maxAltFt: 11500, wave: true, badges: [], record: false },
-  { id: 491144, date: "2024-10-20", pilot: "Eric Foertsch", aircraft: "LS 4", minutes: 208, distanceKm: 75.3, maxAltFt: 13300, wave: true, badges: ["Aeronaut"], record: false },
+  { id: 491144, date: "2024-10-20", pilot: "Eric Foertsch", aircraft: "LS 4", minutes: 208, distanceKm: 75.3, maxAltFt: 13300, wave: true, badges: [], record: false },
   { id: 491114, date: "2024-10-20", pilot: "Tyson Sawyer", aircraft: "ASW 27", minutes: 308, distanceKm: 86.7, maxAltFt: 18800, wave: true, badges: ["Endurance", "Astronaut ×3", "Silver", "Bring It Home", "Gold Altitude"], record: false },
   { id: 715884, date: "2024-10-20", pilot: "Tim Chow", aircraft: "HpH 304 CZ", minutes: 133, distanceKm: 84.3, maxAltFt: 10900, wave: true, badges: [], record: false },
   { id: 491174, date: "2024-10-20", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 208, distanceKm: 76.3, maxAltFt: 18500, wave: true, badges: ["Astronaut ×3", "Bring It Home", "Gold Altitude"], record: false },
@@ -251,7 +256,7 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 925703, date: "2025-10-15", pilot: "David Joyce", aircraft: "Ventus 2c 15m", minutes: 10, distanceKm: 11.8, maxAltFt: 3000, wave: false, badges: [], record: false },
   { id: 925480, date: "2025-10-15", pilot: "Eric Foertsch", aircraft: "ASW 27", minutes: 93, distanceKm: 61.7, maxAltFt: 6000, wave: false, badges: [], record: false },
   { id: 927018, date: "2025-10-16", pilot: "Eric Foertsch", aircraft: "ASW 27", minutes: 9, distanceKm: 10.0, maxAltFt: 2300, wave: false, badges: [], record: false },
-  { id: 926492, date: "2025-10-16", pilot: "Kari Mettinen", aircraft: "SZD-48 Jantar Std. 2", minutes: 125, distanceKm: 77.8, maxAltFt: 8900, wave: false, badges: ["Sky Streak"], record: false },
+  { id: 926492, date: "2025-10-16", pilot: "Kari Mettinen", aircraft: "SZD-48 Jantar Std. 2", minutes: 125, distanceKm: 77.8, maxAltFt: 8900, wave: false, badges: [], record: false },
   { id: 925702, date: "2025-10-16", pilot: "David Joyce", aircraft: "Ventus 2c 15m", minutes: 23, distanceKm: 23.5, maxAltFt: 4400, wave: false, badges: [], record: false },
   { id: 925656, date: "2025-10-16", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 113, distanceKm: 61.3, maxAltFt: 14700, wave: true, badges: [], record: false },
   { id: 925651, date: "2025-10-16", pilot: "William Mileski", aircraft: "PIK-20 B", minutes: 113, distanceKm: 25.0, maxAltFt: 4700, wave: false, badges: [], record: false },
@@ -266,5 +271,5 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 927861, date: "2025-10-18", pilot: "Glen Kelley", aircraft: "JS3 TJ 18m", minutes: 100, distanceKm: 30.6, maxAltFt: 4000, wave: false, badges: [], record: false },
   { id: 927865, date: "2025-10-18", pilot: "Nelson Howe", aircraft: "JS3 TJ 18m", minutes: 108, distanceKm: 32.2, maxAltFt: 3200, wave: false, badges: [], record: false },
   { id: 928059, date: "2025-10-18", pilot: "David Joyce", aircraft: "Ventus 2c 18m", minutes: 77, distanceKm: 35.6, maxAltFt: 4800, wave: false, badges: [], record: false },
-  { id: 960484, date: "2025-10-18", pilot: "Mauricio Poodts", aircraft: "DG 300", minutes: 30, distanceKm: 23.2, maxAltFt: 5300, wave: false, badges: ["Consistency ×2"], record: false },
+  { id: 960484, date: "2025-10-18", pilot: "Mauricio Poodts", aircraft: "DG 300", minutes: 30, distanceKm: 23.2, maxAltFt: 5300, wave: false, badges: [], record: false },
 ];
