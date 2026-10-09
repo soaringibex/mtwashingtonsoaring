@@ -92,6 +92,13 @@ const pages: SearchEntry[] = [
     keywords: "flights log weglide gps altitude badge medal trophy record wave camp gorham 2016 2025 archive trace",
   },
   {
+    title: "Flights in 3D",
+    href: "/flights/3d",
+    kind: "page",
+    text: "Every wave-camp flight of each October, 2016–2025, drawn as a three-dimensional track over the White Mountains — orbit the year and see where the wave carried them.",
+    keywords: "flights 3d three dimensional tracks orbit weglide altitude terrain visualization wave camp",
+  },
+  {
     title: "Photos",
     href: "/gallery",
     kind: "page",

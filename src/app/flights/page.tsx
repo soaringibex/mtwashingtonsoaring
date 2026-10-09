@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/ui/PageHero";
 import { FlightArchive } from "@/components/flights/FlightArchive";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { BadgeIcon, DiamondIcon, RecordIcon } from "@/components/flights/icons";
 import { countsAsFlight, waveCampFlights } from "@/lib/wave-camp-flights";
 
@@ -70,6 +71,10 @@ export default function FlightsPage() {
               </a>
               .
             </p>
+          </div>
+
+          <div className="mt-6">
+            <ButtonLink href="/flights/3d">See every year in 3D →</ButtonLink>
           </div>
 
           <div className="mt-14">
