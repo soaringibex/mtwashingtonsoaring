@@ -225,6 +225,7 @@ export function FlightGlobe3D() {
   const cameraRef = useRef<Camera>({ yaw: 200, pitch: 26, zoom: null });
   const [pilotSel, setPilotSel] = useState<Set<string>>(new Set());
   const [panelOpen, setPanelOpen] = useState(true);
+  const [pilotQuery, setPilotQuery] = useState("");
   const [dateFrom, setDateFrom] = useState<string | null>(null);
   const [dateTo, setDateTo] = useState<string | null>(null);
   const mvpRef = useRef<{ mvp: Float32Array; cssW: number; cssH: number } | null>(null);
@@ -444,6 +445,12 @@ export function FlightGlobe3D() {
 
   const filtered = visibleFlights.length !== (stats?.flights.length ?? 0);
   const selectedFlight = selected !== null ? (visibleFlights.find((f) => f.id === selected) ?? null) : null;
+
+  const pilotMatches = useMemo(() => {
+    const q = pilotQuery.trim().toLowerCase();
+    if (q === "") return [];
+    return pilotList.filter(([name]) => !pilotSel.has(name) && name.toLowerCase().includes(q)).slice(0, 7);
+  }, [pilotList, pilotQuery, pilotSel]);
 
   const togglePilot = (pilot: string) =>
     setPilotSel((prev) => {
@@ -1048,25 +1055,64 @@ export function FlightGlobe3D() {
               </button>
             ) : null}
           </div>
-          <ul className="mt-2 grid gap-0.5">
-            {pilotList.map(([pilot, count]) => {
-              const on = pilotSel.has(pilot);
-              return (
+          <input
+            type="text"
+            value={pilotQuery}
+            onChange={(e) => setPilotQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && pilotMatches.length > 0) {
+                togglePilot(pilotMatches[0][0]);
+                setPilotQuery("");
+              } else if (e.key === "Escape") {
+                setPilotQuery("");
+                e.currentTarget.blur();
+              }
+            }}
+            placeholder="Search pilots…"
+            aria-label="Search pilots"
+            autoComplete="off"
+            className="mt-2 w-full rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 ring-1 ring-white/10 focus:outline-none focus:ring-sky-400/60"
+          />
+          {pilotMatches.length > 0 ? (
+            <ul className="mt-1 grid gap-0.5 rounded-lg bg-slate-900/90 p-1 ring-1 ring-white/10">
+              {pilotMatches.map(([pilot, count]) => (
                 <li key={pilot}>
                   <button
                     type="button"
-                    aria-pressed={on}
-                    onClick={() => togglePilot(pilot)}
-                    className={`w-full rounded-lg px-2 py-1 text-left text-xs transition-colors ${
-                      on ? "bg-sky-400/90 font-medium text-slate-950" : "text-slate-200 hover:bg-white/10"
-                    }`}
+                    onClick={() => {
+                      togglePilot(pilot);
+                      setPilotQuery("");
+                    }}
+                    className="w-full rounded-md px-2 py-1 text-left text-xs text-slate-200 transition-colors hover:bg-sky-400/25"
                   >
-                    {pilot} <span className={on ? "opacity-70" : "text-slate-400"}>({count})</span>
+                    {pilot} <span className="text-slate-400">({count})</span>
                   </button>
                 </li>
-              );
-            })}
-          </ul>
+              ))}
+            </ul>
+          ) : null}
+
+          {pilotSel.size > 0 ? (
+            <ul className="mt-2 flex flex-wrap gap-1">
+              {[...pilotSel].sort((a, b) => a.localeCompare(b)).map((pilot) => (
+                <li key={pilot}>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-sky-400/90 py-0.5 pl-2 pr-1 text-[11px] font-medium text-slate-950">
+                    {pilot}
+                    <button
+                      type="button"
+                      aria-label={`Remove ${pilot}`}
+                      onClick={() => togglePilot(pilot)}
+                      className="rounded-full px-1 leading-none transition-colors hover:bg-slate-950/20"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-1.5 text-[11px] text-slate-500">Type a name to add pilots to the view.</p>
+          )}
 
           <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Dates</p>
           <div className="mt-2 flex items-center gap-2">

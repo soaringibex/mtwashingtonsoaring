@@ -256,6 +256,36 @@ async function main() {
           sessionId,
         );
       }
+      if (target.focus) {
+        const { x, y } = target.focus;
+        await send(
+          ws,
+          "Input.dispatchMouseEvent",
+          { type: "mousePressed", x, y, button: "left", clickCount: 1, pointerType: "mouse" },
+          sessionId,
+        );
+        await send(
+          ws,
+          "Input.dispatchMouseEvent",
+          { type: "mouseReleased", x, y, button: "left", clickCount: 1, pointerType: "mouse" },
+          sessionId,
+        );
+        await send(
+          ws,
+          "Runtime.evaluate",
+          { expression: `new Promise((r) => setTimeout(r, 400))`, awaitPromise: true },
+          sessionId,
+        );
+      }
+      if (target.type) {
+        await send(ws, "Input.insertText", { text: target.type }, sessionId);
+        await send(
+          ws,
+          "Runtime.evaluate",
+          { expression: `new Promise((r) => setTimeout(r, 700))`, awaitPromise: true },
+          sessionId,
+        );
+      }
       const clickList = target.clicks ?? (target.click ? [target.click] : []);
       if (clickList.length > 0) {
         for (const spot of clickList) {
