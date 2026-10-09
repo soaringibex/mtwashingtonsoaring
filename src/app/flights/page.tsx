@@ -3,7 +3,13 @@ import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/ui/PageHero";
 import { FlightArchive } from "@/components/flights/FlightArchive";
 import { BadgeIcon, DiamondIcon, RecordIcon, WavePill } from "@/components/flights/icons";
-import { WAVE_CLIMB_M, waveCampFlights } from "@/lib/wave-camp-flights";
+import {
+  countsAsFlight,
+  WAVE_CLIMB_M,
+  WAVE_HIGH_TOP_M,
+  WAVE_STRAIGHT_TOP_M,
+  waveCampFlights,
+} from "@/lib/wave-camp-flights";
 
 export const metadata: Metadata = {
   title: "Flights",
@@ -12,8 +18,9 @@ export const metadata: Metadata = {
 };
 
 export default function FlightsPage() {
-  const waveCount = waveCampFlights.filter((flight) => flight.wave).length;
-  const climbFt = Math.round((WAVE_CLIMB_M * 3.28084) / 100) * 100;
+  const flights = waveCampFlights.filter(countsAsFlight);
+  const waveCount = flights.filter((flight) => flight.wave).length;
+  const toFt = (m: number) => (Math.round((m * 3.28084) / 100) * 100).toLocaleString("en-US");
 
   return (
     <>
@@ -31,9 +38,10 @@ export default function FlightsPage() {
           <div className="grid gap-3 rounded-3xl bg-slate-50 p-6 text-sm leading-6 text-slate-600 ring-1 ring-slate-900/5 sm:p-7">
             <p>
               <span className="font-semibold text-slate-900">What is here.</span>{" "}
-              {waveCampFlights.length} flights took off from Gorham (2G8) in the camp Octobers of
+              {flights.length} flights took off from Gorham (2G8) in the camp Octobers of
               2016–2025 and were logged on WeGlide — {waveCount} of them connected to the wave, and
-              every one is in the tables below. The peak altitude is read from the flight&apos;s own
+              every one is in the tables below (a two-seat flight both pilots logged appears under
+              each name but counts once). The peak altitude is read from the flight&apos;s own
               GPS trace.
             </p>
             <p>
@@ -41,10 +49,13 @@ export default function FlightsPage() {
               <span className="mr-1 inline-flex translate-y-0.5 items-center">
                 <WavePill />
               </span>
-              a wave tag means the trace shows the flight&apos;s own flying caught the wave: after
-              release it gained at least {climbFt.toLocaleString("en-US")} feet in ten minutes of
-              straight flight, without circling (thermals turn through the same window and
-              don&apos;t count, however high they climb).{" "}
+              a wave tag means the flight&apos;s own engine-free flying — after release, with any
+              engine run left out — caught the wave: either it climbed at least{" "}
+              {toFt(WAVE_CLIMB_M)} feet in ten minutes of straight flight, without circling, to above
+              {" "}{toFt(WAVE_STRAIGHT_TOP_M)} feet — well over the summit, where ridge lift and
+              thermals don&apos;t reach — or it got above {toFt(WAVE_HIGH_TOP_M)} feet, which October
+              thermals and tows never do. Straight flight can only be read from loggers that stamp
+              every fix; phone-app logs are judged on height alone.{" "}
               <span className="mr-1 inline-flex translate-x-1 translate-y-0.5 items-center">
                 <BadgeIcon label="SSA Gold" />
               </span>

@@ -5,12 +5,16 @@
  * flight's GPS trace was analysed twice over:
  *
  * - Maximum altitude: the highest the glider got, launch included.
- * - `wave`: a straight-flight climb. After the launch phase (WeGlide's own
- *   `launch_gain` — a high wave tow must not masquerade as wave flying), the trace
- *   must show a ten-minute window that gained at least 500 m while the heading
- *   changed no more than 2°/s of accumulated turning. That is the wave signature —
- *   climbing without circling. Thermal flights rack up thousands of degrees in the
- *   same window and don't qualify, however high they climb.
+ * - `wave`: set by scripts/flights/classify-wave.py from the committed track archive
+ *   (data/wave-hindcast/weglide-tracks.tgz). Only the flight's own engine-free flying
+ *   counts — after release and outside any mid-flight engine run (WeGlide's
+ *   engine_scoring_times), so neither a high tow nor a sustainer climb qualifies. It
+ *   must show either a ten-minute straight climb (≥ WAVE_CLIMB_M, no more than 2°/s of
+ *   accumulated turning) that ends above WAVE_STRAIGHT_TOP_M — climbing without
+ *   circling, above the Presidential crest, where ridge lift and low thermal streets
+ *   don't reach — or an engine-free peak above WAVE_HIGH_TOP_M, however it was flown
+ *   (October thermals here don't get near it). The straight test needs fix times;
+ *   phone/PDA loggers (XCSoar, LK8000, SeeYou Navigator) only get the height test.
  *
  * `ssa` holds the SSA badge the flight earned its pilot, verified against the SSA
  * badge database (members.ssa.org/BadgesAndRecordsPublic-USBadges): every entry there
@@ -32,8 +36,11 @@ export type WaveCampFlight = {
   distanceKm: number | null;
   /** Maximum GPS altitude in feet, rounded to the nearest 100 — launch included. */
   maxAltFt: number | null;
-  /** True when the free flight shows a sustained straight climb (see the note above). */
+  /** True when the engine-free flight connected to the wave (see the note above). */
   wave: boolean;
+  /** Set on the second log of a two-seat flight both pilots uploaded: the row stays (it
+   * links that pilot's WeGlide entry) but it is not counted as another flight. */
+  sameFlightAs?: number;
   /** SSA Gold/Diamond awards earned on this flight, e.g. "SSA Gold badge". */
   ssa: string[];
   record: boolean;
@@ -41,6 +48,13 @@ export type WaveCampFlight = {
 
 /** The straight-climb threshold the `wave` flag is built on, in metres per ten minutes. */
 export const WAVE_CLIMB_M = 500;
+/** The straight climb must end above this, metres — ~400 m over Mt Washington's summit. */
+export const WAVE_STRAIGHT_TOP_M = 2300;
+/** An engine-free peak above this, metres, counts however it was flown. */
+export const WAVE_HIGH_TOP_M = 2800;
+
+/** One row per flight: false for the second log of a shared two-seat flight. */
+export const countsAsFlight = (flight: WaveCampFlight): boolean => flight.sameFlightAs === undefined;
 
 export const waveCampFlights: WaveCampFlight[] = [
   { id: 355211, date: "2016-10-08", pilot: "Richard Roelke", aircraft: "Duo Discus XT", minutes: 152, distanceKm: 129.7, maxAltFt: 15200, wave: true, ssa: [], record: false },
@@ -62,7 +76,7 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 725849, date: "2017-10-06", pilot: "Roy Bourgeois", aircraft: "ASG 29 18m", minutes: 116, distanceKm: 81.1, maxAltFt: 20600, wave: true, ssa: [], record: false },
   { id: 720211, date: "2017-10-06", pilot: "David Joyce", aircraft: "ASW 20", minutes: 93, distanceKm: 65.1, maxAltFt: 7500, wave: false, ssa: [], record: false },
   { id: 355161, date: "2017-10-07", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 58, distanceKm: 25.6, maxAltFt: 8500, wave: false, ssa: [], record: false },
-  { id: 725850, date: "2017-10-07", pilot: "Roy Bourgeois", aircraft: "ASG 29 18m", minutes: 121, distanceKm: 65.0, maxAltFt: 9600, wave: false, ssa: [], record: false },
+  { id: 725850, date: "2017-10-07", pilot: "Roy Bourgeois", aircraft: "ASG 29 18m", minutes: 121, distanceKm: 65.0, maxAltFt: 9600, wave: true, ssa: [], record: false },
   { id: 25699, date: "2017-10-07", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 69, distanceKm: 30.6, maxAltFt: 4500, wave: false, ssa: [], record: false },
   { id: 355162, date: "2017-10-10", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 112, distanceKm: 84.2, maxAltFt: 13000, wave: true, ssa: [], record: false },
   { id: 720212, date: "2017-10-10", pilot: "David Joyce", aircraft: "ASW 20", minutes: 323, distanceKm: 136.3, maxAltFt: 17300, wave: true, ssa: ["SSA Gold badge"], record: false },
@@ -72,7 +86,7 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 720213, date: "2017-10-11", pilot: "David Joyce", aircraft: "ASW 20", minutes: 137, distanceKm: 68.1, maxAltFt: 7100, wave: false, ssa: [], record: false },
   { id: 355164, date: "2017-10-12", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 111, distanceKm: 69.0, maxAltFt: 7900, wave: false, ssa: [], record: false },
   { id: 843226, date: "2017-10-12", pilot: "Dennis Cavagnaro", aircraft: "Ventus b 15m", minutes: 83, distanceKm: 25.0, maxAltFt: 5000, wave: false, ssa: [], record: false },
-  { id: 355165, date: "2017-10-13", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 165, distanceKm: 118.6, maxAltFt: 12300, wave: false, ssa: [], record: false },
+  { id: 355165, date: "2017-10-13", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 165, distanceKm: 118.6, maxAltFt: 12300, wave: true, ssa: [], record: false },
   { id: 844591, date: "2017-10-13", pilot: "Eric Foertsch", aircraft: "LS 4", minutes: 265, distanceKm: 98.7, maxAltFt: 13800, wave: true, ssa: [], record: false },
   { id: 725855, date: "2017-10-13", pilot: "Roy Bourgeois", aircraft: "ASG 29 18m", minutes: 211, distanceKm: 176.2, maxAltFt: 11700, wave: true, ssa: [], record: false },
   { id: 843229, date: "2017-10-13", pilot: "Dennis Cavagnaro", aircraft: "Ventus b 15m", minutes: 108, distanceKm: 32.5, maxAltFt: 6300, wave: false, ssa: [], record: false },
@@ -85,7 +99,7 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 752085, date: "2018-10-06", pilot: "David Joyce", aircraft: "ASW 20", minutes: 34, distanceKm: 28.6, maxAltFt: 6600, wave: false, ssa: [], record: false },
   { id: 865062, date: "2018-10-09", pilot: "Tim Chow", aircraft: "Glasflügel 304", minutes: 210, distanceKm: 86.2, maxAltFt: 34000, wave: true, ssa: [], record: true },
   { id: 444384, date: "2018-10-09", pilot: "Stephen K. Brown", aircraft: "LS 1-c", minutes: 237, distanceKm: 137.0, maxAltFt: 28100, wave: true, ssa: ["SSA Gold Altitude", "SSA Diamond Altitude"], record: false },
-  { id: 843197, date: "2018-10-09", pilot: "Dennis Cavagnaro", aircraft: "Ventus b 15m", minutes: 148, distanceKm: 83.9, maxAltFt: 11500, wave: false, ssa: [], record: false },
+  { id: 843197, date: "2018-10-09", pilot: "Dennis Cavagnaro", aircraft: "Ventus b 15m", minutes: 148, distanceKm: 83.9, maxAltFt: 11500, wave: true, ssa: [], record: false },
   { id: 444427, date: "2018-10-10", pilot: "Stephen K. Brown", aircraft: "LS 1-c", minutes: 108, distanceKm: 47.0, maxAltFt: 4900, wave: false, ssa: [], record: false },
   { id: 843195, date: "2018-10-10", pilot: "Dennis Cavagnaro", aircraft: "Ventus b 15m", minutes: 191, distanceKm: 68.3, maxAltFt: 10900, wave: true, ssa: [], record: false },
   { id: 444379, date: "2018-10-12", pilot: "Stephen K. Brown", aircraft: "LS 1-c", minutes: 236, distanceKm: 173.2, maxAltFt: 18300, wave: true, ssa: [], record: false },
@@ -99,7 +113,7 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 844481, date: "2018-10-14", pilot: "Eric Foertsch", aircraft: "LS 4", minutes: 237, distanceKm: 162.6, maxAltFt: 15400, wave: true, ssa: [], record: false },
   { id: 725871, date: "2018-10-14", pilot: "Roy Bourgeois", aircraft: "ASG 29 15m", minutes: 195, distanceKm: 139.3, maxAltFt: 9900, wave: true, ssa: [], record: false },
   { id: 444342, date: "2018-10-14", pilot: "Stephen K. Brown", aircraft: "LS 1-c", minutes: 376, distanceKm: 193.4, maxAltFt: 19900, wave: true, ssa: [], record: false },
-  { id: 811498, date: "2018-10-14", pilot: "Kari Mettinen", aircraft: "L23 SuperBlanik", minutes: 92, distanceKm: 29.4, maxAltFt: 9700, wave: false, ssa: [], record: false },
+  { id: 811498, date: "2018-10-14", pilot: "Kari Mettinen", aircraft: "L23 SuperBlanik", minutes: 92, distanceKm: 29.4, maxAltFt: 9700, wave: true, ssa: [], record: false },
   { id: 865044, date: "2018-10-14", pilot: "Tim Chow", aircraft: "Glasflügel 304", minutes: 115, distanceKm: 118.8, maxAltFt: 18700, wave: true, ssa: [], record: false },
   { id: 752065, date: "2019-10-13", pilot: "David Joyce", aircraft: "ASW 20", minutes: 66, distanceKm: 24.5, maxAltFt: 4900, wave: false, ssa: [], record: false },
   { id: 839879, date: "2019-10-13", pilot: "Eric Foertsch", aircraft: "LS 4", minutes: 58, distanceKm: 19.9, maxAltFt: 3800, wave: false, ssa: [], record: false },
@@ -113,29 +127,29 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 839877, date: "2019-10-14", pilot: "Eric Foertsch", aircraft: "LS 4", minutes: 204, distanceKm: 67.6, maxAltFt: 23500, wave: true, ssa: ["SSA Gold badge", "SSA Diamond badge"], record: false },
   { id: 843117, date: "2019-10-14", pilot: "Dennis Cavagnaro", aircraft: "Ventus b 15m", minutes: 28, distanceKm: 20.9, maxAltFt: 6600, wave: false, ssa: [], record: false },
   { id: 864992, date: "2019-10-14", pilot: "Tim Chow", aircraft: "Glasflügel 304", minutes: 77, distanceKm: 69.7, maxAltFt: 10700, wave: true, ssa: [], record: false },
-  { id: 355116, date: "2019-10-15", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 168, distanceKm: 83.7, maxAltFt: 7600, wave: true, ssa: [], record: false },
+  { id: 355116, date: "2019-10-15", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 168, distanceKm: 83.7, maxAltFt: 7600, wave: false, ssa: [], record: false },
   { id: 703343, date: "2019-10-15", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 135, distanceKm: 70.6, maxAltFt: 6400, wave: false, ssa: [], record: false },
-  { id: 839876, date: "2019-10-15", pilot: "Eric Foertsch", aircraft: "LS 4", minutes: 257, distanceKm: 170.3, maxAltFt: 6700, wave: true, ssa: [], record: false },
-  { id: 444352, date: "2019-10-15", pilot: "Stephen K. Brown", aircraft: "LS 1-c", minutes: 262, distanceKm: 203.9, maxAltFt: 6900, wave: true, ssa: [], record: false },
+  { id: 839876, date: "2019-10-15", pilot: "Eric Foertsch", aircraft: "LS 4", minutes: 257, distanceKm: 170.3, maxAltFt: 6700, wave: false, ssa: [], record: false },
+  { id: 444352, date: "2019-10-15", pilot: "Stephen K. Brown", aircraft: "LS 1-c", minutes: 262, distanceKm: 203.9, maxAltFt: 6900, wave: false, ssa: [], record: false },
   { id: 832165, date: "2019-10-15", pilot: "Greg Hanlon", aircraft: "HpH 304 CZ", minutes: 216, distanceKm: 245.8, maxAltFt: 7900, wave: false, ssa: [], record: false },
   { id: 864999, date: "2019-10-15", pilot: "Tim Chow", aircraft: "Glasflügel 304", minutes: 201, distanceKm: 117.9, maxAltFt: 12400, wave: true, ssa: [], record: false },
   { id: 752061, date: "2019-10-15", pilot: "David Joyce", aircraft: "ASW 20", minutes: 232, distanceKm: 136.4, maxAltFt: 11800, wave: true, ssa: [], record: false },
-  { id: 843124, date: "2019-10-15", pilot: "Dennis Cavagnaro", aircraft: "Ventus b 15m", minutes: 143, distanceKm: 42.3, maxAltFt: 6700, wave: true, ssa: [], record: false },
+  { id: 843124, date: "2019-10-15", pilot: "Dennis Cavagnaro", aircraft: "Ventus b 15m", minutes: 143, distanceKm: 42.3, maxAltFt: 6700, wave: false, ssa: [], record: false },
   { id: 444380, date: "2019-10-16", pilot: "Stephen K. Brown", aircraft: "LS 1-c", minutes: 199, distanceKm: 156.7, maxAltFt: 12100, wave: true, ssa: [], record: false },
   { id: 752060, date: "2019-10-16", pilot: "David Joyce", aircraft: "ASW 20", minutes: 159, distanceKm: 169.5, maxAltFt: 10400, wave: true, ssa: [], record: false },
-  { id: 25648, date: "2019-10-16", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 80, distanceKm: 38.7, maxAltFt: 10700, wave: false, ssa: [], record: false },
+  { id: 25648, date: "2019-10-16", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 80, distanceKm: 38.7, maxAltFt: 10700, wave: true, ssa: [], record: false },
   { id: 752062, date: "2019-10-19", pilot: "David Joyce", aircraft: "ASW 20", minutes: 374, distanceKm: 210.3, maxAltFt: 11500, wave: true, ssa: [], record: false },
   { id: 355117, date: "2019-10-19", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 244, distanceKm: 209.4, maxAltFt: 14900, wave: true, ssa: [], record: false },
-  { id: 864998, date: "2019-10-19", pilot: "Tim Chow", aircraft: "Glasflügel 304", minutes: 214, distanceKm: 73.3, maxAltFt: 5200, wave: true, ssa: [], record: false },
-  { id: 444372, date: "2019-10-19", pilot: "Stephen K. Brown", aircraft: "LS 1-c", minutes: 195, distanceKm: 76.0, maxAltFt: 4600, wave: true, ssa: [], record: false },
+  { id: 864998, date: "2019-10-19", pilot: "Tim Chow", aircraft: "Glasflügel 304", minutes: 214, distanceKm: 73.3, maxAltFt: 5200, wave: false, ssa: [], record: false },
+  { id: 444372, date: "2019-10-19", pilot: "Stephen K. Brown", aircraft: "LS 1-c", minutes: 195, distanceKm: 76.0, maxAltFt: 4600, wave: false, ssa: [], record: false },
   { id: 843133, date: "2019-10-19", pilot: "Dennis Cavagnaro", aircraft: "Ventus b 15m", minutes: 112, distanceKm: 37.1, maxAltFt: 7400, wave: false, ssa: [], record: false },
-  { id: 794958, date: "2019-10-19", pilot: "Skip Jenkyn", aircraft: "ASW 24", minutes: 173, distanceKm: 61.1, maxAltFt: 12200, wave: false, ssa: [], record: false },
+  { id: 794958, date: "2019-10-19", pilot: "Skip Jenkyn", aircraft: "ASW 24", minutes: 173, distanceKm: 61.1, maxAltFt: 12200, wave: true, ssa: [], record: false },
   { id: 355096, date: "2020-10-09", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 82, distanceKm: 43.5, maxAltFt: 5300, wave: false, ssa: [], record: false },
   { id: 355095, date: "2020-10-10", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 120, distanceKm: 90.4, maxAltFt: 20100, wave: true, ssa: [], record: false },
   { id: 30099, date: "2020-10-10", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 131, distanceKm: 96.7, maxAltFt: 13600, wave: true, ssa: [], record: false },
   { id: 726331, date: "2020-10-10", pilot: "Roy Bourgeois", aircraft: "ASG 29 15m", minutes: 91, distanceKm: 121.0, maxAltFt: 15000, wave: true, ssa: [], record: false },
   { id: 30100, date: "2020-10-11", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 174, distanceKm: 95.7, maxAltFt: 5100, wave: false, ssa: [], record: false },
-  { id: 355094, date: "2020-10-11", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 186, distanceKm: 79.8, maxAltFt: 6900, wave: true, ssa: [], record: false },
+  { id: 355094, date: "2020-10-11", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 186, distanceKm: 79.8, maxAltFt: 6900, wave: false, ssa: [], record: false },
   { id: 726332, date: "2020-10-11", pilot: "Roy Bourgeois", aircraft: "ASG 29 15m", minutes: 143, distanceKm: 82.3, maxAltFt: 5200, wave: false, ssa: [], record: false },
   { id: 355093, date: "2020-10-14", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 256, distanceKm: 200.7, maxAltFt: 18300, wave: true, ssa: [], record: false },
   { id: 444341, date: "2020-10-14", pilot: "Stephen K. Brown", aircraft: "LS 1-c", minutes: 303, distanceKm: 237.2, maxAltFt: 21200, wave: true, ssa: [], record: false },
@@ -158,13 +172,13 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 222067, date: "2022-10-11", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 56, distanceKm: 28.3, maxAltFt: 4600, wave: false, ssa: [], record: false },
   { id: 221957, date: "2022-10-11", pilot: "David Baxter", aircraft: "L23 SuperBlanik", minutes: 147, distanceKm: 50.3, maxAltFt: 9100, wave: false, ssa: [], record: false },
   { id: 464290, date: "2022-10-11", pilot: "David Joyce", aircraft: "ASW 20", minutes: 70, distanceKm: 29.3, maxAltFt: 3500, wave: false, ssa: [], record: false },
-  { id: 839811, date: "2022-10-12", pilot: "Eric Foertsch", aircraft: "LS 4", minutes: 178, distanceKm: 182.2, maxAltFt: 7200, wave: true, ssa: [], record: false },
+  { id: 839811, date: "2022-10-12", pilot: "Eric Foertsch", aircraft: "LS 4", minutes: 178, distanceKm: 182.2, maxAltFt: 7200, wave: false, ssa: [], record: false },
   { id: 222066, date: "2022-10-12", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 29, distanceKm: 25.8, maxAltFt: 4900, wave: false, ssa: [], record: false },
   { id: 832099, date: "2022-10-12", pilot: "Greg Hanlon", aircraft: "G 109 B", minutes: 164, distanceKm: 149.6, maxAltFt: 8400, wave: false, ssa: [], record: false },
   { id: 222065, date: "2022-10-12", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 98, distanceKm: 61.1, maxAltFt: 6900, wave: false, ssa: [], record: false },
   { id: 222011, date: "2022-10-12", pilot: "David Baxter", aircraft: "L23 SuperBlanik", minutes: 77, distanceKm: 36.9, maxAltFt: 5900, wave: false, ssa: [], record: false },
   { id: 355044, date: "2022-10-15", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 248, distanceKm: 87.5, maxAltFt: 9700, wave: true, ssa: [], record: false },
-  { id: 924791, date: "2022-10-15", pilot: "Thomas Van de Velde", aircraft: "Discus b", minutes: 34, distanceKm: 42.7, maxAltFt: 5800, wave: true, ssa: [], record: false },
+  { id: 924791, date: "2022-10-15", pilot: "Thomas Van de Velde", aircraft: "Discus b", minutes: 34, distanceKm: 42.7, maxAltFt: 5800, wave: false, ssa: [], record: false },
   { id: 464291, date: "2022-10-15", pilot: "David Joyce", aircraft: "ASW 20", minutes: 199, distanceKm: 56.6, maxAltFt: 6400, wave: false, ssa: [], record: false },
   { id: 222190, date: "2022-10-15", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 150, distanceKm: 47.3, maxAltFt: 6200, wave: false, ssa: [], record: false },
   { id: 864898, date: "2022-10-15", pilot: "Tim Chow", aircraft: "L23 SuperBlanik", minutes: 39, distanceKm: 24.8, maxAltFt: 6200, wave: false, ssa: [], record: false },
@@ -174,40 +188,40 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 719649, date: "2023-10-08", pilot: "David Joyce", aircraft: "ASW 20", minutes: 154, distanceKm: 109.6, maxAltFt: 14600, wave: true, ssa: [], record: false },
   { id: 364364, date: "2023-10-08", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 83, distanceKm: 49.2, maxAltFt: 5300, wave: false, ssa: [], record: false },
   { id: 342012, date: "2023-10-09", pilot: "Glen Kelley", aircraft: "JS3 RES 18m", minutes: 119, distanceKm: 101.6, maxAltFt: 6000, wave: false, ssa: [], record: false },
-  { id: 342373, date: "2023-10-09", pilot: "Emilie Phillips", aircraft: "SZD-50 Puchacz", minutes: 125, distanceKm: 34.6, maxAltFt: 6700, wave: true, ssa: [], record: false },
+  { id: 342373, date: "2023-10-09", pilot: "Emilie Phillips", aircraft: "SZD-50 Puchacz", minutes: 125, distanceKm: 34.6, maxAltFt: 6700, wave: false, ssa: [], record: false },
   { id: 379870, date: "2023-10-09", pilot: "Kari Mettinen", aircraft: "SZD-48 Jantar Std. 2", minutes: 217, distanceKm: 85.2, maxAltFt: 11300, wave: true, ssa: [], record: false },
   { id: 364363, date: "2023-10-09", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 195, distanceKm: 84.1, maxAltFt: 10700, wave: true, ssa: [], record: false },
   { id: 355046, date: "2023-10-09", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 120, distanceKm: 100.1, maxAltFt: 9300, wave: true, ssa: [], record: false },
-  { id: 355050, date: "2023-10-10", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 49, distanceKm: 33.6, maxAltFt: 9900, wave: false, ssa: [], record: false },
-  { id: 342308, date: "2023-10-12", pilot: "Glen Kelley", aircraft: "JS3 RES 18m", minutes: 88, distanceKm: 74.8, maxAltFt: 5700, wave: true, ssa: [], record: false },
+  { id: 355050, date: "2023-10-10", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 49, distanceKm: 33.6, maxAltFt: 9900, wave: true, ssa: [], record: false },
+  { id: 342308, date: "2023-10-12", pilot: "Glen Kelley", aircraft: "JS3 RES 18m", minutes: 88, distanceKm: 74.8, maxAltFt: 5700, wave: false, ssa: [], record: false },
   { id: 719733, date: "2023-10-12", pilot: "David Joyce", aircraft: "ASW 20", minutes: 31, distanceKm: 22.2, maxAltFt: 4800, wave: false, ssa: [], record: false },
   { id: 343431, date: "2023-10-12", pilot: "David Baxter", aircraft: "L-13 Blaník", minutes: 23, distanceKm: 17.6, maxAltFt: 4700, wave: false, ssa: [], record: false },
   { id: 715937, date: "2023-10-12", pilot: "Tim Chow", aircraft: "Glasflügel 304", minutes: 147, distanceKm: 92.2, maxAltFt: 17700, wave: true, ssa: [], record: false },
-  { id: 342713, date: "2023-10-14", pilot: "Glen Kelley", aircraft: "JS3 RES 18m", minutes: 117, distanceKm: 86.7, maxAltFt: 7800, wave: true, ssa: [], record: false },
+  { id: 342713, date: "2023-10-14", pilot: "Glen Kelley", aircraft: "JS3 RES 18m", minutes: 117, distanceKm: 86.7, maxAltFt: 7800, wave: false, ssa: [], record: false },
   { id: 715939, date: "2023-10-14", pilot: "Tim Chow", aircraft: "L23 SuperBlanik", minutes: 69, distanceKm: 30.5, maxAltFt: 5700, wave: false, ssa: [], record: false },
   { id: 488708, date: "2024-10-11", pilot: "Richard Roelke", aircraft: "ASH 31 Mi 21m", minutes: 185, distanceKm: 217.0, maxAltFt: 20600, wave: true, ssa: [], record: false },
   { id: 488697, date: "2024-10-11", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 141, distanceKm: 72.8, maxAltFt: 20100, wave: true, ssa: [], record: false },
   { id: 488701, date: "2024-10-11", pilot: "Emilie Phillips", aircraft: "ASW 27", minutes: 109, distanceKm: 130.1, maxAltFt: 17500, wave: true, ssa: ["SSA Gold Altitude"], record: false },
   { id: 841014, date: "2024-10-11", pilot: "Mauricio Poodts", aircraft: "DG 300", minutes: 82, distanceKm: 55.4, maxAltFt: 13200, wave: true, ssa: [], record: false },
-  { id: 488734, date: "2024-10-11", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 61, distanceKm: 32.2, maxAltFt: 7500, wave: true, ssa: [], record: false },
-  { id: 491193, date: "2024-10-11", pilot: "Tyson Sawyer", aircraft: "Duo Discus T", minutes: 57, distanceKm: 51.0, maxAltFt: 7300, wave: true, ssa: [], record: false },
+  { id: 488734, date: "2024-10-11", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 61, distanceKm: 32.2, maxAltFt: 7500, wave: false, ssa: [], record: false },
+  { id: 491193, date: "2024-10-11", pilot: "Tyson Sawyer", aircraft: "Duo Discus T", minutes: 57, distanceKm: 51.0, maxAltFt: 7300, wave: false, ssa: [], record: false },
   { id: 489044, date: "2024-10-12", pilot: "Glen Kelley", aircraft: "JS3 TJ 15m", minutes: 62, distanceKm: 43.0, maxAltFt: 4900, wave: false, ssa: [], record: false },
   { id: 489036, date: "2024-10-12", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 21, distanceKm: 15.4, maxAltFt: 4900, wave: false, ssa: [], record: false },
   { id: 489408, date: "2024-10-13", pilot: "Glen Kelley", aircraft: "JS3 TJ 15m", minutes: 123, distanceKm: 74.5, maxAltFt: 4900, wave: false, ssa: [], record: false },
   { id: 489448, date: "2024-10-13", pilot: "Emilie Phillips", aircraft: "ASK 21", minutes: 66, distanceKm: 32.4, maxAltFt: 5100, wave: false, ssa: [], record: false },
   { id: 489488, date: "2024-10-13", pilot: "Tyson Sawyer", aircraft: "ASW 27", minutes: 154, distanceKm: 45.0, maxAltFt: 8100, wave: false, ssa: [], record: false },
   { id: 489626, date: "2024-10-13", pilot: "David Sherrill", aircraft: "Duo Discus T", minutes: 57, distanceKm: 44.5, maxAltFt: 6900, wave: false, ssa: [], record: false },
-  { id: 493559, date: "2024-10-15", pilot: "David Joyce", aircraft: "Duo Discus T", minutes: 88, distanceKm: 48.2, maxAltFt: 8900, wave: true, ssa: [], record: false },
-  { id: 490742, date: "2024-10-15", pilot: "Richard Roelke", aircraft: "Duo Discus T", minutes: 88, distanceKm: 48.1, maxAltFt: 8800, wave: true, ssa: [], record: false },
+  { id: 493559, date: "2024-10-15", pilot: "David Joyce", aircraft: "Duo Discus T", minutes: 88, distanceKm: 48.2, maxAltFt: 8900, wave: false, ssa: [], record: false, sameFlightAs: 490742 },
+  { id: 490742, date: "2024-10-15", pilot: "Richard Roelke", aircraft: "Duo Discus T", minutes: 88, distanceKm: 48.1, maxAltFt: 8800, wave: false, ssa: [], record: false },
   { id: 489865, date: "2024-10-15", pilot: "Tyson Sawyer", aircraft: "ASW 27", minutes: 63, distanceKm: 30.8, maxAltFt: 8500, wave: true, ssa: [], record: false },
   { id: 489862, date: "2024-10-15", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 45, distanceKm: 29.7, maxAltFt: 5500, wave: false, ssa: [], record: false },
   { id: 490388, date: "2024-10-17", pilot: "Glen Kelley", aircraft: "JS3 TJ 15m", minutes: 123, distanceKm: 42.2, maxAltFt: 6800, wave: false, ssa: [], record: false },
   { id: 490424, date: "2024-10-17", pilot: "Eric Foertsch", aircraft: "LS 4", minutes: 215, distanceKm: 69.0, maxAltFt: 6200, wave: false, ssa: [], record: false },
-  { id: 490398, date: "2024-10-17", pilot: "Nelson Howe", aircraft: "JS3 TJ 18m", minutes: 223, distanceKm: 76.8, maxAltFt: 4700, wave: true, ssa: [], record: false },
+  { id: 490398, date: "2024-10-17", pilot: "Nelson Howe", aircraft: "JS3 TJ 18m", minutes: 223, distanceKm: 76.8, maxAltFt: 4700, wave: false, ssa: [], record: false },
   { id: 490741, date: "2024-10-17", pilot: "Richard Roelke", aircraft: "Duo Discus T", minutes: 67, distanceKm: 36.0, maxAltFt: 7000, wave: false, ssa: [], record: false },
   { id: 491307, date: "2024-10-17", pilot: "John Beckley", aircraft: "ASW 24", minutes: 109, distanceKm: 48.8, maxAltFt: 4400, wave: false, ssa: [], record: false },
   { id: 490623, date: "2024-10-18", pilot: "Eric Foertsch", aircraft: "LS 4", minutes: 80, distanceKm: 31.4, maxAltFt: 7000, wave: false, ssa: [], record: false },
-  { id: 490605, date: "2024-10-18", pilot: "Glen Kelley", aircraft: "JS3 TJ 15m", minutes: 115, distanceKm: 50.0, maxAltFt: 6700, wave: true, ssa: [], record: false },
+  { id: 490605, date: "2024-10-18", pilot: "Glen Kelley", aircraft: "JS3 TJ 15m", minutes: 115, distanceKm: 50.0, maxAltFt: 6700, wave: false, ssa: [], record: false },
   { id: 491306, date: "2024-10-18", pilot: "John Beckley", aircraft: "ASW 24", minutes: 156, distanceKm: 55.3, maxAltFt: 6000, wave: false, ssa: [], record: false },
   { id: 490751, date: "2024-10-19", pilot: "Nelson Howe", aircraft: "JS3 RES 18m", minutes: 183, distanceKm: 71.5, maxAltFt: 4400, wave: false, ssa: [], record: false },
   { id: 491305, date: "2024-10-19", pilot: "John Beckley", aircraft: "ASW 24", minutes: 186, distanceKm: 46.8, maxAltFt: 9100, wave: false, ssa: [], record: false },
@@ -221,25 +235,25 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 491174, date: "2024-10-20", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 208, distanceKm: 76.3, maxAltFt: 18500, wave: true, ssa: ["SSA Gold badge"], record: false },
   { id: 491111, date: "2024-10-20", pilot: "Nelson Howe", aircraft: "JS3 RES 18m", minutes: 144, distanceKm: 114.0, maxAltFt: 18900, wave: true, ssa: ["SSA Gold badge"], record: false },
   { id: 491226, date: "2024-10-20", pilot: "David Baxter", aircraft: "L23 SuperBlanik", minutes: 54, distanceKm: 48.9, maxAltFt: 10700, wave: true, ssa: [], record: false },
-  { id: 922112, date: "2025-10-10", pilot: "Bill Batesole", aircraft: "Carat", minutes: 173, distanceKm: 81.2, maxAltFt: 10600, wave: false, ssa: [], record: false },
+  { id: 922112, date: "2025-10-10", pilot: "Bill Batesole", aircraft: "Carat", minutes: 173, distanceKm: 81.2, maxAltFt: 10600, wave: true, ssa: [], record: false },
   { id: 919612, date: "2025-10-10", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 56, distanceKm: 39.9, maxAltFt: 7000, wave: false, ssa: [], record: false },
   { id: 919895, date: "2025-10-10", pilot: "Emilie Phillips", aircraft: "ASW 27", minutes: 81, distanceKm: 59.5, maxAltFt: 5400, wave: false, ssa: [], record: false },
-  { id: 922670, date: "2025-10-10", pilot: "Richard Roelke", aircraft: "Duo Discus T", minutes: 99, distanceKm: 74.6, maxAltFt: 12100, wave: false, ssa: [], record: false },
+  { id: 922670, date: "2025-10-10", pilot: "Richard Roelke", aircraft: "Duo Discus T", minutes: 99, distanceKm: 74.6, maxAltFt: 12100, wave: true, ssa: [], record: false },
   { id: 919896, date: "2025-10-10", pilot: "Emilie Phillips", aircraft: "ASW 27", minutes: 52, distanceKm: 44.6, maxAltFt: 11800, wave: true, ssa: [], record: false },
-  { id: 920712, date: "2025-10-11", pilot: "Nelson Howe", aircraft: "JS3 TJ 18m", minutes: 195, distanceKm: 129.8, maxAltFt: 6400, wave: true, ssa: [], record: false },
+  { id: 920712, date: "2025-10-11", pilot: "Nelson Howe", aircraft: "JS3 TJ 18m", minutes: 195, distanceKm: 129.8, maxAltFt: 6400, wave: false, ssa: [], record: false },
   { id: 921470, date: "2025-10-11", pilot: "Glen Kelley", aircraft: "JS3 TJ 18m", minutes: 179, distanceKm: 129.9, maxAltFt: 6000, wave: false, ssa: [], record: false },
-  { id: 920723, date: "2025-10-11", pilot: "David Joyce", aircraft: "Ventus 2c 15m", minutes: 202, distanceKm: 98.7, maxAltFt: 6300, wave: true, ssa: [], record: false },
-  { id: 920609, date: "2025-10-11", pilot: "Emilie Phillips", aircraft: "ASW 27", minutes: 250, distanceKm: 100.2, maxAltFt: 6500, wave: true, ssa: [], record: false },
+  { id: 920723, date: "2025-10-11", pilot: "David Joyce", aircraft: "Ventus 2c 15m", minutes: 202, distanceKm: 98.7, maxAltFt: 6300, wave: false, ssa: [], record: false },
+  { id: 920609, date: "2025-10-11", pilot: "Emilie Phillips", aircraft: "ASW 27", minutes: 250, distanceKm: 100.2, maxAltFt: 6500, wave: false, ssa: [], record: false },
   { id: 960480, date: "2025-10-11", pilot: "Mauricio Poodts", aircraft: "DG 300", minutes: 17, distanceKm: 16.0, maxAltFt: 3900, wave: false, ssa: [], record: false },
-  { id: 920415, date: "2025-10-11", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 144, distanceKm: 82.8, maxAltFt: 6300, wave: true, ssa: [], record: false },
+  { id: 920415, date: "2025-10-11", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 144, distanceKm: 82.8, maxAltFt: 6300, wave: false, ssa: [], record: false },
   { id: 920671, date: "2025-10-11", pilot: "Charles Norman", aircraft: "Discus 2T", minutes: 58, distanceKm: 28.9, maxAltFt: 5800, wave: false, ssa: [], record: false },
   { id: 921530, date: "2025-10-11", pilot: "David Sherrill", aircraft: "Duo Discus T", minutes: 76, distanceKm: 41.8, maxAltFt: 5400, wave: false, ssa: [], record: false },
   { id: 960481, date: "2025-10-11", pilot: "Mauricio Poodts", aircraft: "DG 300", minutes: 132, distanceKm: 69.3, maxAltFt: 6400, wave: false, ssa: [], record: false },
   { id: 922111, date: "2025-10-11", pilot: "Bill Batesole", aircraft: "Carat", minutes: 200, distanceKm: 89.6, maxAltFt: 7000, wave: false, ssa: [], record: false },
   { id: 920385, date: "2025-10-11", pilot: "William Mileski", aircraft: "PIK-20 B", minutes: 104, distanceKm: 50.2, maxAltFt: 6200, wave: false, ssa: [], record: false },
-  { id: 921531, date: "2025-10-11", pilot: "David Sherrill", aircraft: "Duo Discus T", minutes: 59, distanceKm: 63.9, maxAltFt: 7000, wave: true, ssa: [], record: false },
+  { id: 921531, date: "2025-10-11", pilot: "David Sherrill", aircraft: "Duo Discus T", minutes: 59, distanceKm: 63.9, maxAltFt: 7000, wave: false, ssa: [], record: false },
   { id: 922110, date: "2025-10-12", pilot: "Bill Batesole", aircraft: "Carat", minutes: 220, distanceKm: 145.2, maxAltFt: 17000, wave: true, ssa: [], record: false },
-  { id: 921879, date: "2025-10-12", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 35, distanceKm: 30.6, maxAltFt: 7500, wave: true, ssa: [], record: false },
+  { id: 921879, date: "2025-10-12", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 35, distanceKm: 30.6, maxAltFt: 7500, wave: false, ssa: [], record: false },
   { id: 922242, date: "2025-10-12", pilot: "Thomas Van de Velde", aircraft: "Discus b", minutes: 342, distanceKm: 160.6, maxAltFt: 16800, wave: true, ssa: ["SSA Gold Altitude"], record: false },
   { id: 922249, date: "2025-10-12", pilot: "David Joyce", aircraft: "Ventus c 15m", minutes: 159, distanceKm: 141.7, maxAltFt: 16700, wave: true, ssa: [], record: false },
   { id: 922204, date: "2025-10-12", pilot: "Emilie Phillips", aircraft: "ASW 27", minutes: 274, distanceKm: 226.0, maxAltFt: 16800, wave: true, ssa: [], record: false },
@@ -247,12 +261,12 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 922254, date: "2025-10-12", pilot: "Andy Kozak", aircraft: "ASW 27", minutes: 283, distanceKm: 230.5, maxAltFt: 16500, wave: true, ssa: [], record: false },
   { id: 960482, date: "2025-10-12", pilot: "Mauricio Poodts", aircraft: "DG 300", minutes: 108, distanceKm: 78.4, maxAltFt: 10200, wave: true, ssa: [], record: false },
   { id: 922245, date: "2025-10-12", pilot: "Tim Chow", aircraft: "HpH 304C Wasp", minutes: 78, distanceKm: 54.3, maxAltFt: 16400, wave: true, ssa: [], record: false },
-  { id: 924765, date: "2025-10-15", pilot: "Glen Kelley", aircraft: "JS3 TJ 18m", minutes: 106, distanceKm: 74.5, maxAltFt: 6500, wave: true, ssa: [], record: false },
+  { id: 924765, date: "2025-10-15", pilot: "Glen Kelley", aircraft: "JS3 TJ 18m", minutes: 106, distanceKm: 74.5, maxAltFt: 6500, wave: false, ssa: [], record: false },
   { id: 924887, date: "2025-10-15", pilot: "Richard Roelke", aircraft: "Duo Discus T", minutes: 104, distanceKm: 77.3, maxAltFt: 19300, wave: true, ssa: [], record: false },
   { id: 925546, date: "2025-10-15", pilot: "Andy Kozak", aircraft: "ASW 27", minutes: 102, distanceKm: 91.0, maxAltFt: 19800, wave: true, ssa: [], record: false },
   { id: 924792, date: "2025-10-15", pilot: "Thomas Van de Velde", aircraft: "Discus b", minutes: 114, distanceKm: 74.9, maxAltFt: 21800, wave: true, ssa: [], record: false },
   { id: 924856, date: "2025-10-15", pilot: "Tyson Sawyer", aircraft: "ASW 27", minutes: 122, distanceKm: 66.9, maxAltFt: 8200, wave: true, ssa: [], record: false },
-  { id: 924793, date: "2025-10-15", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 97, distanceKm: 51.5, maxAltFt: 6500, wave: true, ssa: [], record: false },
+  { id: 924793, date: "2025-10-15", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 97, distanceKm: 51.5, maxAltFt: 6500, wave: false, ssa: [], record: false },
   { id: 925703, date: "2025-10-15", pilot: "David Joyce", aircraft: "Ventus 2c 15m", minutes: 10, distanceKm: 11.8, maxAltFt: 3000, wave: false, ssa: [], record: false },
   { id: 925480, date: "2025-10-15", pilot: "Eric Foertsch", aircraft: "ASW 27", minutes: 93, distanceKm: 61.7, maxAltFt: 6000, wave: false, ssa: [], record: false },
   { id: 927018, date: "2025-10-16", pilot: "Eric Foertsch", aircraft: "ASW 27", minutes: 9, distanceKm: 10.0, maxAltFt: 2300, wave: false, ssa: [], record: false },

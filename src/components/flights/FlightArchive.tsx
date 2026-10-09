@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FlightMarks } from "@/components/flights/icons";
-import { waveCampFlights, type WaveCampFlight } from "@/lib/wave-camp-flights";
+import { countsAsFlight, waveCampFlights, type WaveCampFlight } from "@/lib/wave-camp-flights";
 
 const ftFormat = new Intl.NumberFormat("en-US");
 
@@ -109,7 +109,8 @@ export function FlightArchive() {
           Wave flights only
         </button>
         <span className="text-sm text-slate-500">
-          {flights.length} {flights.length === 1 ? "flight" : "flights"} shown
+          {flights.filter(countsAsFlight).length}{" "}
+          {flights.filter(countsAsFlight).length === 1 ? "flight" : "flights"} shown
         </span>
       </div>
 
@@ -118,8 +119,9 @@ export function FlightArchive() {
           const rows = flights
             .filter((f) => f.date.startsWith(year))
             .sort((a, b) => (b.maxAltFt ?? 0) - (a.maxAltFt ?? 0));
+          const counted = rows.filter(countsAsFlight);
           const pilots = new Set(rows.map((f) => f.pilot)).size;
-          const wave = rows.filter((f) => f.wave).length;
+          const wave = counted.filter((f) => f.wave).length;
           const best = Math.max(...rows.map((f) => f.maxAltFt ?? 0));
           return (
             <section key={year}>
@@ -128,7 +130,7 @@ export function FlightArchive() {
                   {year}
                 </h2>
                 <p className="text-sm text-slate-500 tabular-nums">
-                  {rows.length} {rows.length === 1 ? "flight" : "flights"} · {pilots}{" "}
+                  {counted.length} {counted.length === 1 ? "flight" : "flights"} · {pilots}{" "}
                   {pilots === 1 ? "pilot" : "pilots"} · {wave} wave · best {ftFormat.format(best)} ft
                 </p>
               </div>
