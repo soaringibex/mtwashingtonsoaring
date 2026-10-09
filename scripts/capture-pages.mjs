@@ -67,6 +67,9 @@ async function main() {
     [
       "--headless=new",
       "--disable-gpu",
+      // Software WebGL, so pages that draw with it (the flights 3D view) capture too.
+      "--enable-unsafe-swiftshader",
+      "--use-angle=swiftshader",
       "--hide-scrollbars",
       "--no-first-run",
       "--no-default-browser-check",
@@ -188,6 +191,27 @@ async function main() {
         );
       }
 
+      if (target.click) {
+        const { x, y } = target.click;
+        await send(
+          ws,
+          "Input.dispatchMouseEvent",
+          { type: "mousePressed", x, y, button: "left", clickCount: 1, pointerType: "mouse" },
+          sessionId,
+        );
+        await send(
+          ws,
+          "Input.dispatchMouseEvent",
+          { type: "mouseReleased", x, y, button: "left", clickCount: 1, pointerType: "mouse" },
+          sessionId,
+        );
+        await send(
+          ws,
+          "Runtime.evaluate",
+          { expression: `new Promise((r) => setTimeout(r, 900))`, awaitPromise: true },
+          sessionId,
+        );
+      }
       const shot = await send(
         ws,
         "Page.captureScreenshot",

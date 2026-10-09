@@ -28,7 +28,8 @@ export default function Flights3DPage() {
           Pick a year: every flight logged from Gorham that October is drawn as a track through the
           atmosphere, coloured by the altitude it reached. The wave flights stand out bright —
           long climbs climbing straight up the lee of the range — while the thermal afternoons
-          stay dim below the ridgelines.
+          stay dim below the ridgelines. Click any track to see whose flight it was and how high
+          it went.
         </p>
 
         <div className="mt-8">
@@ -36,10 +37,10 @@ export default function Flights3DPage() {
         </div>
 
         <p className="mt-6 max-w-3xl text-[11px] leading-5 text-slate-400">
-          Terrain from the same AWS tile mosaic the wave map draws; tracks decimated from each
-          flight&apos;s WeGlide GPS trace (about one point per minute) and raised 1.5× vertically
-          so the climbing reads. Altitudes are GPS and read a little high. Flights and traces live
-          on{" "}
+          Terrain rendered from AWS z11 tiles — about 55 metres per pixel, hillshaded from the
+          real relief; tracks decimated from each flight&apos;s WeGlide GPS trace (about one point
+          per minute) and raised 2.3× vertically so the climbing reads. Altitudes are GPS and read
+          a little high. Flights and traces live on{" "}
           <a href="https://weglide.org" target="_blank" rel="noreferrer" className="font-medium text-sky-700 hover:text-sky-600">
             WeGlide
           </a>
