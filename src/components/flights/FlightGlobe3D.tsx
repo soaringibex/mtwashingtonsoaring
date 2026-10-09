@@ -256,6 +256,12 @@ export function FlightGlobe3D() {
   });
   const yearCache = useRef(new Map<number, YearData>());
 
+  // On a phone the map should be the whole story: the filter panel is a bottom sheet
+  // there, so it starts closed and the "Pilots & dates" pill opens it.
+  useEffect(() => {
+    if (window.matchMedia("(max-width: 639px)").matches) setPanelOpen(false);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     fetchRoadLines()
@@ -1046,7 +1052,7 @@ export function FlightGlobe3D() {
       ) : null}
 
       {panelOpen && stats ? (
-        <div className="absolute left-3 top-24 z-10 max-h-[62%] w-64 overflow-y-auto rounded-2xl bg-slate-950/85 p-4 ring-1 ring-white/15 backdrop-blur-sm sm:top-14">
+        <div className="absolute inset-x-3 bottom-3 z-20 max-h-[50svh] overflow-y-auto rounded-2xl bg-slate-950/90 p-4 ring-1 ring-white/15 backdrop-blur-sm sm:inset-x-auto sm:bottom-auto sm:left-3 sm:top-14 sm:z-10 sm:max-h-[62%] sm:w-64">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Pilots</p>
             {pilotSel.size ? (
