@@ -214,6 +214,48 @@ async function main() {
           sessionId,
         );
       }
+      if (target.drag) {
+        const { fromX, fromY, toX, toY, button = "left", steps = 12 } = target.drag;
+        await send(
+          ws,
+          "Input.dispatchMouseEvent",
+          { type: "mousePressed", x: fromX, y: fromY, button, clickCount: 1, pointerType: "mouse" },
+          sessionId,
+        );
+        for (let i = 1; i <= steps; i += 1) {
+          await send(
+            ws,
+            "Input.dispatchMouseEvent",
+            {
+              type: "mouseMoved",
+              x: fromX + ((toX - fromX) * i) / steps,
+              y: fromY + ((toY - fromY) * i) / steps,
+              button,
+              buttons: button === "left" ? 1 : button === "right" ? 2 : 4,
+              pointerType: "mouse",
+            },
+            sessionId,
+          );
+          await send(
+            ws,
+            "Runtime.evaluate",
+            { expression: `new Promise((r) => requestAnimationFrame(() => r()))`, awaitPromise: true },
+            sessionId,
+          );
+        }
+        await send(
+          ws,
+          "Input.dispatchMouseEvent",
+          { type: "mouseReleased", x: toX, y: toY, button, clickCount: 1, pointerType: "mouse" },
+          sessionId,
+        );
+        await send(
+          ws,
+          "Runtime.evaluate",
+          { expression: `new Promise((r) => setTimeout(r, 700))`, awaitPromise: true },
+          sessionId,
+        );
+      }
       const clickList = target.clicks ?? (target.click ? [target.click] : []);
       if (clickList.length > 0) {
         for (const spot of clickList) {

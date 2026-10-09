@@ -217,12 +217,14 @@ export function FlightGlobe3D() {
   const [year, setYear] = useState(2025);
   const [mosaic, setMosaic] = useState<TerrainMosaic | null>(null);
   const [stats, setStats] = useState<YearData | null>(null);
-  const [camera, setCamera] = useState<Camera>({ yaw: 200, pitch: 22, zoom: null });
+  const [camera, setCamera] = useState<Camera>({ yaw: 200, pitch: 26, zoom: null });
   const [selected, setSelected] = useState<number | null>(null);
   const [sizeTick, setSizeTick] = useState(0);
   const [roads, setRoads] = useState<RoadLine[] | null>(null);
+  const [pan, setPan] = useState<[number, number]>([0, 0]);
+  const cameraRef = useRef<Camera>({ yaw: 200, pitch: 26, zoom: null });
   const [pilotSel, setPilotSel] = useState<Set<string>>(new Set());
-  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(true);
   const [dateFrom, setDateFrom] = useState<string | null>(null);
   const [dateTo, setDateTo] = useState<string | null>(null);
   const mvpRef = useRef<{ mvp: Float32Array; cssW: number; cssH: number } | null>(null);
@@ -302,6 +304,7 @@ export function FlightGlobe3D() {
         setPilotSel(new Set());
         setDateFrom(null);
         setDateTo(null);
+        setPan([0, 0]);
       })
       .catch(() => {
         if (!cancelled) setDataError(true);
@@ -447,6 +450,7 @@ export function FlightGlobe3D() {
       const next = new Set(prev);
       if (next.has(pilot)) next.delete(pilot);
       else next.add(pilot);
+      setPan([0, 0]);
       return next;
     });
 
@@ -492,7 +496,7 @@ export function FlightGlobe3D() {
 
   // Frame the visible flights: median centre, 95th-percentile radius.
   const frame: Frame = useMemo(() => {
-    if (!scene || !stats) return { target: [0, 0, 1.4], dist: 80 };
+    if (!scene || !stats) return { target: [0, 0, 1.4], dist: 40 };
     const xs: number[] = [];
     const ys: number[] = [];
     let sumZ = 0;
@@ -507,7 +511,7 @@ export function FlightGlobe3D() {
         n += 1;
       }
     }
-    if (!n) return { target: [0, 0, 1.4], dist: 80 };
+    if (!n) return { target: [0, 0, 1.4], dist: 40 };
     xs.sort((a, b) => a - b);
     ys.sort((a, b) => a - b);
     const mx = xs[Math.floor(n / 2)];
@@ -515,7 +519,7 @@ export function FlightGlobe3D() {
     const radii = xs.map((x, i) => Math.hypot(x - mx, ys[i] - my)).sort((a, b) => a - b);
     const r95 = radii[Math.floor(n * 0.95)] ?? 10;
     const tz = Math.min(maxZ * 0.7, sumZ / n + r95 * 0.22);
-    const dist = Math.min(300, Math.max(38, (r95 * 1.9) / Math.tan(FOV / 2)));
+    const dist = Math.min(300, Math.max(12, (r95 * 1.05) / Math.tan(FOV / 2)));
     return { target: [mx, my, tz], dist };
   }, [scene, stats, visibleFlights]);
 
@@ -670,7 +674,12 @@ export function FlightGlobe3D() {
     const dist = camera.zoom ?? frame.dist;
     const yawR = (yaw * Math.PI) / 180;
     const pitchR = (pitch * Math.PI) / 180;
-    const target = frame.target;
+    const target: [number, number, number] = [
+      frame.target[0] + pan[0],
+      frame.target[1] + pan[1],
+      frame.target[2],
+    ];
+    cameraRef.current = camera;
     const eye: [number, number, number] = [
       target[0] + dist * Math.cos(pitchR) * Math.sin(yawR),
       target[1] + dist * Math.cos(pitchR) * Math.cos(yawR),
@@ -808,7 +817,7 @@ export function FlightGlobe3D() {
       }
     }
 
-  }, [scene, stats, camera, frame, trackData, roadData, selected, sizeTick, visibleFlights]);
+  }, [scene, stats, camera, frame, trackData, roadData, selected, sizeTick, visibleFlights, pan]);
 
   // Redraw on viewport changes (the canvas is sized from its CSS box).
   useEffect(() => {
@@ -822,6 +831,7 @@ export function FlightGlobe3D() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     let dragging = false;
+    let panning = false;
     let lastX = 0;
     let lastY = 0;
     let pinch = 0;
@@ -829,6 +839,21 @@ export function FlightGlobe3D() {
     let downY = 0;
     let moved = false;
     const pointers = new Map<number, { x: number; y: number }>();
+
+    const panBy = (dxPx: number, dyPx: number) => {
+      const cam = cameraRef.current;
+      const dist = cam.zoom ?? frame.dist;
+      const yawR = (cam.yaw * Math.PI) / 180;
+      const scale = (2 * dist * Math.tan(FOV / 2)) / canvas.clientHeight;
+      const pitchR = (cam.pitch * Math.PI) / 180;
+      // Drag the ground with the cursor: right along the camera's screen-right, and
+      // "up-screen" along the camera's ground forward, un-foreshortened by the pitch.
+      const rx = -Math.cos(yawR);
+      const ry = Math.sin(yawR);
+      const fx = -Math.sin(yawR) / Math.max(0.35, Math.cos(pitchR));
+      const fy = -Math.cos(yawR) / Math.max(0.35, Math.cos(pitchR));
+      setPan((p) => [p[0] + (-rx * dxPx + fx * dyPx) * scale, p[1] + (-ry * dxPx + fy * dyPx) * scale]);
+    };
 
     // Nearest flight to a click, in screen space — a few hundredths of a millisecond
     // over the decimated tracks.
@@ -867,15 +892,19 @@ export function FlightGlobe3D() {
       canvas.setPointerCapture(e.pointerId);
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pointers.size === 1) {
-        dragging = true;
+        panning = e.button === 2 || e.button === 1;
+        dragging = !panning;
         lastX = e.clientX;
         lastY = e.clientY;
         downX = e.clientX;
         downY = e.clientY;
         moved = false;
       } else if (pointers.size === 2) {
+        dragging = false;
         const [p1, p2] = [...pointers.values()];
         pinch = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+        lastX = (p1.x + p2.x) / 2;
+        lastY = (p1.y + p2.y) / 2;
       }
     };
     const move = (e: PointerEvent) => {
@@ -889,6 +918,23 @@ export function FlightGlobe3D() {
           setCamera((c) => ({ ...c, zoom: Math.min(320, Math.max(2, (c.zoom ?? frame.dist) * factor)) }));
         }
         pinch = d;
+        const cxp = (p1.x + p2.x) / 2;
+        const cyp = (p1.y + p2.y) / 2;
+        if (Math.abs(cxp - lastX) + Math.abs(cyp - lastY) > 2) {
+          panBy(cxp - lastX, cyp - lastY);
+          moved = true;
+        }
+        lastX = cxp;
+        lastY = cyp;
+        return;
+      }
+      if (panning) {
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        panBy(dx, dy);
+        moved = true;
         return;
       }
       if (!dragging) return;
@@ -906,12 +952,16 @@ export function FlightGlobe3D() {
     const up = (e: PointerEvent) => {
       const wasSingle = pointers.size === 1;
       pointers.delete(e.pointerId);
-      if (pointers.size === 0) dragging = false;
+      if (pointers.size === 0) {
+        dragging = false;
+        panning = false;
+      }
       if (pointers.size < 2) pinch = 0;
-      if (wasSingle && !moved) {
+      if (wasSingle && !moved && e.button === 0) {
         setSelected(pick(e.clientX, e.clientY));
       }
     };
+    const contextMenu = (e: MouseEvent) => e.preventDefault();
     const wheel = (e: WheelEvent) => {
       e.preventDefault();
       setCamera((c) => ({
@@ -921,12 +971,14 @@ export function FlightGlobe3D() {
     };
 
     canvas.addEventListener("pointerdown", down);
+    canvas.addEventListener("contextmenu", contextMenu);
     canvas.addEventListener("pointermove", move);
     canvas.addEventListener("pointerup", up);
     canvas.addEventListener("pointercancel", up);
     canvas.addEventListener("wheel", wheel, { passive: false });
     return () => {
       canvas.removeEventListener("pointerdown", down);
+      canvas.removeEventListener("contextmenu", contextMenu);
       canvas.removeEventListener("pointermove", move);
       canvas.removeEventListener("pointerup", up);
       canvas.removeEventListener("pointercancel", up);
@@ -1104,7 +1156,7 @@ export function FlightGlobe3D() {
       ) : null}
 
       <p className="pointer-events-none absolute bottom-11 left-4 z-10 text-[11px] text-slate-400">
-        drag to orbit · scroll to zoom · click a track
+        drag to orbit · right-drag to pan · scroll to zoom · click a track
       </p>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-wrap items-center gap-x-4 gap-y-1 bg-gradient-to-t from-slate-950/85 to-transparent px-4 pb-3 pt-10 text-[11px] text-slate-300">
