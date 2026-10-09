@@ -24,7 +24,6 @@ type Track = {
   pilot: string;
   date: string;
   maxAltFt: number;
-  wave: boolean;
   ssa: string[];
   pts: [number, number, number][];
 };
@@ -437,12 +436,6 @@ export function FlightGlobe3D() {
     return [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   }, [stats]);
 
-  const dateBounds = useMemo(() => {
-    if (!stats) return { min: "", max: "" };
-    const dates = stats.flights.map((f) => f.date).sort();
-    return { min: dates[0], max: dates[dates.length - 1] };
-  }, [stats]);
-
   const filtered = visibleFlights.length !== (stats?.flights.length ?? 0);
   const selectedFlight = selected !== null ? (visibleFlights.find((f) => f.id === selected) ?? null) : null;
 
@@ -460,6 +453,17 @@ export function FlightGlobe3D() {
       setPan([0, 0]);
       return next;
     });
+
+  /** October stays the wave-camp month: first click starts the range, the next ends it. */
+  const pickDate = (key: string) => {
+    if (dateFrom === null || dateTo !== null || key < dateFrom) {
+      setDateFrom(key);
+      setDateTo(null);
+    } else {
+      setDateTo(key);
+    }
+    setPan([0, 0]);
+  };
 
   // Roads, draped on the rendered mesh and drawn through the same ribbon pipeline.
   const roadData = useMemo(() => {
@@ -547,8 +551,8 @@ export function FlightGlobe3D() {
     for (const flight of visibleFlights) {
       const pts = flight.pts;
       if (pts.length < 2) continue;
-      const width = flight.ssa.length ? 3 : flight.wave ? 2 : 1.3;
-      const alpha = flight.wave || flight.ssa.length ? 0.95 : 0.5;
+      const width = flight.ssa.length ? 3 : flight.maxAltFt > 9000 ? 2 : 1.3;
+      const alpha = flight.maxAltFt > 9000 || flight.ssa.length ? 0.95 : 0.5;
       flightIdx += 1;
       const world = pts.map(([lon, lat, alt]) => [
         (lon - scene.midLon) * scene.kmPerLon,
@@ -1114,28 +1118,69 @@ export function FlightGlobe3D() {
             <p className="mt-1.5 text-[11px] text-slate-500">Type a name to add pilots to the view.</p>
           )}
 
-          <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Dates</p>
-          <div className="mt-2 flex items-center gap-2">
-            <input
-              type="date"
-              aria-label="From date"
-              min={dateBounds.min}
-              max={dateBounds.max}
-              value={dateFrom ?? ""}
-              onChange={(e) => setDateFrom(e.target.value === "" ? null : e.target.value)}
-              className="w-full rounded-lg bg-slate-900 px-2 py-1 text-xs text-slate-200 ring-1 ring-white/10 [color-scheme:dark]"
-            />
-            <span className="text-xs text-slate-500">→</span>
-            <input
-              type="date"
-              aria-label="To date"
-              min={dateBounds.min}
-              max={dateBounds.max}
-              value={dateTo ?? ""}
-              onChange={(e) => setDateTo(e.target.value === "" ? null : e.target.value)}
-              className="w-full rounded-lg bg-slate-900 px-2 py-1 text-xs text-slate-200 ring-1 ring-white/10 [color-scheme:dark]"
-            />
-          </div>
+          <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            October {year}
+          </p>
+          {(() => {
+            const withFlights = new Set(stats.flights.map((f) => f.date));
+            const firstDow = new Date(Date.UTC(year, 9, 1)).getUTCDay();
+            const cells: (number | null)[] = [
+              ...Array.from({ length: firstDow }, () => null),
+              ...Array.from({ length: 31 }, (_, i) => i + 1),
+            ];
+            return (
+              <div className="mt-2">
+                <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase text-slate-500">
+                  {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                    <span key={i}>{d}</span>
+                  ))}
+                </div>
+                <div className="mt-1 grid grid-cols-7 gap-1">
+                  {cells.map((day, i) => {
+                    if (day === null) return <span key={`e${i}`} />;
+                    const key = `${year}-10-${String(day).padStart(2, "0")}`;
+                    const isEdge = key === dateFrom || key === dateTo;
+                    const inRange = dateFrom !== null && key >= dateFrom && (dateTo === null || key <= dateTo);
+                    const hasFlights = withFlights.has(key);
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        aria-label={`October ${day}, ${year}`}
+                        aria-pressed={isEdge}
+                        onClick={() => pickDate(key)}
+                        className={`relative h-7 rounded-md text-[11px] tabular-nums transition-colors ${
+                          isEdge
+                            ? "bg-sky-400 font-semibold text-slate-950"
+                            : inRange
+                              ? "bg-sky-400/25 text-slate-100"
+                              : hasFlights
+                                ? "text-sky-200 hover:bg-white/10"
+                                : "text-slate-500 hover:bg-white/5"
+                        }`}
+                      >
+                        {day}
+                        {hasFlights ? (
+                          <span
+                            className={`absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full ${
+                              isEdge || inRange ? "bg-slate-950/70" : "bg-sky-300"
+                            }`}
+                          />
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-1.5 text-[10px] text-slate-500">
+                  {dateFrom === null
+                    ? "pick the first day with flying"
+                    : dateTo === null
+                      ? "now pick the last day"
+                      : `${dateFrom} → ${dateTo}`}
+                </p>
+              </div>
+            );
+          })()}
           {dateFrom || dateTo ? (
             <button
               type="button"
@@ -1216,7 +1261,7 @@ export function FlightGlobe3D() {
           }}
         />
         <span className="tabular-nums">800 ft → 34,000 ft</span>
-        <span className="ml-auto hidden sm:inline">wave flights bright · everything else dim · GPS altitudes read a little high</span>
+        <span className="ml-auto hidden sm:inline">above 9,000 ft bright · everything else dim · GPS altitudes read a little high</span>
       </div>
     </div>
   );
