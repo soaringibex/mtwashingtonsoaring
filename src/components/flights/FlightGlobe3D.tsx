@@ -1,7 +1,7 @@
 "use client";
 
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { fetchTerrainMosaic, mosaicElevation, type TerrainMosaic } from "@/lib/terrain-tiles";
 import { fetchRoadLines, type RoadLine } from "@/lib/roads";
 
@@ -31,6 +31,16 @@ type Track = {
 type YearData = { year: number; flights: Track[] };
 
 const YEARS = [2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016];
+
+/** The filter panel is a bottom sheet on a phone, so its default follows the viewport. */
+const PHONE_QUERY = "(max-width: 639px)";
+const subscribePhone = (notify: () => void) => {
+  const media = window.matchMedia(PHONE_QUERY);
+  media.addEventListener("change", notify);
+  return () => media.removeEventListener("change", notify);
+};
+const getPhoneSnapshot = () => window.matchMedia(PHONE_QUERY).matches;
+const getPhoneServerSnapshot = () => false;
 
 /** The summits worth a label, each snapped to its own top on the terrain mesh. */
 const PEAKS = [
@@ -223,7 +233,10 @@ export function FlightGlobe3D() {
   const [pan, setPan] = useState<[number, number]>([0, 0]);
   const cameraRef = useRef<Camera>({ yaw: 200, pitch: 26, zoom: null });
   const [pilotSel, setPilotSel] = useState<Set<string>>(new Set());
-  const [panelOpen, setPanelOpen] = useState(true);
+  const isPhone = useSyncExternalStore(subscribePhone, getPhoneSnapshot, getPhoneServerSnapshot);
+  const [panelPinned, setPanelPinned] = useState<boolean | null>(null);
+  const panelOpen = panelPinned ?? !isPhone;
+  const togglePanel = () => setPanelPinned(!panelOpen);
   const [pilotQuery, setPilotQuery] = useState("");
   const [dateFrom, setDateFrom] = useState<string | null>(null);
   const [dateTo, setDateTo] = useState<string | null>(null);
@@ -255,12 +268,6 @@ export function FlightGlobe3D() {
     roadData: null,
   });
   const yearCache = useRef(new Map<number, YearData>());
-
-  // On a phone the map should be the whole story: the filter panel is a bottom sheet
-  // there, so it starts closed and the "Pilots & dates" pill opens it.
-  useEffect(() => {
-    if (window.matchMedia("(max-width: 639px)").matches) setPanelOpen(false);
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -1031,7 +1038,7 @@ export function FlightGlobe3D() {
         <button
           type="button"
           aria-pressed={panelOpen}
-          onClick={() => setPanelOpen((v) => !v)}
+          onClick={togglePanel}
           className={`pointer-events-auto rounded-full px-3 py-1 text-sm font-medium backdrop-blur-sm transition-colors ${
             panelOpen || filtered
               ? "bg-sky-400/90 text-slate-950"
