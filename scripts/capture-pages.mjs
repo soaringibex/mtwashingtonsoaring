@@ -214,26 +214,29 @@ async function main() {
           sessionId,
         );
       }
-      if (target.click) {
-        const { x, y } = target.click;
-        await send(
-          ws,
-          "Input.dispatchMouseEvent",
-          { type: "mousePressed", x, y, button: "left", clickCount: 1, pointerType: "mouse" },
-          sessionId,
-        );
-        await send(
-          ws,
-          "Input.dispatchMouseEvent",
-          { type: "mouseReleased", x, y, button: "left", clickCount: 1, pointerType: "mouse" },
-          sessionId,
-        );
-        await send(
-          ws,
-          "Runtime.evaluate",
-          { expression: `new Promise((r) => setTimeout(r, 900))`, awaitPromise: true },
-          sessionId,
-        );
+      const clickList = target.clicks ?? (target.click ? [target.click] : []);
+      if (clickList.length > 0) {
+        for (const spot of clickList) {
+          const { x, y } = spot;
+          await send(
+            ws,
+            "Input.dispatchMouseEvent",
+            { type: "mousePressed", x, y, button: "left", clickCount: 1, pointerType: "mouse" },
+            sessionId,
+          );
+          await send(
+            ws,
+            "Input.dispatchMouseEvent",
+            { type: "mouseReleased", x, y, button: "left", clickCount: 1, pointerType: "mouse" },
+            sessionId,
+          );
+          await send(
+            ws,
+            "Runtime.evaluate",
+            { expression: `new Promise((r) => setTimeout(r, 900))`, awaitPromise: true },
+            sessionId,
+          );
+        }
       }
       const shot = await send(
         ws,

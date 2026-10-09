@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchTerrainMosaic, mosaicElevation, type TerrainMosaic } from "@/lib/terrain-tiles";
+import { fetchRoadLines, type RoadLine } from "@/lib/roads";
 
 /**
  * The wave-camp years in 3D — rendered with WebGL so the mountain keeps its detail:
@@ -31,6 +32,21 @@ type Track = {
 type YearData = { year: number; flights: Track[] };
 
 const YEARS = [2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016];
+
+/** The summits worth a label, each snapped to its own top on the terrain mesh. */
+const PEAKS = [
+  { name: "Mt Washington", lat: 44.27246, lon: -71.30402 },
+  { name: "Mt Adams", lat: 44.32266, lon: -71.29234 },
+  { name: "Mt Jefferson", lat: 44.30609, lon: -71.31706 },
+  { name: "Mt Madison", lat: 44.33046, lon: -71.27724 },
+  { name: "Mt Monroe", lat: 44.25784, lon: -71.32187 },
+  { name: "Mt Eisenhower", lat: 44.24321, lon: -71.35071 },
+  { name: "Mt Pierce", lat: 44.22957, lon: -71.36581 },
+  { name: "Mt Jackson", lat: 44.20715, lon: -71.31157 },
+  { name: "Wildcat Mountain", lat: 44.26174, lon: -71.20239 },
+  { name: "Carter Dome", lat: 44.26953, lon: -71.17973 },
+  { name: "Kearsarge North", lat: 44.10966, lon: -71.09459 },
+];
 
 const ALT_RAMP: [number, [number, number, number]][] = [
   [800, [45, 212, 191]],
@@ -204,12 +220,19 @@ export function FlightGlobe3D() {
   const [camera, setCamera] = useState<Camera>({ yaw: 200, pitch: 22, zoom: null });
   const [selected, setSelected] = useState<number | null>(null);
   const [sizeTick, setSizeTick] = useState(0);
+  const [roads, setRoads] = useState<RoadLine[] | null>(null);
+  const [pilotSel, setPilotSel] = useState<Set<string>>(new Set());
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [dateFrom, setDateFrom] = useState<string | null>(null);
+  const [dateTo, setDateTo] = useState<string | null>(null);
   const mvpRef = useRef<{ mvp: Float32Array; cssW: number; cssH: number } | null>(null);
   const sceneRef = useRef<{ midLon: number; midLat: number; kmPerLon: number; kmPerLat: number } | null>(null);
+  const visibleRef = useRef<Track[]>([]);
   const [glError, setGlError] = useState(false);
   const [dataError, setDataError] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const labelCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const glRef = useRef<{
     gl: WebGLRenderingContext;
     sky: WebGLProgram;
@@ -219,12 +242,31 @@ export function FlightGlobe3D() {
     terra: { vbo: WebGLBuffer; ibo: WebGLBuffer; tex: WebGLTexture; count: number } | null;
     trackBuf: WebGLBuffer | null;
     trackVerts: number;
+    roadBuf: WebGLBuffer | null;
+    roadVerts: number;
     tracksFor: number;
   } | null>(null);
   const glFailedRef = useRef(false);
-  const uploadedRef = useRef<{ scene: unknown; trackData: unknown }>({ scene: null, trackData: null });
+  const uploadedRef = useRef<{ scene: unknown; trackData: unknown; roadData: unknown }>({
+    scene: null,
+    trackData: null,
+    roadData: null,
+  });
   const yearCache = useRef(new Map<number, YearData>());
-  const dataRef = useRef<YearData | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchRoadLines()
+      .then((lines) => {
+        if (!cancelled) setRoads(lines);
+      })
+      .catch(() => {
+        if (!cancelled) setRoads([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -244,7 +286,6 @@ export function FlightGlobe3D() {
     let cancelled = false;
     const cached = yearCache.current.get(year);
     if (cached) {
-      dataRef.current = cached;
       setStats(cached);
       return;
     }
@@ -256,9 +297,11 @@ export function FlightGlobe3D() {
       .then((data) => {
         if (cancelled) return;
         yearCache.current.set(year, data);
-        dataRef.current = data;
         setStats(data);
         setSelected(null);
+        setPilotSel(new Set());
+        setDateFrom(null);
+        setDateTo(null);
       })
       .catch(() => {
         if (!cancelled) setDataError(true);
@@ -295,6 +338,24 @@ export function FlightGlobe3D() {
         verts[o + 4] = j / (GY - 1);
       }
     }
+
+    const heights = new Float32Array(GX * GY);
+    for (let v = 0; v < GX * GY; v += 1) heights[v] = verts[v * 5 + 2];
+    const meshZ = (lon: number, lat: number): number => {
+      const fi = ((lon - BOUNDS.west) / (BOUNDS.east - BOUNDS.west)) * (GX - 1);
+      const fj = ((BOUNDS.north - lat) / (BOUNDS.north - BOUNDS.south)) * (GY - 1);
+      const i = Math.min(Math.max(fi, 0), GX - 1.001);
+      const j = Math.min(Math.max(fj, 0), GY - 1.001);
+      const i0 = Math.floor(i);
+      const j0 = Math.floor(j);
+      const ti = i - i0;
+      const tj = j - j0;
+      const a = heights[j0 * GX + i0];
+      const b = heights[j0 * GX + i0 + 1];
+      const c = heights[(j0 + 1) * GX + i0];
+      const d = heights[(j0 + 1) * GX + i0 + 1];
+      return a * (1 - ti) * (1 - tj) + b * ti * (1 - tj) + c * (1 - ti) * tj + d * ti * tj;
+    };
 
     // Indices (32-bit; the caller falls back to a smaller grid if unsupported).
     const idx = new Uint32Array((GX - 1) * (GY - 1) * 6);
@@ -351,10 +412,85 @@ export function FlightGlobe3D() {
       }
     }
 
-    return { verts, idx, vertCount: GX * GY, indexCount: idx.length, texData, TW, TH, midLat, midLon, kmPerLon, kmPerLat };
+    return { verts, idx, vertCount: GX * GY, indexCount: idx.length, texData, TW, TH, midLat, midLon, kmPerLon, kmPerLat, meshZ };
   }, [mosaic]);
 
-  // Frame each year: median centre, 95th-percentile radius.
+  // The flights the filters keep.
+  const visibleFlights = useMemo(() => {
+    if (!stats) return [];
+    return stats.flights.filter(
+      (f) =>
+        (pilotSel.size === 0 || pilotSel.has(f.pilot)) &&
+        (dateFrom === null || f.date >= dateFrom) &&
+        (dateTo === null || f.date <= dateTo),
+    );
+  }, [stats, pilotSel, dateFrom, dateTo]);
+
+  const pilotList = useMemo(() => {
+    if (!stats) return [];
+    const counts = new Map<string, number>();
+    for (const f of stats.flights) counts.set(f.pilot, (counts.get(f.pilot) ?? 0) + 1);
+    return [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [stats]);
+
+  const dateBounds = useMemo(() => {
+    if (!stats) return { min: "", max: "" };
+    const dates = stats.flights.map((f) => f.date).sort();
+    return { min: dates[0], max: dates[dates.length - 1] };
+  }, [stats]);
+
+  const filtered = visibleFlights.length !== (stats?.flights.length ?? 0);
+  const selectedFlight = selected !== null ? (visibleFlights.find((f) => f.id === selected) ?? null) : null;
+
+  const togglePilot = (pilot: string) =>
+    setPilotSel((prev) => {
+      const next = new Set(prev);
+      if (next.has(pilot)) next.delete(pilot);
+      else next.add(pilot);
+      return next;
+    });
+
+  // Roads, draped on the rendered mesh and drawn through the same ribbon pipeline.
+  const roadData = useMemo(() => {
+    if (!scene || !roads || roads.length === 0) return null;
+    const segs: number[] = [];
+    let segCount = 0;
+    const c = mix([196, 208, 224].map((v) => v / 255) as [number, number, number], SKY_BOTTOM, 0.6);
+    for (const line of roads) {
+      const pts = line.p;
+      if (pts.length < 2) continue;
+      const width = line.k >= 2 ? 1.2 : 0.9;
+      for (let i = 0; i < pts.length - 1; i += 1) {
+        const [lon1, lat1] = pts[i];
+        const [lon2, lat2] = pts[i + 1];
+        const a: [number, number, number] = [
+          (lon1 - scene.midLon) * scene.kmPerLon,
+          (lat1 - scene.midLat) * scene.kmPerLat,
+          scene.meshZ(lon1, lat1) + 0.045,
+        ];
+        const b: [number, number, number] = [
+          (lon2 - scene.midLon) * scene.kmPerLon,
+          (lat2 - scene.midLat) * scene.kmPerLat,
+          scene.meshZ(lon2, lat2) + 0.045,
+        ];
+        if (Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.02) continue;
+        for (const [p, other, side] of [
+          [a, b, 1],
+          [a, b, -1],
+          [b, a, 1],
+          [b, a, -1],
+          [a, b, -1],
+          [b, a, 1],
+        ] as [[number, number, number], [number, number, number], number][]) {
+          segs.push(p[0], p[1], p[2], other[0], other[1], other[2], side, c[0], c[1], c[2], width, -1);
+        }
+        segCount += 1;
+      }
+    }
+    return { data: new Float32Array(segs), verts: segCount * 6 };
+  }, [scene, roads]);
+
+  // Frame the visible flights: median centre, 95th-percentile radius.
   const frame: Frame = useMemo(() => {
     if (!scene || !stats) return { target: [0, 0, 1.4], dist: 80 };
     const xs: number[] = [];
@@ -362,7 +498,7 @@ export function FlightGlobe3D() {
     let sumZ = 0;
     let n = 0;
     let maxZ = 0;
-    for (const flight of stats.flights) {
+    for (const flight of visibleFlights) {
       for (const [lon, lat, alt] of flight.pts) {
         xs.push((lon - scene.midLon) * scene.kmPerLon);
         ys.push((lat - scene.midLat) * scene.kmPerLat);
@@ -381,23 +517,28 @@ export function FlightGlobe3D() {
     const tz = Math.min(maxZ * 0.7, sumZ / n + r95 * 0.22);
     const dist = Math.min(300, Math.max(38, (r95 * 1.9) / Math.tan(FOV / 2)));
     return { target: [mx, my, tz], dist };
-  }, [scene, stats]);
+  }, [scene, stats, visibleFlights]);
 
   useEffect(() => {
     sceneRef.current = scene;
   }, [scene]);
+
+  useEffect(() => {
+    visibleRef.current = visibleFlights;
+  }, [visibleFlights]);
 
   // Track ribbons for the selected year.
   const trackData = useMemo(() => {
     if (!scene || !stats) return null;
     const segs: number[] = [];
     let segCount = 0;
-    for (const flight of stats.flights) {
+    let flightIdx = -1;
+    for (const flight of visibleFlights) {
       const pts = flight.pts;
       if (pts.length < 2) continue;
       const width = flight.ssa.length ? 3 : flight.wave ? 2 : 1.3;
       const alpha = flight.wave || flight.ssa.length ? 0.95 : 0.5;
-      const flightIdx = stats.flights.indexOf(flight);
+      flightIdx += 1;
       const world = pts.map(([lon, lat, alt]) => [
         (lon - scene.midLon) * scene.kmPerLon,
         (lat - scene.midLat) * scene.kmPerLat,
@@ -425,7 +566,7 @@ export function FlightGlobe3D() {
       }
     }
     return { data: new Float32Array(segs), verts: segCount * 6 };
-  }, [scene, stats]);
+  }, [scene, stats, visibleFlights]);
 
   // Draw — and lazily create the GL context, upload whatever changed.
   useEffect(() => {
@@ -451,7 +592,19 @@ export function FlightGlobe3D() {
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.BACK);
-        state = { gl, sky, terrain, track, skyBuf, terra: null, trackBuf: null, trackVerts: 0, tracksFor: 0 };
+        state = {
+          gl,
+          sky,
+          terrain,
+          track,
+          skyBuf,
+          terra: null,
+          trackBuf: null,
+          trackVerts: 0,
+          roadBuf: null,
+          roadVerts: 0,
+          tracksFor: 0,
+        };
         glRef.current = state;
       } catch {
         glFailedRef.current = true;
@@ -485,13 +638,20 @@ export function FlightGlobe3D() {
       uploadedRef.current.scene = scene;
     }
 
-    // Upload tracks once per year data.
+    // Upload tracks once per year data, roads once per scene.
     if (trackData && uploadedRef.current.trackData !== trackData) {
       if (!state.trackBuf) state.trackBuf = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, state.trackBuf);
       gl.bufferData(gl.ARRAY_BUFFER, trackData.data, gl.STATIC_DRAW);
       state.trackVerts = trackData.verts;
       uploadedRef.current.trackData = trackData;
+    }
+    if (roadData && uploadedRef.current.roadData !== roadData) {
+      if (!state.roadBuf) state.roadBuf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, state.roadBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, roadData.data, gl.STATIC_DRAW);
+      state.roadVerts = roadData.verts;
+      uploadedRef.current.roadData = roadData;
     }
 
     if (!scene || !state.terra) return;
@@ -554,37 +714,101 @@ export function FlightGlobe3D() {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, state.terra.ibo);
     gl.drawElements(gl.TRIANGLES, state.terra.count, gl.UNSIGNED_INT, 0);
 
-    // Tracks.
-    if (state.trackBuf && state.trackVerts > 0) {
+    // Roads and tracks share the ribbon program: one setup, two buffers.
+    const setupRibbons = (buffer: WebGLBuffer) => {
       gl.useProgram(track);
-      gl.bindBuffer(gl.ARRAY_BUFFER, state.trackBuf);
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
       const stride = 48;
-      const aPos = gl.getAttribLocation(track, "aPos");
-      const aOther = gl.getAttribLocation(track, "aOther");
-      const aSide = gl.getAttribLocation(track, "aSide");
-      const aColor = gl.getAttribLocation(track, "aColor");
-      const aWidth = gl.getAttribLocation(track, "aWidth");
-      const aFlight = gl.getAttribLocation(track, "aFlight");
-      gl.enableVertexAttribArray(aPos);
-      gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, stride, 0);
-      gl.enableVertexAttribArray(aOther);
-      gl.vertexAttribPointer(aOther, 3, gl.FLOAT, false, stride, 12);
-      gl.enableVertexAttribArray(aSide);
-      gl.vertexAttribPointer(aSide, 1, gl.FLOAT, false, stride, 24);
-      gl.enableVertexAttribArray(aColor);
-      gl.vertexAttribPointer(aColor, 3, gl.FLOAT, false, stride, 28);
-      gl.enableVertexAttribArray(aWidth);
-      gl.vertexAttribPointer(aWidth, 1, gl.FLOAT, false, stride, 40);
-      gl.enableVertexAttribArray(aFlight);
-      gl.vertexAttribPointer(aFlight, 1, gl.FLOAT, false, stride, 44);
+      gl.enableVertexAttribArray(gl.getAttribLocation(track, "aPos"));
+      gl.vertexAttribPointer(gl.getAttribLocation(track, "aPos"), 3, gl.FLOAT, false, stride, 0);
+      gl.enableVertexAttribArray(gl.getAttribLocation(track, "aOther"));
+      gl.vertexAttribPointer(gl.getAttribLocation(track, "aOther"), 3, gl.FLOAT, false, stride, 12);
+      gl.enableVertexAttribArray(gl.getAttribLocation(track, "aSide"));
+      gl.vertexAttribPointer(gl.getAttribLocation(track, "aSide"), 1, gl.FLOAT, false, stride, 24);
+      gl.enableVertexAttribArray(gl.getAttribLocation(track, "aColor"));
+      gl.vertexAttribPointer(gl.getAttribLocation(track, "aColor"), 3, gl.FLOAT, false, stride, 28);
+      gl.enableVertexAttribArray(gl.getAttribLocation(track, "aWidth"));
+      gl.vertexAttribPointer(gl.getAttribLocation(track, "aWidth"), 1, gl.FLOAT, false, stride, 40);
+      gl.enableVertexAttribArray(gl.getAttribLocation(track, "aFlight"));
+      gl.vertexAttribPointer(gl.getAttribLocation(track, "aFlight"), 1, gl.FLOAT, false, stride, 44);
       gl.uniformMatrix4fv(gl.getUniformLocation(track, "uMVP"), false, mvp);
       gl.uniform2f(gl.getUniformLocation(track, "uViewport"), cssW, cssH);
-      const selIndex = selected !== null && stats ? stats.flights.findIndex((f) => f.id === selected) : -1;
+    };
+
+    if (state.roadBuf && state.roadVerts > 0) {
+      setupRibbons(state.roadBuf);
+      gl.uniform1f(gl.getUniformLocation(track, "uSel"), -1);
+      gl.drawArrays(gl.TRIANGLES, 0, state.roadVerts);
+    }
+
+    if (state.trackBuf && state.trackVerts > 0) {
+      setupRibbons(state.trackBuf);
+      const selIndex = selected !== null ? visibleFlights.findIndex((f) => f.id === selected) : -1;
       gl.uniform1f(gl.getUniformLocation(track, "uSel"), selIndex);
       gl.drawArrays(gl.TRIANGLES, 0, state.trackVerts);
     }
 
-  }, [scene, stats, camera, frame, trackData, selected, sizeTick]);
+    // Summit labels on the transparent overlay canvas.
+    const labelCanvas = labelCanvasRef.current;
+    if (labelCanvas) {
+      if (labelCanvas.width !== bw || labelCanvas.height !== bh) {
+        labelCanvas.width = bw;
+        labelCanvas.height = bh;
+      }
+      const lctx = labelCanvas.getContext("2d");
+      if (lctx) {
+        lctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        lctx.clearRect(0, 0, cssW, cssH);
+        lctx.font = "500 11px ui-sans-serif, system-ui, sans-serif";
+        lctx.textAlign = "center";
+        lctx.textBaseline = "bottom";
+        const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
+        for (const peak of PEAKS) {
+          const x = (peak.lon - scene.midLon) * scene.kmPerLon;
+          const y = (peak.lat - scene.midLat) * scene.kmPerLat;
+          const z = scene.meshZ(peak.lon, peak.lat) + 0.06;
+          const w = mvp[3] * x + mvp[7] * y + mvp[11] * z + mvp[15];
+          if (w <= 0.5) continue;
+          const sx = ((mvp[0] * x + mvp[4] * y + mvp[8] * z + mvp[12]) / w / 2 + 0.5) * cssW;
+          const sy = (0.5 - (mvp[1] * x + mvp[5] * y + mvp[9] * z + mvp[13]) / w / 2) * cssH;
+          if (sx < -60 || sy < -20 || sx > cssW + 60 || sy > cssH + 20) continue;
+          // Keep the labels legible: the most important summit wins the spot, the
+          // rest shift vertically until they clear an earlier one (or drop out).
+          const textW = lctx.measureText(peak.name).width;
+          let ty: number | null = null;
+          for (const dy of [0, -13, 13, -26, 26, -39, 39, -52, 52]) {
+            const y1 = sy - 4 + dy;
+            const rect = { x0: sx - textW / 2 - 3, y0: y1 - 13, x1: sx + textW / 2 + 3, y1 };
+            const hits = placed.some((p) => rect.x0 < p.x1 && rect.x1 > p.x0 && rect.y0 < p.y1 && rect.y1 > p.y0);
+            if (!hits) {
+              placed.push(rect);
+              ty = y1;
+              break;
+            }
+          }
+          if (ty === null) continue;
+          lctx.beginPath();
+          lctx.arc(sx, sy, 1.6, 0, Math.PI * 2);
+          lctx.fillStyle = "rgba(226,232,240,0.9)";
+          lctx.fill();
+          if (Math.abs(ty - (sy - 4)) > 2) {
+            lctx.beginPath();
+            lctx.moveTo(sx, sy - 3);
+            lctx.lineTo(sx, ty + 2);
+            lctx.strokeStyle = "rgba(226,232,240,0.35)";
+            lctx.lineWidth = 1;
+            lctx.stroke();
+          }
+          lctx.lineWidth = 3;
+          lctx.strokeStyle = "rgba(2,6,23,0.85)";
+          lctx.strokeText(peak.name, sx, ty);
+          lctx.fillStyle = "#e2e8f0";
+          lctx.fillText(peak.name, sx, ty);
+        }
+      }
+    }
+
+  }, [scene, stats, camera, frame, trackData, roadData, selected, sizeTick, visibleFlights]);
 
   // Redraw on viewport changes (the canvas is sized from its CSS box).
   useEffect(() => {
@@ -610,7 +834,7 @@ export function FlightGlobe3D() {
     // over the decimated tracks.
     const pick = (clientX: number, clientY: number): number | null => {
       const cam = mvpRef.current;
-      const data = dataRef.current;
+      const data = visibleRef.current;
       if (!cam || !data || !sceneRef.current) return null;
       const rect = canvas.getBoundingClientRect();
       const px = clientX - rect.left;
@@ -618,7 +842,7 @@ export function FlightGlobe3D() {
       const m = cam.mvp;
       let best: number | null = null;
       let bestD = 14 * 14;
-      for (const flight of data.flights) {
+      for (const flight of data) {
         for (const [lon, lat, alt] of flight.pts) {
           const x = (lon - sceneRef.current.midLon) * sceneRef.current.kmPerLon;
           const y = (lat - sceneRef.current.midLat) * sceneRef.current.kmPerLat;
@@ -717,6 +941,7 @@ export function FlightGlobe3D() {
         className="absolute inset-0 block h-full w-full cursor-grab touch-none select-none active:cursor-grabbing"
         aria-label={`Three-dimensional view of the ${year} wave camp flights over the White Mountains`}
       />
+      <canvas ref={labelCanvasRef} aria-hidden="true" className="pointer-events-none absolute inset-0 block h-full w-full" />
 
       <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1.5">
         {YEARS.map((y) => (
@@ -734,20 +959,111 @@ export function FlightGlobe3D() {
             {y}
           </button>
         ))}
+        <button
+          type="button"
+          aria-pressed={panelOpen}
+          onClick={() => setPanelOpen((v) => !v)}
+          className={`pointer-events-auto rounded-full px-3 py-1 text-sm font-medium backdrop-blur-sm transition-colors ${
+            panelOpen || filtered
+              ? "bg-sky-400/90 text-slate-950"
+              : "bg-slate-950/50 text-slate-200 ring-1 ring-white/10 hover:bg-slate-800/70"
+          }`}
+        >
+          Pilots &amp; dates{filtered ? ` · ${visibleFlights.length}` : ""}
+        </button>
       </div>
 
       {stats ? (
         <p className="pointer-events-none absolute right-3 top-4 z-10 hidden rounded-full bg-slate-950/50 px-3 py-1 text-sm text-slate-200 tabular-nums ring-1 ring-white/10 backdrop-blur-sm sm:block">
-          {stats.flights.length} flights · best{" "}
-          {new Intl.NumberFormat("en-US").format(Math.max(...stats.flights.map((f) => f.maxAltFt)))} ft
+          {filtered ? `${visibleFlights.length} of ${stats.flights.length}` : stats.flights.length} flights
+          {visibleFlights.length
+            ? ` · best ${new Intl.NumberFormat("en-US").format(Math.max(...visibleFlights.map((f) => f.maxAltFt)))} ft`
+            : ""}
         </p>
       ) : null}
 
-      {selected !== null && stats ? (() => {
-        const flight = stats.flights.find((f) => f.id === selected);
+      {panelOpen && stats ? (
+        <div className="absolute left-3 top-24 z-10 max-h-[62%] w-64 overflow-y-auto rounded-2xl bg-slate-950/85 p-4 ring-1 ring-white/15 backdrop-blur-sm sm:top-14">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Pilots</p>
+            {pilotSel.size ? (
+              <button
+                type="button"
+                onClick={() => setPilotSel(new Set())}
+                className="text-[11px] font-medium text-sky-300 hover:text-sky-200"
+              >
+                clear
+              </button>
+            ) : null}
+          </div>
+          <ul className="mt-2 grid gap-0.5">
+            {pilotList.map(([pilot, count]) => {
+              const on = pilotSel.has(pilot);
+              return (
+                <li key={pilot}>
+                  <button
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => togglePilot(pilot)}
+                    className={`w-full rounded-lg px-2 py-1 text-left text-xs transition-colors ${
+                      on ? "bg-sky-400/90 font-medium text-slate-950" : "text-slate-200 hover:bg-white/10"
+                    }`}
+                  >
+                    {pilot} <span className={on ? "opacity-70" : "text-slate-400"}>({count})</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Dates</p>
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              type="date"
+              aria-label="From date"
+              min={dateBounds.min}
+              max={dateBounds.max}
+              value={dateFrom ?? ""}
+              onChange={(e) => setDateFrom(e.target.value === "" ? null : e.target.value)}
+              className="w-full rounded-lg bg-slate-900 px-2 py-1 text-xs text-slate-200 ring-1 ring-white/10 [color-scheme:dark]"
+            />
+            <span className="text-xs text-slate-500">→</span>
+            <input
+              type="date"
+              aria-label="To date"
+              min={dateBounds.min}
+              max={dateBounds.max}
+              value={dateTo ?? ""}
+              onChange={(e) => setDateTo(e.target.value === "" ? null : e.target.value)}
+              className="w-full rounded-lg bg-slate-900 px-2 py-1 text-xs text-slate-200 ring-1 ring-white/10 [color-scheme:dark]"
+            />
+          </div>
+          {dateFrom || dateTo ? (
+            <button
+              type="button"
+              onClick={() => {
+                setDateFrom(null);
+                setDateTo(null);
+              }}
+              className="mt-2 text-[11px] font-medium text-sky-300 hover:text-sky-200"
+            >
+              clear dates
+            </button>
+          ) : null}
+
+          {filtered ? (
+            <p className="mt-3 text-[11px] text-slate-400">
+              {visibleFlights.length} of {stats.flights.length} flights shown
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {selectedFlight ? (() => {
+        const flight = selectedFlight;
         if (!flight) return null;
         return (
-          <div className="absolute left-3 top-14 z-10 max-w-[16rem] rounded-2xl bg-slate-950/80 p-4 ring-1 ring-white/15 backdrop-blur-sm">
+          <div className="absolute right-3 top-24 z-10 max-w-[16rem] rounded-2xl bg-slate-950/80 p-4 ring-1 ring-white/15 backdrop-blur-sm sm:top-14">
             <div className="flex items-start justify-between gap-3">
               <p className="font-display text-sm font-semibold text-white">{flight.pilot}</p>
               <button
