@@ -1,12 +1,3 @@
-/** The wave tag — shown first in a flight's marks. */
-export function WavePill() {
-  return (
-    <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-700 ring-1 ring-sky-100">
-      wave
-    </span>
-  );
-}
-
 /** A gold medal, for an SSA Gold badge or Gold Altitude leg. */
 export function BadgeIcon({ label }: { label: string }) {
   return (
@@ -77,13 +68,11 @@ export function RecordIcon({ label }: { label: string }) {
   );
 }
 
-/** The marks a flight can carry, in display order: wave tag, record, SSA badges. */
+/** The marks a flight can carry, in display order: record, SSA badges. */
 export function FlightMarks({
-  wave,
   record,
   ssa,
 }: {
-  wave: boolean;
   record: boolean;
   ssa: string[];
 }) {
@@ -92,7 +81,6 @@ export function FlightMarks({
   const note = "earned on this flight — verified in the SSA badge database";
   return (
     <span className="inline-flex items-center gap-2">
-      {wave ? <WavePill /> : null}
       {record ? (
         <RecordIcon label="New Hampshire state record — Open class absolute altitude and gain" />
       ) : null}

@@ -4,6 +4,9 @@ import { useState } from "react";
 import { FlightMarks } from "@/components/flights/icons";
 import { countsAsFlight, waveCampFlights, type WaveCampFlight } from "@/lib/wave-camp-flights";
 
+/** The "high flights" filter: well above anything thermals or a tow reach here in October. */
+const HIGH_FLIGHT_FT = 9000;
+
 const ftFormat = new Intl.NumberFormat("en-US");
 
 function formatDate(date: string): string {
@@ -34,7 +37,7 @@ function Row({ flight }: { flight: WaveCampFlight }) {
         {flight.maxAltFt !== null ? `${ftFormat.format(flight.maxAltFt)} ft` : "—"}
       </td>
       <td className="py-2.5 pr-4">
-        <FlightMarks wave={flight.wave} record={flight.record} ssa={flight.ssa} />
+        <FlightMarks record={flight.record} ssa={flight.ssa} />
       </td>
       <td className="whitespace-nowrap py-2.5 text-right">
         <a
@@ -61,7 +64,7 @@ function MobileRow({ flight }: { flight: WaveCampFlight }) {
           {flight.distanceKm !== null ? ` · ${flight.distanceKm.toFixed(1)} km` : ""}
         </p>
         <p className="mt-1.5 flex flex-wrap items-center gap-2">
-          <FlightMarks wave={flight.wave} record={flight.record} ssa={flight.ssa} />
+          <FlightMarks record={flight.record} ssa={flight.ssa} />
           <a
             href={`https://weglide.org/flight/${flight.id}`}
             target="_blank"
@@ -80,9 +83,11 @@ function MobileRow({ flight }: { flight: WaveCampFlight }) {
 }
 
 export function FlightArchive() {
-  const [waveOnly, setWaveOnly] = useState(false);
+  const [highOnly, setHighOnly] = useState(false);
 
-  const flights = waveOnly ? waveCampFlights.filter((f) => f.wave) : waveCampFlights;
+  const flights = highOnly
+    ? waveCampFlights.filter((f) => (f.maxAltFt ?? 0) > HIGH_FLIGHT_FT)
+    : waveCampFlights;
   const years = [...new Set(flights.map((f) => f.date.slice(0, 4)))].sort().reverse();
 
   return (
@@ -90,23 +95,23 @@ export function FlightArchive() {
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          aria-pressed={!waveOnly}
-          onClick={() => setWaveOnly(false)}
+          aria-pressed={!highOnly}
+          onClick={() => setHighOnly(false)}
           className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-            waveOnly ? "bg-slate-100 text-slate-600 hover:bg-slate-200" : "bg-sky-100 text-sky-800 ring-1 ring-sky-200"
+            highOnly ? "bg-slate-100 text-slate-600 hover:bg-slate-200" : "bg-sky-100 text-sky-800 ring-1 ring-sky-200"
           }`}
         >
           All flights
         </button>
         <button
           type="button"
-          aria-pressed={waveOnly}
-          onClick={() => setWaveOnly(true)}
+          aria-pressed={highOnly}
+          onClick={() => setHighOnly(true)}
           className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-            waveOnly ? "bg-sky-100 text-sky-800 ring-1 ring-sky-200" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            highOnly ? "bg-sky-100 text-sky-800 ring-1 ring-sky-200" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           }`}
         >
-          Wave flights only
+          Above {HIGH_FLIGHT_FT.toLocaleString("en-US")} ft
         </button>
         <span className="text-sm text-slate-500">
           {flights.filter(countsAsFlight).length}{" "}
@@ -121,7 +126,6 @@ export function FlightArchive() {
             .sort((a, b) => (b.maxAltFt ?? 0) - (a.maxAltFt ?? 0));
           const counted = rows.filter(countsAsFlight);
           const pilots = new Set(rows.map((f) => f.pilot)).size;
-          const wave = counted.filter((f) => f.wave).length;
           const best = Math.max(...rows.map((f) => f.maxAltFt ?? 0));
           return (
             <section key={year}>
@@ -131,7 +135,7 @@ export function FlightArchive() {
                 </h2>
                 <p className="text-sm text-slate-500 tabular-nums">
                   {counted.length} {counted.length === 1 ? "flight" : "flights"} · {pilots}{" "}
-                  {pilots === 1 ? "pilot" : "pilots"} · {wave} wave · best {ftFormat.format(best)} ft
+                  {pilots === 1 ? "pilot" : "pilots"} · best {ftFormat.format(best)} ft
                 </p>
               </div>
               <div className="mt-4 overflow-hidden rounded-2xl border border-slate-900/5 bg-white shadow-sm">
