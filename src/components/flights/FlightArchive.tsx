@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BadgeIcon, RecordIcon, WavePill } from "@/components/flights/icons";
+import { FlightMarks } from "@/components/flights/icons";
 import { waveCampFlights, type WaveCampFlight } from "@/lib/wave-camp-flights";
 
 const ftFormat = new Intl.NumberFormat("en-US");
@@ -20,18 +20,6 @@ function formatDuration(minutes: number | null): string {
   return h > 0 ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m`;
 }
 
-function Marks({ flight }: { flight: WaveCampFlight }) {
-  return (
-    <span className="inline-flex items-center gap-2">
-      {flight.wave ? <WavePill /> : null}
-      {flight.record ? (
-        <RecordIcon label="New Hampshire state record — Open class absolute altitude and gain" />
-      ) : null}
-      {flight.badges.length ? <BadgeIcon label={`Badges: ${flight.badges.join(" · ")}`} /> : null}
-    </span>
-  );
-}
-
 function Row({ flight }: { flight: WaveCampFlight }) {
   return (
     <tr className="border-t border-slate-100 text-slate-600">
@@ -46,7 +34,7 @@ function Row({ flight }: { flight: WaveCampFlight }) {
         {flight.maxAltFt !== null ? `${ftFormat.format(flight.maxAltFt)} ft` : "—"}
       </td>
       <td className="py-2.5 pr-4">
-        <Marks flight={flight} />
+        <FlightMarks wave={flight.wave} record={flight.record} ssa={flight.ssa} />
       </td>
       <td className="whitespace-nowrap py-2.5 text-right">
         <a
@@ -73,7 +61,7 @@ function MobileRow({ flight }: { flight: WaveCampFlight }) {
           {flight.distanceKm !== null ? ` · ${flight.distanceKm.toFixed(1)} km` : ""}
         </p>
         <p className="mt-1.5 flex flex-wrap items-center gap-2">
-          <Marks flight={flight} />
+          <FlightMarks wave={flight.wave} record={flight.record} ssa={flight.ssa} />
           <a
             href={`https://weglide.org/flight/${flight.id}`}
             target="_blank"

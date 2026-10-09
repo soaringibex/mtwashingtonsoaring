@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/ui/PageHero";
 import { FlightArchive } from "@/components/flights/FlightArchive";
-import { BadgeIcon, RecordIcon, WavePill } from "@/components/flights/icons";
+import { BadgeIcon, DiamondIcon, RecordIcon, WavePill } from "@/components/flights/icons";
 import { WAVE_CLIMB_M, waveCampFlights } from "@/lib/wave-camp-flights";
 
 export const metadata: Metadata = {
@@ -45,13 +45,15 @@ export default function FlightsPage() {
               release it gained at least {climbFt.toLocaleString("en-US")} feet in ten minutes of
               straight flight, without circling (thermals turn through the same window and
               don&apos;t count, however high they climb).{" "}
-              <span className="mr-1 inline-flex translate-y-0.5 items-center">
-                <BadgeIcon label="A badge" />
+              <span className="mr-1 inline-flex translate-x-1 translate-y-0.5 items-center">
+                <BadgeIcon label="SSA Gold" />
               </span>
-              a gold medal means the flight itself earned a badge — WeGlide&apos;s flight badges
-              (Astronaut for altitude, Silver/Gold/Diamond for climb and distance, Endurance,
-              Bring It Home, No Need to Circle) or one of the club&apos;s altitude pins; hover to
-              see which. Pilot milestones like weekend streaks are left off.{" "}
+              <span className="mr-1 inline-flex translate-y-0.5 items-center">
+                <DiamondIcon label="SSA Diamond" />
+              </span>
+              a gold medal or diamond marks the rare flight that earned its pilot an SSA badge —
+              Gold or Diamond — checked against the SSA badge database, where the award date lands
+              on the flight. WeGlide&apos;s own stickers and pilot-mileage badges are left off.{" "}
               <span className="mr-1 inline-flex translate-y-0.5 items-center">
                 <RecordIcon label="A record" />
               </span>
