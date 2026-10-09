@@ -203,6 +203,7 @@ export function FlightGlobe3D() {
   const [stats, setStats] = useState<YearData | null>(null);
   const [camera, setCamera] = useState<Camera>({ yaw: 200, pitch: 22, zoom: null });
   const [selected, setSelected] = useState<number | null>(null);
+  const [sizeTick, setSizeTick] = useState(0);
   const mvpRef = useRef<{ mvp: Float32Array; cssW: number; cssH: number } | null>(null);
   const sceneRef = useRef<{ midLon: number; midLat: number; kmPerLon: number; kmPerLat: number } | null>(null);
   const [glError, setGlError] = useState(false);
@@ -583,7 +584,14 @@ export function FlightGlobe3D() {
       gl.drawArrays(gl.TRIANGLES, 0, state.trackVerts);
     }
 
-  }, [scene, stats, camera, frame, trackData, selected]);
+  }, [scene, stats, camera, frame, trackData, selected, sizeTick]);
+
+  // Redraw on viewport changes (the canvas is sized from its CSS box).
+  useEffect(() => {
+    const onResize = () => setSizeTick((v) => v + 1);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   // Orbit + zoom.
   useEffect(() => {
@@ -703,88 +711,90 @@ export function FlightGlobe3D() {
   }, [frame.dist]);
 
   return (
-    <div className="overflow-hidden rounded-3xl bg-slate-950 shadow-xl ring-1 ring-slate-900/10">
-      <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 sm:px-7">
-        <div className="flex flex-wrap items-center gap-1.5">
-          {YEARS.map((y) => (
-            <button
-              key={y}
-              type="button"
-              aria-pressed={year === y}
-              onClick={() => setYear(y)}
-              className={`rounded-full px-3 py-1 text-sm font-medium tabular-nums transition-colors ${
-                year === y ? "bg-sky-400/90 text-slate-950" : "bg-white/10 text-slate-200 hover:bg-white/20"
-              }`}
-            >
-              {y}
-            </button>
-          ))}
-        </div>
-        {stats ? (
-          <p className="text-sm text-slate-300 tabular-nums">
-            {stats.flights.length} flights · best{" "}
-            {new Intl.NumberFormat("en-US").format(Math.max(...stats.flights.map((f) => f.maxAltFt)))} ft
-          </p>
-        ) : null}
+    <div className="relative h-full w-full overflow-hidden bg-slate-950">
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 block h-full w-full cursor-grab touch-none select-none active:cursor-grabbing"
+        aria-label={`Three-dimensional view of the ${year} wave camp flights over the White Mountains`}
+      />
+
+      <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1.5">
+        {YEARS.map((y) => (
+          <button
+            key={y}
+            type="button"
+            aria-pressed={year === y}
+            onClick={() => setYear(y)}
+            className={`pointer-events-auto rounded-full px-3 py-1 text-sm font-medium tabular-nums backdrop-blur-sm transition-colors ${
+              year === y
+                ? "bg-sky-400/90 text-slate-950"
+                : "bg-slate-950/50 text-slate-200 ring-1 ring-white/10 hover:bg-slate-800/70"
+            }`}
+          >
+            {y}
+          </button>
+        ))}
       </div>
 
-      <div className="relative mt-4">
-        <canvas
-          ref={canvasRef}
-          className="block h-[420px] w-full cursor-grab touch-none select-none active:cursor-grabbing sm:h-[560px]"
-          aria-label={`Three-dimensional view of the ${year} wave camp flights over the White Mountains`}
-        />
-        {glError ? (
-          <p className="absolute inset-0 grid place-items-center px-6 text-center text-sm text-slate-300">
-            This view needs WebGL, which this browser isn&apos;t providing right now.
-          </p>
-        ) : null}
-        {!glError && (!mosaic || !stats) && !dataError ? (
-          <p className="absolute inset-0 grid place-items-center text-sm text-slate-400">Loading terrain…</p>
-        ) : null}
-        {dataError && !glError ? (
-          <p className="absolute inset-0 grid place-items-center text-sm text-slate-300">
-            The 3D terrain is unavailable right now.
-          </p>
-        ) : null}
-        <p className="pointer-events-none absolute bottom-3 left-4 text-[11px] text-slate-400">
-          drag to orbit · scroll to zoom · click a track
+      {stats ? (
+        <p className="pointer-events-none absolute right-3 top-4 z-10 hidden rounded-full bg-slate-950/50 px-3 py-1 text-sm text-slate-200 tabular-nums ring-1 ring-white/10 backdrop-blur-sm sm:block">
+          {stats.flights.length} flights · best{" "}
+          {new Intl.NumberFormat("en-US").format(Math.max(...stats.flights.map((f) => f.maxAltFt)))} ft
         </p>
-        {selected !== null && stats ? (() => {
-          const flight = stats.flights.find((f) => f.id === selected);
-          if (!flight) return null;
-          return (
-            <div className="absolute left-4 top-4 max-w-[16rem] rounded-2xl bg-slate-950/80 p-4 ring-1 ring-white/15 backdrop-blur-sm">
-              <div className="flex items-start justify-between gap-3">
-                <p className="font-display text-sm font-semibold text-white">{flight.pilot}</p>
-                <button
-                  type="button"
-                  onClick={() => setSelected(null)}
-                  aria-label="Clear the selection"
-                  className="rounded-full px-1.5 text-slate-400 transition-colors hover:text-white"
-                >
-                  ✕
-                </button>
-              </div>
-              <p className="mt-1 text-xs text-slate-300">
-                {new Date(`${flight.date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                {" · "}
-                <span className="tabular-nums">
-                  {new Intl.NumberFormat("en-US").format(flight.maxAltFt)} ft
-                </span>
-              </p>
-              {flight.ssa.length ? (
-                <p className="mt-1 text-[11px] text-slate-400">{flight.ssa.join(" · ")}</p>
-              ) : null}
-            </div>
-          );
-        })() : null}
-      </div>
+      ) : null}
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 pb-5 pt-4 text-[11px] text-slate-400 sm:px-7">
+      {selected !== null && stats ? (() => {
+        const flight = stats.flights.find((f) => f.id === selected);
+        if (!flight) return null;
+        return (
+          <div className="absolute left-3 top-14 z-10 max-w-[16rem] rounded-2xl bg-slate-950/80 p-4 ring-1 ring-white/15 backdrop-blur-sm">
+            <div className="flex items-start justify-between gap-3">
+              <p className="font-display text-sm font-semibold text-white">{flight.pilot}</p>
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
+                aria-label="Clear the selection"
+                className="rounded-full px-1.5 text-slate-400 transition-colors hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-slate-300">
+              {new Date(`${flight.date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              {" · "}
+              <span className="tabular-nums">
+                {new Intl.NumberFormat("en-US").format(flight.maxAltFt)} ft
+              </span>
+            </p>
+            {flight.ssa.length ? (
+              <p className="mt-1 text-[11px] text-slate-400">{flight.ssa.join(" · ")}</p>
+            ) : null}
+          </div>
+        );
+      })() : null}
+
+      {glError ? (
+        <p className="absolute inset-0 grid place-items-center px-6 text-center text-sm text-slate-300">
+          This view needs WebGL, which this browser isn&apos;t providing right now.
+        </p>
+      ) : null}
+      {!glError && (!mosaic || !stats) && !dataError ? (
+        <p className="absolute inset-0 grid place-items-center text-sm text-slate-400">Loading terrain…</p>
+      ) : null}
+      {dataError && !glError ? (
+        <p className="absolute inset-0 grid place-items-center text-sm text-slate-300">
+          The 3D terrain is unavailable right now.
+        </p>
+      ) : null}
+
+      <p className="pointer-events-none absolute bottom-11 left-4 z-10 text-[11px] text-slate-400">
+        drag to orbit · scroll to zoom · click a track
+      </p>
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-wrap items-center gap-x-4 gap-y-1 bg-gradient-to-t from-slate-950/85 to-transparent px-4 pb-3 pt-10 text-[11px] text-slate-300">
         <span>Altitude</span>
         <span
-          className="h-2 w-44 rounded-full"
+          className="h-2 w-40 rounded-full"
           style={{
             background: `linear-gradient(to right, ${ALT_RAMP.map(
               ([ft, c]) => `rgb(${c.join(",")}) ${((ft - 800) / (34000 - 800)) * 100}%`,
@@ -792,7 +802,7 @@ export function FlightGlobe3D() {
           }}
         />
         <span className="tabular-nums">800 ft → 34,000 ft</span>
-        <span className="ml-auto">wave flights bright · everything else dim · GPS altitudes read a little high</span>
+        <span className="ml-auto hidden sm:inline">wave flights bright · everything else dim · GPS altitudes read a little high</span>
       </div>
     </div>
   );

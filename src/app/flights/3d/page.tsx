@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Container } from "@/components/ui/Container";
 import { FlightGlobe3D } from "@/components/flights/FlightGlobe3D";
 
 export const metadata: Metadata = {
@@ -11,46 +9,8 @@ export const metadata: Metadata = {
 
 export default function Flights3DPage() {
   return (
-    <section className="bg-slate-50 py-12 sm:py-16">
-      <Container>
-        <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-sky-700">
-          The camps, in three dimensions
-        </p>
-        <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-          <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Flights in 3D
-          </h1>
-          <Link href="/flights" className="text-sm font-medium text-sky-700 hover:text-sky-600">
-            ← The flight archive
-          </Link>
-        </div>
-        <p className="mt-3 max-w-3xl text-[1.0625rem] leading-8 text-slate-600">
-          Pick a year: every flight logged from Gorham that October is drawn as a track through the
-          atmosphere, coloured by the altitude it reached. The wave flights stand out bright —
-          long climbs climbing straight up the lee of the range — while the thermal afternoons
-          stay dim below the ridgelines. Click any track to see whose flight it was and how high
-          it went.
-        </p>
-
-        <div className="mt-8">
-          <FlightGlobe3D />
-        </div>
-
-        <p className="mt-6 max-w-3xl text-[11px] leading-5 text-slate-400">
-          Terrain rendered from AWS z11 tiles — about 55 metres per pixel, hillshaded from the
-          real relief; tracks decimated from each flight&apos;s WeGlide GPS trace (about one point
-          per minute) and raised 2.3× vertically so the climbing reads. Altitudes are GPS and read
-          a little high. Flights and traces live on{" "}
-          <a href="https://weglide.org" target="_blank" rel="noreferrer" className="font-medium text-sky-700 hover:text-sky-600">
-            WeGlide
-          </a>
-          ; the badges and the archive are on the{" "}
-          <Link href="/flights" className="font-medium text-sky-700 hover:text-sky-600">
-            flights page
-          </Link>
-          .
-        </p>
-      </Container>
-    </section>
+    <div className="h-[calc(100svh-4rem)] w-full sm:h-[calc(100svh-4.5rem)] xl:h-[calc(100svh-5rem)]">
+      <FlightGlobe3D />
+    </div>
   );
 }
