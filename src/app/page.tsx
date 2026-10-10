@@ -3,7 +3,7 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow, SectionHeading } from "@/components/ui/SectionHeading";
 import { LogbookCard } from "@/components/home/LogbookCard";
-import { SummitConditions } from "@/components/home/SummitConditions";
+import { WavePotentialCard } from "@/components/home/WavePotentialCard";
 import { WindProfile } from "@/components/home/WindProfile";
 import { Reveal } from "@/components/ui/Reveal";
 import { linkGroups } from "@/lib/links";
@@ -127,8 +127,8 @@ export default function HomePage() {
               </div>
             </div>
             <div className="animate-fade-up space-y-4 lg:animate-fade-up [animation-delay:150ms]">
-              <SummitConditions />
               <LogbookCard />
+              <WavePotentialCard />
             </div>
           </div>
         </Container>

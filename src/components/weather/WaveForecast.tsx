@@ -4,18 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { SectionNote } from "@/components/weather/SectionNote";
 import { fetchJson } from "@/lib/fetch-json";
 import { mergedSeries } from "@/lib/forecast-model";
-import { computeWaveScore, estimateWaveTop, WAVE_LEVELS, type WaveLevel, type WaveScore, type WaveTop } from "@/lib/wave-score";
+import { computeWaveScore, estimateWaveTop, signalLabel, WAVE_LEVELS, type WaveLevel, type WaveScore, type WaveTop } from "@/lib/wave-score";
 import { flyingWindow, hourLabel, inWindow, compassName } from "@/lib/wx-window";
 import { wxApiPath } from "@/lib/wx-datasets";
 
 const REFRESH_MS = 45 * 60 * 1000;
-
-function signalLabel(score: number): string {
-  if (score >= 75) return "Strong signal";
-  if (score >= 55) return "Moderate signal";
-  if (score >= 35) return "Marginal signal";
-  return "Weak signal";
-}
 
 /** The same depth-of-blue language the wind profile's bars use — deeper is stronger. */
 function scoreBar(score: number): string {

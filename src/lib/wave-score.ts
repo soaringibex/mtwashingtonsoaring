@@ -50,6 +50,14 @@ export const WAVE_LEVELS = [
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
+/** Plain-language reading of a wave score. */
+export function signalLabel(score: number): string {
+  if (score >= 75) return "Strong signal";
+  if (score >= 55) return "Moderate signal";
+  if (score >= 35) return "Marginal signal";
+  return "Weak signal";
+}
+
 /** The ridge's lee side — the Presidential crest runs ~40°/220°, so the normal is 305°/125°. */
 const RIDGE_LEE_DEG = 125;
 
