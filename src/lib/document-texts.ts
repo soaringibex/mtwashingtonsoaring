@@ -17,6 +17,25 @@ export type DocumentText = {
 };
 
 export const documentTexts: Record<string, DocumentText> = {
+  // Hand-authored: the 2026 camp logbook grows a day at a time and never had a PDF.
+  "2026-wave-camp-logbook-glen-kelley": {
+    blocks: [
+      { type: "h", text: "Friday, October 9" },
+      { type: "p", text: "Today was arrival day at Gorham." },
+      {
+        type: "p",
+        text: "We have the PMSC Birdog and one of the GBSC Pawnees in place and ready to go. We also have two golf carts and the oxygen tank ready.",
+      },
+      {
+        type: "p",
+        text: "There was a lot of moisture in the air and the rain came and went, but Tim Chow and Mark Brisson were able to climb to 17.5K MSL for Mark's first ever wave flight. Not a bad introduction.",
+      },
+      {
+        type: "p",
+        text: "Tomorrow should be a solid wave day. Sunday and Monday are less clear.",
+      },
+    ],
+  },
   "the-mountains-win-again-2015": {
     "pages": 5,
     "bytes": 86249,

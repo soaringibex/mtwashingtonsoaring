@@ -18,7 +18,7 @@ export function DocCard({ doc }: { doc: DocLink }) {
         </span>
         {doc.meta ? (
           <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-            {doc.page ? `${doc.meta} + web` : doc.meta}
+            {doc.href && doc.page ? `${doc.meta} + web` : doc.meta}
           </span>
         ) : null}
       </span>

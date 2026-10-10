@@ -63,8 +63,15 @@ export const storyGroups: StoryGroup[] = [
   {
     id: "logbooks",
     title: "Camp logbooks",
-    blurb: "Day-by-day records from past encampments.",
+    blurb: "Day-by-day records from the encampments.",
     stories: [
+      {
+        title: "2026 camp logbook — Glen Kelley",
+        page: "/stories/2026-wave-camp-logbook-glen-kelley",
+        description:
+          "Glen Kelley's day-by-day notes from the 2026 encampment at Gorham — updated as the camp goes on.",
+        meta: "Web",
+      },
       {
         title: "2021 camp logbook — Glen Kelley",
         href: "/files/2021-wave-camp-logbook-glen-kelley.pdf",
