@@ -88,8 +88,8 @@ export default function HomePage() {
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-slate-950">
         <Image
-          src="/images/home/wave-camp-2026.webp"
-          alt="Snow virga falling as a rainbow arches over the river valley below, seen from the wing of a glider"
+          src="/images/home/presidential-range-from-the-air.webp"
+          alt="The snow-dusted Presidential Range seen from the air, fall color in the valleys below"
           fill
           priority
           sizes="100vw"

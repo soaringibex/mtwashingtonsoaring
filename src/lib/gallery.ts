@@ -13,6 +13,18 @@ export type Album = {
 
 export const albums: Album[] = [
   {
+    id: "2026",
+    title: "Wave Camp 2026",
+    blurb: "The opening days at Gorham — snow virga, a rainbow over the valley, and blue sky.",
+    photos: [
+      {
+        src: "/images/gallery/2026/virga-rainbow-over-the-valley.webp",
+        alt: "A rainbow beneath snow virga over the river valley, seen from the wing of a glider",
+        aspect: "landscape",
+      },
+    ],
+  },
+  {
     id: "2025",
     title: "Wave Camp 2025",
     blurb: "Undercast, cloud shadows and cockpit views from the wave — shared by David Sherrill and Thomas Van de Velde.",
