@@ -122,6 +122,36 @@ export default function HomePage() {
         </Container>
       </section>
 
+      {/* Wave camp opener */}
+      <section className="py-14 sm:py-20">
+        <Container>
+          <Reveal>
+            <article className="relative isolate overflow-hidden rounded-3xl bg-slate-950 shadow-lg ring-1 ring-slate-900/10">
+              <Image
+                src="/images/home/wave-camp-2026.webp"
+                alt="Snow virga falling as a rainbow arches over the river valley below, seen from the wing of a glider"
+                fill
+                sizes="(max-width: 1280px) 100vw, 1216px"
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/35 to-slate-950/5" />
+              <div className="relative flex min-h-[24rem] flex-col justify-end p-6 sm:min-h-[30rem] sm:p-10">
+                <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">
+                  Wave camp 2026 · opening report
+                </p>
+                <h2 className="mt-3 max-w-2xl font-display text-2xl font-bold tracking-tight text-white text-balance sm:text-3xl">
+                  PMSC flew their Blanik twice up to 18,000 ft.
+                </h2>
+                <p className="mt-4 max-w-2xl text-[1.0625rem] leading-8 text-slate-100">
+                  The holes in the clouds kept opening and closing to make things challenging. Snow
+                  virga created rainbows over the airport.
+                </p>
+              </div>
+            </article>
+          </Reveal>
+        </Container>
+      </section>
+
       {/* Current conditions */}
       <section id="conditions" className="bg-slate-50 py-20 sm:py-24">
         <Container>
