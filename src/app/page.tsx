@@ -94,7 +94,7 @@ export default function HomePage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-900/20" />
         <Container className="relative flex min-h-[92svh] flex-col justify-end pb-14 pt-32 sm:pb-20">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
             <div className="animate-fade-up">
               <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">
                 {site.name}
