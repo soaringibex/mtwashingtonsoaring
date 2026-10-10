@@ -2682,10 +2682,6 @@ export const documentTexts: Record<string, DocumentText> = {
   "nh-speed-record-in-the-wave": {
     "blocks": [
       {
-        "type": "p",
-        "text": "Thanks to my friends at FSA… I bagged the 300k O&R NH speed record last Friday in the wave."
-      },
-      {
         "type": "byline",
         "text": "By Evan Ludeman"
       },
@@ -2696,6 +2692,10 @@ export const documentTexts: Record<string, DocumentText> = {
         "height": 3024,
         "alt": "Clearer skies over Maine, seen from the cockpit 18 miles out of Sugarloaf",
         "caption": "Clearer skies over Maine. This is 18 miles out of Sugarloaf, headed North."
+      },
+      {
+        "type": "p",
+        "text": "Thanks to my friends at FSA… I bagged the 300k O&R NH speed record last Friday in the wave."
       },
       {
         "type": "p",
