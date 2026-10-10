@@ -106,6 +106,35 @@ export function DocumentView({
                 </div>
               );
             }
+            if (block.type === "byline") {
+              return (
+                <p key={index} className="text-[0.9375rem] font-semibold tracking-wide text-slate-900">
+                  {block.text}
+                </p>
+              );
+            }
+            if (block.type === "hero") {
+              return (
+                // The lead photograph runs wider than the prose measure, magazine-style,
+                // on a fixed 3:2 frame so composition stays consistent whatever the source.
+                <figure key={index} className="lg:-mx-24 xl:-mx-28">
+                  <div className="relative aspect-[3/2] overflow-hidden rounded-2xl ring-1 ring-slate-900/5">
+                    <Image
+                      src={block.src}
+                      alt={block.alt ?? ""}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 900px"
+                      className="object-cover"
+                    />
+                  </div>
+                  {block.caption ? (
+                    <figcaption className="mt-2.5 text-[13px] leading-5 text-slate-500">
+                      {block.caption}
+                    </figcaption>
+                  ) : null}
+                </figure>
+              );
+            }
             if (block.type === "h") {
               return <h2 key={index}>{block.text}</h2>;
             }

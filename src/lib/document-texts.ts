@@ -4,6 +4,8 @@
 export type DocBlock =
   | { type: "h"; text: string }
   | { type: "p"; text: string }
+  | { type: "byline"; text: string }
+  | { type: "hero"; src: string; width: number; height: number; alt?: string; caption?: string }
   | { type: "ul"; items: string[] }
   | { type: "ol"; items: string[] }
   | { type: "img"; src: string; width: number; height: number }
@@ -2684,6 +2686,18 @@ export const documentTexts: Record<string, DocumentText> = {
         "text": "Thanks to my friends at FSA… I bagged the 300k O&R NH speed record last Friday in the wave."
       },
       {
+        "type": "byline",
+        "text": "By Evan Ludeman"
+      },
+      {
+        "type": "hero",
+        "src": "/images/reading/nh-speed-record-in-the-wave/clearer-skies-over-maine.jpg",
+        "width": 4032,
+        "height": 3024,
+        "alt": "Clearer skies over Maine, seen from the cockpit 18 miles out of Sugarloaf",
+        "caption": "Clearer skies over Maine. This is 18 miles out of Sugarloaf, headed North."
+      },
+      {
         "type": "p",
         "text": "I launched around 1300, found NW wind on the ridges at ~25, cloud base initially around 5000, rising fairly rapidly as things dried out from the previous day's rain. I ridge soared to Mt. Madison, well away from the rocks in eerie smooth, almost wave-like ridge lift, turned the corner, headed South along Rte 16 near cloud base working convective/rotor influenced cu in straight flight to the strong part of the primary system at Pinkham Notch. There was a great deal of cloud, poorly organized and chaotic, the clue was the clear area at the notch. The ascent was an invigorating 10–12 knots initially. I took it up to 17.9, then headed to my start point at Waterville Valley Ski Area."
       },
@@ -2710,16 +2724,6 @@ export const documentTexts: Record<string, DocumentText> = {
       {
         "type": "p",
         "text": "Contact! That's the SkySight wave forecast on my flight computer. While helpful when it works, it's an aggravating distraction when it doesn't, and my experience is mostly the latter. When it's working, SkySight is pretty good about showing the general areas in which you might expect lift and sink, key word \"general\". This is still a pilot's sport, it's not a video game, at least not yet (yay!!). The wind forecast was pretty good. 50–60 NW at altitude."
-      },
-      {
-        "type": "img",
-        "src": "/images/reading/nh-speed-record-in-the-wave/clearer-skies-over-maine.jpg",
-        "width": 4032,
-        "height": 3024
-      },
-      {
-        "type": "p",
-        "text": "Clearer skies over Maine. This is 18 miles out of Sugarloaf, headed North."
       },
       {
         "type": "p",
