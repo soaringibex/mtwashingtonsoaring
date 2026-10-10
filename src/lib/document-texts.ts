@@ -36,6 +36,12 @@ export const documentTexts: Record<string, DocumentText> = {
         type: "p",
         text: "Tomorrow should be a solid wave day. Sunday and Monday are less clear.",
       },
+      { type: "h", text: "Saturday, October 10" },
+      { type: "p", text: "A great day in blue conditions. Numerous climbs to mid teens and low 20s." },
+      {
+        type: "p",
+        text: "David Tauber and Chris Stokes completed Gold Badges. Jared Granzow, Nelson Howe, and Thomas Van de Velde completed their Diamond Badges. This was Jared's first wave flight.",
+      },
     ],
   },
   "the-mountains-win-again-2015": {
