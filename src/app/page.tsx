@@ -2,7 +2,7 @@ import Image from "next/image";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow, SectionHeading } from "@/components/ui/SectionHeading";
-import { Countdown } from "@/components/home/Countdown";
+import { LogbookCard } from "@/components/home/LogbookCard";
 import { SummitConditions } from "@/components/home/SummitConditions";
 import { WindProfile } from "@/components/home/WindProfile";
 import { Reveal } from "@/components/ui/Reveal";
@@ -128,7 +128,7 @@ export default function HomePage() {
             </div>
             <div className="animate-fade-up space-y-4 lg:animate-fade-up [animation-delay:150ms]">
               <SummitConditions />
-              <Countdown />
+              <LogbookCard />
             </div>
           </div>
         </Container>
