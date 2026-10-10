@@ -30,7 +30,7 @@ type Track = {
 
 type YearData = { year: number; flights: Track[] };
 
-const YEARS = [2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016];
+const YEARS = [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016];
 
 /** The filter panel is a bottom sheet on a phone, so its default follows the viewport. */
 const PHONE_QUERY = "(max-width: 639px)";
@@ -223,7 +223,7 @@ type Camera = { yaw: number; pitch: number; zoom: number | null };
 type Frame = { target: [number, number, number]; dist: number };
 
 export function FlightGlobe3D() {
-  const [year, setYear] = useState(2025);
+  const [year, setYear] = useState(2026);
   const [mosaic, setMosaic] = useState<TerrainMosaic | null>(null);
   const [stats, setStats] = useState<YearData | null>(null);
   const [camera, setCamera] = useState<Camera>({ yaw: 200, pitch: 26, zoom: null });

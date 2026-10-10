@@ -88,14 +88,14 @@ const pages: SearchEntry[] = [
     title: "Flights",
     href: "/flights",
     kind: "page",
-    text: "Every WeGlide-logged flight from the October wave camps at Gorham, 2016–2025 — peak GPS altitudes, badges, the state record, and a link to each trace.",
-    keywords: "flights log weglide gps altitude badge medal trophy record wave camp gorham 2016 2025 archive trace",
+    text: "Every WeGlide-logged flight from the October wave camps at Gorham, 2016–2026 — peak GPS altitudes, badges, the state record, and a link to each trace.",
+    keywords: "flights log weglide gps altitude badge medal trophy record wave camp gorham 2016 2026 archive trace",
   },
   {
     title: "Flights in 3D",
     href: "/flights/3d",
     kind: "page",
-    text: "Every wave-camp flight of each October, 2016–2025, drawn as a three-dimensional track over the White Mountains — orbit the year and see where the wave carried them.",
+    text: "Every wave-camp flight of each October, 2016–2026, drawn as a three-dimensional track over the White Mountains — orbit the year and see where the wave carried them.",
     keywords: "flights 3d three dimensional tracks orbit weglide altitude terrain visualization wave camp",
   },
   {

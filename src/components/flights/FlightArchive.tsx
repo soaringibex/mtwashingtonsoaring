@@ -38,7 +38,7 @@ function Row({ flight }: { flight: WaveCampFlight }) {
         {flight.maxAltFt !== null ? `${ftFormat.format(flight.maxAltFt)} ft` : "—"}
       </td>
       <td className="py-2.5 pr-4">
-        <FlightMarks record={flight.record} ssa={flight.ssa} />
+        <FlightMarks record={flight.record} ssa={flight.ssa} ssaPending={flight.ssaPending} />
       </td>
       <td className="whitespace-nowrap py-2.5 text-right">
         <a
@@ -65,7 +65,7 @@ function MobileRow({ flight }: { flight: WaveCampFlight }) {
           {flight.distanceKm !== null ? ` · ${flight.distanceKm.toFixed(1)} km` : ""}
         </p>
         <p className="mt-1.5 flex flex-wrap items-center gap-2">
-          <FlightMarks record={flight.record} ssa={flight.ssa} />
+          <FlightMarks record={flight.record} ssa={flight.ssa} ssaPending={flight.ssaPending} />
           <a
             href={`https://weglide.org/flight/${flight.id}`}
             target="_blank"

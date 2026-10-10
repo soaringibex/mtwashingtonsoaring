@@ -4,7 +4,7 @@ import { FlightGlobe3D } from "@/components/flights/FlightGlobe3D";
 export const metadata: Metadata = {
   title: "Flights in 3D",
   description:
-    "Every wave-camp flight of each October, 2016–2025, drawn as a three-dimensional track over the White Mountains — orbit the year and see where the wave carried them.",
+    "Every wave-camp flight of each October, 2016–2026, drawn as a three-dimensional track over the White Mountains — orbit the year and see where the wave carried them.",
 };
 
 export default function Flights3DPage() {
