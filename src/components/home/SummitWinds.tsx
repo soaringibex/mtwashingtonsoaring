@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 import { wxApiPath } from "@/lib/wx-datasets";
 
-const REFRESH_MS = 10 * 60 * 1000;
+const REFRESH_MS = 5 * 60 * 1000;
+const MPH_TO_KT = 0.868976;
 const KMH_TO_KT = 0.539957;
 
 const compass = [
@@ -36,70 +37,91 @@ type Summit = {
   gustKt: number | null;
   dirDeg: number | null;
   observedAt: string;
-  source: "station" | "model";
+  source: "mwobs" | "kmwn";
 };
 
-function observationNumber(value: unknown): number | null {
-  if (value && typeof value === "object" && typeof (value as { value?: unknown }).value === "number") {
-    return (value as { value: number }).value;
-  }
-  return null;
+/** The first number inside a display string like "20 mph", "37°F" or "350°(N)". */
+function numberIn(value: unknown): number | null {
+  if (typeof value !== "string") return null;
+  const match = /-?\d+(?:\.\d+)?/.exec(value);
+  return match ? Number(match[0]) : null;
 }
 
-/** The summit observation (NWS station KMWN, at the observatory). */
+/** "2026-10-10 21:07:00" is the observatory's wall clock in America/New_York. */
+function nyLocalToDate(value: string): Date {
+  const asUtc = Date.parse(`${value.replace(" ", "T")}Z`);
+  if (Number.isNaN(asUtc)) throw new Error("bad observatory timestamp");
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(asUtc));
+  const get = (type: string) => Number(parts.find((part) => part.type === type)?.value ?? 0);
+  const wallMs = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
+  return new Date(asUtc - (wallMs - asUtc));
+}
+
+/** The observatory's own live reading — the feed behind their current-conditions page. */
+async function fetchMwobs(): Promise<Summit> {
+  const data = (await fetchJson(wxApiPath("summit-mwobs"))) as {
+    summitConditions?: {
+      LastUpdated?: string;
+      Imperial?: { Temperature?: string; Wind?: string; Gust?: string };
+      Direction?: string;
+    };
+  };
+  const summit = data?.summitConditions;
+  const windMph = numberIn(summit?.Imperial?.Wind);
+  const dirDeg = numberIn(summit?.Direction);
+  if (!summit?.LastUpdated || windMph === null || dirDeg === null) {
+    throw new Error("incomplete observatory reading");
+  }
+  const gustMph = numberIn(summit.Imperial?.Gust);
+  return {
+    tempF: numberIn(summit.Imperial?.Temperature),
+    windKt: Math.round(windMph * MPH_TO_KT),
+    gustKt: gustMph === null ? null : Math.round(gustMph * MPH_TO_KT),
+    dirDeg,
+    observedAt: nyLocalToDate(summit.LastUpdated).toISOString(),
+    source: "mwobs",
+  };
+}
+
+/** Fallback: the NWS station at the summit — same air, a plain observation, never a model. */
 async function fetchStation(): Promise<Summit> {
   const data = (await fetchJson("https://api.weather.gov/stations/KMWN/observations/latest", {
     headers: { Accept: "application/geo+json" },
   })) as { properties?: Record<string, unknown> };
   const properties = data?.properties ?? {};
-  const tempC = observationNumber(properties.temperature);
-  const windKmh = observationNumber(properties.windSpeed);
-  const gustKmh = observationNumber(properties.windGust);
-  const dirDeg = observationNumber(properties.windDirection);
-  if (tempC === null || windKmh === null || dirDeg === null) {
-    throw new Error("incomplete summit observation");
-  }
+  const observationNumber = (key: string): number | null => {
+    const value = properties[key];
+    if (value && typeof value === "object" && typeof (value as { value?: unknown }).value === "number") {
+      return (value as { value: number }).value;
+    }
+    return null;
+  };
+  const windKmh = observationNumber("windSpeed");
+  const dirDeg = observationNumber("windDirection");
+  if (windKmh === null || dirDeg === null) throw new Error("incomplete summit observation");
+  const tempC = observationNumber("temperature");
+  const gustKmh = observationNumber("windGust");
   return {
-    tempF: Math.round((tempC * 9) / 5 + 32),
+    tempF: tempC === null ? null : Math.round((tempC * 9) / 5 + 32),
     windKt: Math.round(windKmh * KMH_TO_KT),
     gustKt: gustKmh === null ? null : Math.round(gustKmh * KMH_TO_KT),
     dirDeg,
     observedAt:
       typeof properties.timestamp === "string" ? properties.timestamp : new Date().toISOString(),
-    source: "station",
+    source: "kmwn",
   };
 }
 
-/** Fallback: the latest model run at summit elevation. */
-async function fetchModel(): Promise<Summit> {
-  const data = (await fetchJson(wxApiPath("summit-current"))) as {
-    current?: {
-      time?: string;
-      temperature_2m?: unknown;
-      wind_speed_10m?: unknown;
-      wind_gusts_10m?: unknown;
-      wind_direction_10m?: unknown;
-    };
-  };
-  const current = data?.current ?? {};
-  if (
-    typeof current.temperature_2m !== "number" ||
-    typeof current.wind_speed_10m !== "number" ||
-    typeof current.wind_direction_10m !== "number"
-  ) {
-    throw new Error("incomplete summit model data");
-  }
-  return {
-    tempF: Math.round(current.temperature_2m),
-    windKt: Math.round(current.wind_speed_10m),
-    gustKt: typeof current.wind_gusts_10m === "number" ? Math.round(current.wind_gusts_10m) : null,
-    dirDeg: current.wind_direction_10m,
-    observedAt: new Date(`${current.time}Z`).toISOString(),
-    source: "model",
-  };
-}
-
-/** The wind at the summit right now — station first, model when the station is silent. */
+/** The wind at the summit right now — the observatory's instruments first. */
 export function SummitWinds() {
   const [summit, setSummit] = useState<Summit | null>(null);
 
@@ -107,7 +129,7 @@ export function SummitWinds() {
     let cancelled = false;
     const load = async () => {
       try {
-        const next = await fetchStation().catch(() => fetchModel());
+        const next = await fetchMwobs().catch(() => fetchStation());
         if (!cancelled) setSummit(next);
       } catch {
         /* keep the last reading; the card only appears once data arrives */
@@ -131,6 +153,17 @@ export function SummitWinds() {
     timeZone: "America/New_York",
     timeZoneName: "short",
   }).format(new Date(summit.observedAt));
+
+  const source =
+    summit.source === "mwobs"
+      ? {
+          href: "https://mountwashington.org/weather/current-summit-conditions/",
+          label: "Mount Washington Observatory",
+        }
+      : {
+          href: "https://www.weather.gov/wrh/timeseries?site=KMWN",
+          label: "NWS summit station",
+        };
 
   return (
     <div className="rounded-3xl border border-white/15 bg-white/10 p-5 backdrop-blur-md sm:p-6">
@@ -181,16 +214,12 @@ export function SummitWinds() {
       </dl>
       <p className="mt-3 text-[11px] text-sky-200/70">
         <a
-          href={
-            summit.source === "station"
-              ? "https://mountwashington.org/weather/current-summit-conditions/"
-              : "https://open-meteo.com/"
-          }
+          href={source.href}
           target="_blank"
           rel="noreferrer"
           className="underline decoration-sky-200/40 underline-offset-2 transition-colors hover:text-sky-100"
         >
-          {summit.source === "station" ? "Observatory station" : "Model estimate"}
+          {source.label}
         </a>{" "}
         <span aria-hidden="true">↗</span>
         {" · "}

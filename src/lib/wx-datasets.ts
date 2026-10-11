@@ -63,7 +63,7 @@ export type WxDataset =
   | "map-field"
   | "wind-day"
   | "summit-hourly"
-  | "summit-current"
+  | "summit-mwobs"
   | "wrf-map-field"
   | "wrf-cross-section"
   | "wrf-wind"
@@ -217,13 +217,11 @@ export function buildUpstreamRequest(dataset: string, params: URLSearchParams): 
         revalidate: 900,
       };
 
-    case "summit-current":
+    case "summit-mwobs":
+      // The observatory's own feed, the one behind their current-summit-conditions
+      // page — their instruments on the summit, refreshed with the METAR.
       return {
-        urls: [
-          `${FORECAST}?${coordsOf([SUMMIT])}` +
-            `&current=temperature_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m` +
-            `&wind_speed_unit=kn&temperature_unit=fahrenheit&elevation=1916&timezone=UTC`,
-        ],
+        urls: ["https://mountwashington.org/uploads/json/weather.JSON"],
         revalidate: 300,
       };
 
