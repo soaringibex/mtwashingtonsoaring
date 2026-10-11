@@ -62,6 +62,11 @@ export const albums: Album[] = [
         alt: "Looking along the snow-dusted Presidential crest toward the summit towers, the Great Gulf falling away below",
         aspect: "portrait",
       },
+      {
+        src: "/images/gallery/2026/gliders-at-gorham-in-autumn.webp",
+        alt: "Gliders parked on the grass at Gorham under the ridgeline in full fall color",
+        aspect: "landscape",
+      },
     ],
   },
   {
