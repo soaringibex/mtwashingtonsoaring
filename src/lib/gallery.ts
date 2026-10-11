@@ -18,8 +18,83 @@ export const albums: Album[] = [
     blurb: "The opening days at Gorham — virga, a rainbow, the field, and the snow-dusted range from the air.",
     photos: [
       {
-        src: "/images/gallery/2026/virga-rainbow-over-the-valley.webp",
-        alt: "A rainbow beneath snow virga over the river valley, seen from the wing of a glider",
+        src: "/images/gallery/2026/the-field-and-valley-from-the-air.webp",
+        alt: "The Androscoggin valley towns and the Gorham field from the air, gliders lined on the grass",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-ridge-north-of-the-summit.webp",
+        alt: "The ridge north of the summit with the Auto Road, from the air",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-cone-from-the-southwest.webp",
+        alt: "The snowy summit cone and the Auto Road from the southwest",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-valley-towns-from-the-air.webp",
+        alt: "The Androscoggin valley towns from the air, mountains to the horizon",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/snow-along-the-summit-shoulder.webp",
+        alt: "Fresh snow along the summit shoulder of Mount Washington",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/summit-cone-and-switchbacks.webp",
+        alt: "The snow-covered summit cone and the Auto Road's switchbacks, from the air",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-range-in-the-distance.webp",
+        alt: "The Presidential Range in the distance, blue with haze, seen from the south",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-range-from-the-southwest.webp",
+        alt: "The Presidential Range from the southwest, the river threading the valley below",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-range-above-the-river-valley.webp",
+        alt: "The snowy range above the river valley, seen past the wing",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-range-from-above.webp",
+        alt: "The Presidential Range from high above, fresh snow along the crest and the valley beyond",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/mount-washington-from-the-west.webp",
+        alt: "Mount Washington's snow-covered summit cone and the Auto Road, seen from the west",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/presidential-ridge-and-auto-road.webp",
+        alt: "The snow-dusted Presidential ridge from the northwest, the Auto Road along the crest",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/autumn-forest-below-the-ridge.webp",
+        alt: "Fall color across the forest below the ridge, a road winding through the valley",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-field-at-gorham.webp",
+        alt: "Gliders and tow vehicles on the grass at Gorham as the sun breaks through cumulus over the ridge",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-crest-in-snow.webp",
+        alt: "Looking along the snow-dusted Presidential crest toward the summit towers, the Great Gulf falling away below",
+        aspect: "portrait",
+      },
+      {
+        src: "/images/gallery/2026/great-gulf-from-the-air.webp",
+        alt: "The summit and the Great Gulf from the air, snow along the crest and autumn color to the horizon",
         aspect: "landscape",
       },
       {
@@ -48,91 +123,16 @@ export const albums: Album[] = [
         aspect: "landscape",
       },
       {
-        src: "/images/gallery/2026/great-gulf-from-the-air.webp",
-        alt: "The summit and the Great Gulf from the air, snow along the crest and autumn color to the horizon",
-        aspect: "landscape",
-      },
-      {
-        src: "/images/gallery/2026/the-field-at-gorham.webp",
-        alt: "Gliders and tow vehicles on the grass at Gorham as the sun breaks through cumulus over the ridge",
-        aspect: "landscape",
-      },
-      {
-        src: "/images/gallery/2026/the-crest-in-snow.webp",
-        alt: "Looking along the snow-dusted Presidential crest toward the summit towers, the Great Gulf falling away below",
-        aspect: "portrait",
-      },
-      {
         src: "/images/gallery/2026/gliders-at-gorham-in-autumn.webp",
         alt: "Gliders parked on the grass at Gorham under the ridgeline in full fall color",
         aspect: "landscape",
       },
       {
-        src: "/images/gallery/2026/autumn-forest-below-the-ridge.webp",
-        alt: "Fall color across the forest below the ridge, a road winding through the valley",
+        src: "/images/gallery/2026/virga-rainbow-over-the-valley.webp",
+        alt: "A rainbow beneath snow virga over the river valley, seen from the wing of a glider",
         aspect: "landscape",
       },
-      {
-        src: "/images/gallery/2026/presidential-ridge-and-auto-road.webp",
-        alt: "The snow-dusted Presidential ridge from the northwest, the Auto Road along the crest",
-        aspect: "landscape",
-      },
-      {
-        src: "/images/gallery/2026/mount-washington-from-the-west.webp",
-        alt: "Mount Washington's snow-covered summit cone and the Auto Road, seen from the west",
-        aspect: "landscape",
-      },
-      {
-        src: "/images/gallery/2026/the-range-from-above.webp",
-        alt: "The Presidential Range from high above, fresh snow along the crest and the valley beyond",
-        aspect: "landscape",
-      },
-      {
-        src: "/images/gallery/2026/the-range-above-the-river-valley.webp",
-        alt: "The snowy range above the river valley, seen past the wing",
-        aspect: "landscape",
-      },
-      {
-        src: "/images/gallery/2026/the-range-from-the-southwest.webp",
-        alt: "The Presidential Range from the southwest, the river threading the valley below",
-        aspect: "landscape",
-      },
-      {
-        src: "/images/gallery/2026/the-range-in-the-distance.webp",
-        alt: "The Presidential Range in the distance, blue with haze, seen from the south",
-        aspect: "landscape",
-      },
-      {
-        src: "/images/gallery/2026/summit-cone-and-switchbacks.webp",
-        alt: "The snow-covered summit cone and the Auto Road's switchbacks, from the air",
-        aspect: "landscape",
-      },
-      {
-        src: "/images/gallery/2026/snow-along-the-summit-shoulder.webp",
-        alt: "Fresh snow along the summit shoulder of Mount Washington",
-        aspect: "landscape",
-      },
-      {
-        src: "/images/gallery/2026/the-valley-towns-from-the-air.webp",
-        alt: "The Androscoggin valley towns from the air, mountains to the horizon",
-        aspect: "landscape",
-      },
-      {
-        src: "/images/gallery/2026/the-cone-from-the-southwest.webp",
-        alt: "The snowy summit cone and the Auto Road from the southwest",
-        aspect: "landscape",
-      },
-      {
-        src: "/images/gallery/2026/the-ridge-north-of-the-summit.webp",
-        alt: "The ridge north of the summit with the Auto Road, from the air",
-        aspect: "landscape",
-      },
-      {
-        src: "/images/gallery/2026/the-field-and-valley-from-the-air.webp",
-        alt: "The Androscoggin valley towns and the Gorham field from the air, gliders lined on the grass",
-        aspect: "landscape",
-      },
-    ],
+        ],
   },
   {
     id: "2025",
