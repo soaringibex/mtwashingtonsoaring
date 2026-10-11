@@ -15,11 +15,36 @@ export const albums: Album[] = [
   {
     id: "2026",
     title: "Wave Camp 2026",
-    blurb: "The opening days at Gorham — snow virga, a rainbow over the valley, and blue sky.",
+    blurb: "The opening days at Gorham — virga, a rainbow, and the snow-dusted range from the air.",
     photos: [
       {
         src: "/images/gallery/2026/virga-rainbow-over-the-valley.webp",
         alt: "A rainbow beneath snow virga over the river valley, seen from the wing of a glider",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/summit-cone-from-above.webp",
+        alt: "The Mount Washington summit cone from directly overhead, the Auto Road switchbacks traced in fresh snow",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/summit-buildings-from-above.webp",
+        alt: "The summit buildings, parking rows and cog railway yard under fresh snow, seen from overhead",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/alpine-shoulder-and-ravine.webp",
+        alt: "Snow on Mount Washington's alpine shoulder above a shadowed ravine, the Auto Road cut into the ridge",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/presidential-range-from-the-air.webp",
+        alt: "The Presidential Range from the air — new snow along the crest, autumn color in the valleys",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/summit-cone-from-the-air.webp",
+        alt: "The snow-dusted summit cone of Mount Washington and its towers, with the crags falling away below",
         aspect: "landscape",
       },
     ],
