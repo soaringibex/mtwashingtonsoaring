@@ -217,7 +217,7 @@ const history: SearchEntry[] = [
 ];
 
 const flying: SearchEntry[] = [
-  ...required.map((doc) => ({
+  ...required.filter((doc) => !doc.hidden).map((doc) => ({
     title: doc.title,
     href: doc.page ?? doc.href ?? "/flying",
     kind: "flying" as const,
@@ -225,7 +225,7 @@ const flying: SearchEntry[] = [
     text: doc.description,
     keywords: "required reading pdf brief loa waiver certificate faa class a",
   })),
-  ...oxygen.map((doc) => ({
+  ...oxygen.filter((doc) => !doc.hidden).map((doc) => ({
     title: doc.title,
     href: doc.page ?? doc.href ?? "/flying",
     kind: "flying" as const,
@@ -233,7 +233,7 @@ const flying: SearchEntry[] = [
     text: doc.description,
     keywords: "oxygen hypoxia decompression dcs altitude health",
   })),
-  ...legal.map((doc) => ({
+  ...legal.filter((doc) => !doc.hidden).map((doc) => ({
     title: doc.title,
     href: doc.page ?? doc.href ?? "/flying",
     kind: "flying" as const,
@@ -241,7 +241,7 @@ const flying: SearchEntry[] = [
     text: doc.description,
     keywords: "legal loa letter of authorization waiver class a faa certificate interpretation",
   })),
-  ...gorham.map((doc) => ({
+  ...gorham.filter((doc) => !doc.hidden).map((doc) => ({
     title: doc.title,
     href: doc.page ?? doc.href ?? "/flying",
     kind: "flying" as const,
@@ -249,7 +249,7 @@ const flying: SearchEntry[] = [
     text: doc.description,
     keywords: "airport gorham 2g8 pattern procedures landing sites",
   })),
-  ...campDocs.map((doc) => ({
+  ...campDocs.filter((doc) => !doc.hidden).map((doc) => ({
     title: doc.title,
     href: doc.page ?? doc.href ?? "/flying",
     kind: "flying" as const,
@@ -257,7 +257,7 @@ const flying: SearchEntry[] = [
     text: doc.description,
     keywords: "signup paperwork camp documents season",
   })),
-  ...navFiles.map((doc) => ({
+  ...navFiles.filter((doc) => !doc.hidden).map((doc) => ({
     title: doc.title,
     href: doc.page ?? doc.href ?? "/flying",
     kind: "flying" as const,

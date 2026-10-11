@@ -76,7 +76,7 @@ export default function FlyingPage() {
                 lede="Everyone attending the wave camp is expected to have studied these documents and reviewed the current waiver."
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
-                {required.map((doc) => (
+                {required.filter((doc) => !doc.hidden).map((doc) => (
                   <DocCard key={doc.href} doc={doc} />
                 ))}
               </div>
@@ -122,7 +122,7 @@ export default function FlyingPage() {
                 lede="Wave camp climbs routinely end above 12,500 feet, and the good ones above 18,000 — where oxygen, not skill, keeps the decisions sound. Read at least the hypoxia article before you fly high."
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
-                {oxygen.map((doc) => (
+                {oxygen.filter((doc) => !doc.hidden).map((doc) => (
                   <DocCard key={doc.href} doc={doc} />
                 ))}
               </div>
@@ -135,7 +135,7 @@ export default function FlyingPage() {
                 lede="The FAA legal interpretations behind the airspace operations. The current waiver itself lives in the required reading above."
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
-                {legal.map((doc) => (
+                {legal.filter((doc) => !doc.hidden).map((doc) => (
                   <DocCard key={doc.href} doc={doc} />
                 ))}
               </div>
@@ -149,7 +149,7 @@ export default function FlyingPage() {
               />
               <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:items-start">
                 <div className="grid gap-4">
-                  {gorham.map((doc) => (
+                  {gorham.filter((doc) => !doc.hidden).map((doc) => (
                     <DocCard key={doc.href} doc={doc} />
                   ))}
                 </div>
@@ -268,7 +268,7 @@ export default function FlyingPage() {
                 lede="Waypoints, airspace and task files for the Gorham area. Airspace files depict the 10-mile wave airspace (courtesy of Dave Sherrill)."
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
-                {navFiles.map((doc) => (
+                {navFiles.filter((doc) => !doc.hidden).map((doc) => (
                   <DocCard key={doc.href} doc={doc} />
                 ))}
               </div>
@@ -293,7 +293,7 @@ export default function FlyingPage() {
                 lede="The current-season signup sheet, schedule and logistics go out over the email list each fall."
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
-                {campDocs.map((doc) => (
+                {campDocs.filter((doc) => !doc.hidden).map((doc) => (
                   <DocCard key={doc.href} doc={doc} />
                 ))}
               </div>

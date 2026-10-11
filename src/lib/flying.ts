@@ -7,6 +7,9 @@ export type DocLink = {
   description?: string;
   meta?: string;
   external?: boolean;
+  /** Kept in the data so the page stays reachable by direct link, but not listed on
+   * the flying page or in search — e.g. content awaiting review. */
+  hidden?: boolean;
 };
 
 /** Start here — required before flying the camp. */
@@ -73,6 +76,7 @@ export const oxygen: DocLink[] = [
     description:
       "A step-by-step cascade transfill, demonstrated by Rick Roelke at the 2026 camp — from purging the line to bleeding it before the fittings come apart.",
     meta: "Guide",
+    hidden: true,
   },
 ];
 
