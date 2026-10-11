@@ -1011,7 +1011,7 @@ export function FlightGlobe3D() {
   }, [frame.dist]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-slate-950">
+    <div className="relative h-full w-full bg-slate-950">
       <canvas
         ref={canvasRef}
         className="absolute inset-0 block h-full w-full cursor-grab touch-none select-none active:cursor-grabbing"
@@ -1019,232 +1019,235 @@ export function FlightGlobe3D() {
       />
       <canvas ref={labelCanvasRef} aria-hidden="true" className="pointer-events-none absolute inset-0 block h-full w-full" />
 
-      <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1.5">
-        {YEARS.map((y) => (
+      {/* The controls ride below the sticky header while the map is in view. */}
+      <div className="pointer-events-none sticky top-16 z-20 sm:top-[4.5rem] xl:top-20">
+        <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1.5">
+          {YEARS.map((y) => (
+            <button
+              key={y}
+              type="button"
+              aria-pressed={year === y}
+              onClick={() => setYear(y)}
+              className={`pointer-events-auto rounded-full px-3 py-1 text-sm font-medium tabular-nums backdrop-blur-sm transition-colors ${
+                year === y
+                  ? "bg-sky-400/90 text-slate-950"
+                  : "bg-slate-950/50 text-slate-200 ring-1 ring-white/10 hover:bg-slate-800/70"
+              }`}
+            >
+              {y}
+            </button>
+          ))}
           <button
-            key={y}
             type="button"
-            aria-pressed={year === y}
-            onClick={() => setYear(y)}
-            className={`pointer-events-auto rounded-full px-3 py-1 text-sm font-medium tabular-nums backdrop-blur-sm transition-colors ${
-              year === y
+            aria-pressed={panelOpen}
+            onClick={togglePanel}
+            className={`pointer-events-auto rounded-full px-3 py-1 text-sm font-medium backdrop-blur-sm transition-colors ${
+              panelOpen || filtered
                 ? "bg-sky-400/90 text-slate-950"
                 : "bg-slate-950/50 text-slate-200 ring-1 ring-white/10 hover:bg-slate-800/70"
             }`}
           >
-            {y}
+            Pilots &amp; dates{filtered ? ` · ${visibleFlights.length}` : ""}
           </button>
-        ))}
-        <button
-          type="button"
-          aria-pressed={panelOpen}
-          onClick={togglePanel}
-          className={`pointer-events-auto rounded-full px-3 py-1 text-sm font-medium backdrop-blur-sm transition-colors ${
-            panelOpen || filtered
-              ? "bg-sky-400/90 text-slate-950"
-              : "bg-slate-950/50 text-slate-200 ring-1 ring-white/10 hover:bg-slate-800/70"
-          }`}
-        >
-          Pilots &amp; dates{filtered ? ` · ${visibleFlights.length}` : ""}
-        </button>
-      </div>
+        </div>
 
-      {stats ? (
-        <p className="pointer-events-none absolute right-3 top-4 z-10 hidden rounded-full bg-slate-950/50 px-3 py-1 text-sm text-slate-200 tabular-nums ring-1 ring-white/10 backdrop-blur-sm sm:block">
-          {filtered ? `${visibleFlights.length} of ${stats.flights.length}` : stats.flights.length} flights
-          {visibleFlights.length
-            ? ` · best ${new Intl.NumberFormat("en-US").format(Math.max(...visibleFlights.map((f) => f.maxAltFt)))} ft`
-            : ""}
-        </p>
-      ) : null}
-
-      {panelOpen && stats ? (
-        <div className="absolute inset-x-3 bottom-3 z-20 max-h-[50svh] overflow-y-auto rounded-2xl bg-slate-950/90 p-4 ring-1 ring-white/15 backdrop-blur-sm sm:inset-x-auto sm:bottom-auto sm:left-3 sm:top-14 sm:z-10 sm:max-h-[62%] sm:w-64">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Pilots</p>
-            {pilotSel.size ? (
-              <button
-                type="button"
-                onClick={() => setPilotSel(new Set())}
-                className="text-[11px] font-medium text-sky-300 hover:text-sky-200"
-              >
-                clear
-              </button>
-            ) : null}
-          </div>
-          <input
-            type="text"
-            value={pilotQuery}
-            onChange={(e) => setPilotQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && pilotMatches.length > 0) {
-                togglePilot(pilotMatches[0][0]);
-                setPilotQuery("");
-              } else if (e.key === "Escape") {
-                setPilotQuery("");
-                e.currentTarget.blur();
-              }
-            }}
-            placeholder="Search pilots…"
-            aria-label="Search pilots"
-            autoComplete="off"
-            className="mt-2 w-full rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 ring-1 ring-white/10 focus:outline-none focus:ring-sky-400/60"
-          />
-          {pilotMatches.length > 0 ? (
-            <ul className="mt-1 grid gap-0.5 rounded-lg bg-slate-900/90 p-1 ring-1 ring-white/10">
-              {pilotMatches.map(([pilot, count]) => (
-                <li key={pilot}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      togglePilot(pilot);
-                      setPilotQuery("");
-                    }}
-                    className="w-full rounded-md px-2 py-1 text-left text-xs text-slate-200 transition-colors hover:bg-sky-400/25"
-                  >
-                    {pilot} <span className="text-slate-400">({count})</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-
-          {pilotSel.size > 0 ? (
-            <ul className="mt-2 flex flex-wrap gap-1">
-              {[...pilotSel].sort((a, b) => a.localeCompare(b)).map((pilot) => (
-                <li key={pilot}>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-sky-400/90 py-0.5 pl-2 pr-1 text-[11px] font-medium text-slate-950">
-                    {pilot}
-                    <button
-                      type="button"
-                      aria-label={`Remove ${pilot}`}
-                      onClick={() => togglePilot(pilot)}
-                      className="rounded-full px-1 leading-none transition-colors hover:bg-slate-950/20"
-                    >
-                      ✕
-                    </button>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-1.5 text-[11px] text-slate-500">Type a name to add pilots to the view.</p>
-          )}
-
-          <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-            October {year}
+        {stats ? (
+          <p className="pointer-events-none absolute right-3 top-4 z-10 hidden rounded-full bg-slate-950/50 px-3 py-1 text-sm text-slate-200 tabular-nums ring-1 ring-white/10 backdrop-blur-sm sm:block">
+            {filtered ? `${visibleFlights.length} of ${stats.flights.length}` : stats.flights.length} flights
+            {visibleFlights.length
+              ? ` · best ${new Intl.NumberFormat("en-US").format(Math.max(...visibleFlights.map((f) => f.maxAltFt)))} ft`
+              : ""}
           </p>
-          {(() => {
-            const withFlights = new Set(stats.flights.map((f) => f.date));
-            const firstDow = new Date(Date.UTC(year, 9, 1)).getUTCDay();
-            const cells: (number | null)[] = [
-              ...Array.from({ length: firstDow }, () => null),
-              ...Array.from({ length: 31 }, (_, i) => i + 1),
-            ];
-            return (
-              <div className="mt-2">
-                <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase text-slate-500">
-                  {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-                    <span key={i}>{d}</span>
-                  ))}
-                </div>
-                <div className="mt-1 grid grid-cols-7 gap-1">
-                  {cells.map((day, i) => {
-                    if (day === null) return <span key={`e${i}`} />;
-                    const key = `${year}-10-${String(day).padStart(2, "0")}`;
-                    const isEdge = key === dateFrom || key === dateTo;
-                    const inRange = dateFrom !== null && key >= dateFrom && (dateTo === null || key <= dateTo);
-                    const hasFlights = withFlights.has(key);
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        aria-label={`October ${day}, ${year}`}
-                        aria-pressed={isEdge}
-                        onClick={() => pickDate(key)}
-                        className={`relative h-7 rounded-md text-[11px] tabular-nums transition-colors ${
-                          isEdge
-                            ? "bg-sky-400 font-semibold text-slate-950"
-                            : inRange
-                              ? "bg-sky-400/25 text-slate-100"
-                              : hasFlights
-                                ? "text-sky-200 hover:bg-white/10"
-                                : "text-slate-500 hover:bg-white/5"
-                        }`}
-                      >
-                        {day}
-                        {hasFlights ? (
-                          <span
-                            className={`absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full ${
-                              isEdge || inRange ? "bg-slate-950/70" : "bg-sky-300"
-                            }`}
-                          />
-                        ) : null}
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="mt-1.5 text-[10px] text-slate-500">
-                  {dateFrom === null
-                    ? "pick the first day with flying"
-                    : dateTo === null
-                      ? "now pick the last day"
-                      : `${dateFrom} → ${dateTo}`}
-                </p>
-              </div>
-            );
-          })()}
-          {dateFrom || dateTo ? (
+        ) : null}
+
+    {panelOpen && stats ? (
+      <div className="pointer-events-auto fixed inset-x-3 bottom-3 z-20 max-h-[50svh] overflow-y-auto rounded-2xl bg-slate-950/90 p-4 ring-1 ring-white/15 backdrop-blur-sm sm:absolute sm:inset-x-auto sm:bottom-auto sm:left-3 sm:top-14 sm:z-10 sm:max-h-[56svh] sm:w-64">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Pilots</p>
+          {pilotSel.size ? (
             <button
               type="button"
-              onClick={() => {
-                setDateFrom(null);
-                setDateTo(null);
-              }}
-              className="mt-2 text-[11px] font-medium text-sky-300 hover:text-sky-200"
+              onClick={() => setPilotSel(new Set())}
+              className="text-[11px] font-medium text-sky-300 hover:text-sky-200"
             >
-              clear dates
+              clear
             </button>
           ) : null}
-
-          {filtered ? (
-            <p className="mt-3 text-[11px] text-slate-400">
-              {visibleFlights.length} of {stats.flights.length} flights shown
-            </p>
-          ) : null}
         </div>
-      ) : null}
+        <input
+          type="text"
+          value={pilotQuery}
+          onChange={(e) => setPilotQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && pilotMatches.length > 0) {
+              togglePilot(pilotMatches[0][0]);
+              setPilotQuery("");
+            } else if (e.key === "Escape") {
+              setPilotQuery("");
+              e.currentTarget.blur();
+            }
+          }}
+          placeholder="Search pilots…"
+          aria-label="Search pilots"
+          autoComplete="off"
+          className="mt-2 w-full rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 ring-1 ring-white/10 focus:outline-none focus:ring-sky-400/60"
+        />
+        {pilotMatches.length > 0 ? (
+          <ul className="mt-1 grid gap-0.5 rounded-lg bg-slate-900/90 p-1 ring-1 ring-white/10">
+            {pilotMatches.map(([pilot, count]) => (
+              <li key={pilot}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    togglePilot(pilot);
+                    setPilotQuery("");
+                  }}
+                  className="w-full rounded-md px-2 py-1 text-left text-xs text-slate-200 transition-colors hover:bg-sky-400/25"
+                >
+                  {pilot} <span className="text-slate-400">({count})</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
 
-      {selectedFlight ? (() => {
-        const flight = selectedFlight;
-        if (!flight) return null;
-        return (
-          <div className="absolute right-3 top-24 z-10 max-w-[16rem] rounded-2xl bg-slate-950/80 p-4 ring-1 ring-white/15 backdrop-blur-sm sm:top-14">
-            <div className="flex items-start justify-between gap-3">
-              <p className="font-display text-sm font-semibold text-white">{flight.pilot}</p>
-              <button
-                type="button"
-                onClick={() => setSelected(null)}
-                aria-label="Clear the selection"
-                className="rounded-full px-1.5 text-slate-400 transition-colors hover:text-white"
-              >
-                ✕
-              </button>
+        {pilotSel.size > 0 ? (
+          <ul className="mt-2 flex flex-wrap gap-1">
+            {[...pilotSel].sort((a, b) => a.localeCompare(b)).map((pilot) => (
+              <li key={pilot}>
+                <span className="inline-flex items-center gap-1 rounded-full bg-sky-400/90 py-0.5 pl-2 pr-1 text-[11px] font-medium text-slate-950">
+                  {pilot}
+                  <button
+                    type="button"
+                    aria-label={`Remove ${pilot}`}
+                    onClick={() => togglePilot(pilot)}
+                    className="rounded-full px-1 leading-none transition-colors hover:bg-slate-950/20"
+                  >
+                    ✕
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-1.5 text-[11px] text-slate-500">Type a name to add pilots to the view.</p>
+        )}
+
+        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+          October {year}
+        </p>
+        {(() => {
+          const withFlights = new Set(stats.flights.map((f) => f.date));
+          const firstDow = new Date(Date.UTC(year, 9, 1)).getUTCDay();
+          const cells: (number | null)[] = [
+            ...Array.from({ length: firstDow }, () => null),
+            ...Array.from({ length: 31 }, (_, i) => i + 1),
+          ];
+          return (
+            <div className="mt-2">
+              <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase text-slate-500">
+                {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                  <span key={i}>{d}</span>
+                ))}
+              </div>
+              <div className="mt-1 grid grid-cols-7 gap-1">
+                {cells.map((day, i) => {
+                  if (day === null) return <span key={`e${i}`} />;
+                  const key = `${year}-10-${String(day).padStart(2, "0")}`;
+                  const isEdge = key === dateFrom || key === dateTo;
+                  const inRange = dateFrom !== null && key >= dateFrom && (dateTo === null || key <= dateTo);
+                  const hasFlights = withFlights.has(key);
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      aria-label={`October ${day}, ${year}`}
+                      aria-pressed={isEdge}
+                      onClick={() => pickDate(key)}
+                      className={`relative h-7 rounded-md text-[11px] tabular-nums transition-colors ${
+                        isEdge
+                          ? "bg-sky-400 font-semibold text-slate-950"
+                          : inRange
+                            ? "bg-sky-400/25 text-slate-100"
+                            : hasFlights
+                              ? "text-sky-200 hover:bg-white/10"
+                              : "text-slate-500 hover:bg-white/5"
+                      }`}
+                    >
+                      {day}
+                      {hasFlights ? (
+                        <span
+                          className={`absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full ${
+                            isEdge || inRange ? "bg-slate-950/70" : "bg-sky-300"
+                          }`}
+                        />
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-1.5 text-[10px] text-slate-500">
+                {dateFrom === null
+                  ? "pick the first day with flying"
+                  : dateTo === null
+                    ? "now pick the last day"
+                    : `${dateFrom} → ${dateTo}`}
+              </p>
             </div>
-            <p className="mt-1 text-xs text-slate-300">
-              {new Date(`${flight.date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-              {" · "}
-              <span className="tabular-nums">
-                {new Intl.NumberFormat("en-US").format(flight.maxAltFt)} ft
-              </span>
-            </p>
-            {flight.ssa.length ? (
-              <p className="mt-1 text-[11px] text-slate-400">{flight.ssa.join(" · ")}</p>
-            ) : null}
-          </div>
-        );
-      })() : null}
+          );
+        })()}
+        {dateFrom || dateTo ? (
+          <button
+            type="button"
+            onClick={() => {
+              setDateFrom(null);
+              setDateTo(null);
+            }}
+            className="mt-2 text-[11px] font-medium text-sky-300 hover:text-sky-200"
+          >
+            clear dates
+          </button>
+        ) : null}
 
+        {filtered ? (
+          <p className="mt-3 text-[11px] text-slate-400">
+            {visibleFlights.length} of {stats.flights.length} flights shown
+          </p>
+        ) : null}
+      </div>
+    ) : null}
+
+
+        {selectedFlight ? (() => {
+          const flight = selectedFlight;
+          if (!flight) return null;
+          return (
+            <div className="pointer-events-auto absolute right-3 top-24 z-10 max-w-[16rem] rounded-2xl bg-slate-950/80 p-4 ring-1 ring-white/15 backdrop-blur-sm sm:top-14">
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-display text-sm font-semibold text-white">{flight.pilot}</p>
+                <button
+                  type="button"
+                  onClick={() => setSelected(null)}
+                  aria-label="Clear the selection"
+                  className="rounded-full px-1.5 text-slate-400 transition-colors hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-slate-300">
+                {new Date(`${flight.date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                {" · "}
+                <span className="tabular-nums">
+                  {new Intl.NumberFormat("en-US").format(flight.maxAltFt)} ft
+                </span>
+              </p>
+              {flight.ssa.length ? (
+                <p className="mt-1 text-[11px] text-slate-400">{flight.ssa.join(" · ")}</p>
+              ) : null}
+            </div>
+          );
+        })() : null}
+      </div>
       {glError ? (
         <p className="absolute inset-0 grid place-items-center px-6 text-center text-sm text-slate-300">
           This view needs WebGL, which this browser isn&apos;t providing right now.
