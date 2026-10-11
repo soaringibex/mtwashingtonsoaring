@@ -3,8 +3,19 @@ import Link from "next/link";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/ui/Container";
 import { Prose } from "@/components/ui/Prose";
-import type { DocumentText } from "@/lib/document-texts";
+import type { DocBlock, DocumentText } from "@/lib/document-texts";
 import type { DocLink } from "@/lib/flying";
+
+/** Growing journals (the camp logbook) read newest first: flip the heading groups,
+ * keeping each entry's own paragraphs in order. */
+function newestFirstBlocks(blocks: DocBlock[]): DocBlock[] {
+  const groups: DocBlock[][] = [];
+  for (const block of blocks) {
+    if (block.type === "h" || groups.length === 0) groups.push([]);
+    groups[groups.length - 1].push(block);
+  }
+  return groups.reverse().flat();
+}
 
 export function DocumentView({
   doc,
@@ -18,6 +29,7 @@ export function DocumentView({
   backLabel: string;
 }) {
   const size = text.bytes ? `${(text.bytes / 1e6).toFixed(1)} MB` : null;
+  const blocks = text.newestFirst ? newestFirstBlocks(text.blocks) : text.blocks;
 
   return (
     <article className="py-16 sm:py-20">
@@ -47,7 +59,7 @@ export function DocumentView({
         ) : null}
 
         <Prose className="mt-10">
-          {text.blocks.map((block, index) => {
+          {blocks.map((block, index) => {
             if (block.type === "img") {
               return (
                 <figure key={index} className="mx-auto" style={{ maxWidth: `${block.width}px` }}>

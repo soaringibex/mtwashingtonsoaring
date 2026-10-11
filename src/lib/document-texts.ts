@@ -15,12 +15,15 @@ export type DocumentText = {
   /** PDF metrics — omitted for hand-authored entries that never had a PDF. */
   pages?: number;
   bytes?: number;
+  /** Growing journals (the 2026 camp logbook) read newest entry first. */
+  newestFirst?: boolean;
   blocks: DocBlock[];
 };
 
 export const documentTexts: Record<string, DocumentText> = {
   // Hand-authored: the 2026 camp logbook grows a day at a time and never had a PDF.
   "2026-wave-camp-logbook-glen-kelley": {
+    newestFirst: true,
     blocks: [
       { type: "h", text: "Friday, October 9" },
       { type: "p", text: "Today was arrival day at Gorham." },
