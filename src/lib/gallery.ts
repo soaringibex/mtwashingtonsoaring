@@ -15,7 +15,7 @@ export const albums: Album[] = [
   {
     id: "2026",
     title: "Wave Camp 2026",
-    blurb: "The opening days at Gorham — virga, a rainbow, and the snow-dusted range from the air.",
+    blurb: "The opening days at Gorham — virga, a rainbow, the field, and the snow-dusted range from the air.",
     photos: [
       {
         src: "/images/gallery/2026/virga-rainbow-over-the-valley.webp",
@@ -46,6 +46,21 @@ export const albums: Album[] = [
         src: "/images/gallery/2026/summit-cone-from-the-air.webp",
         alt: "The snow-dusted summit cone of Mount Washington and its towers, with the crags falling away below",
         aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/great-gulf-from-the-air.webp",
+        alt: "The summit and the Great Gulf from the air, snow along the crest and autumn color to the horizon",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-field-at-gorham.webp",
+        alt: "Gliders and tow vehicles on the grass at Gorham as the sun breaks through cumulus over the ridge",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-crest-in-snow.webp",
+        alt: "Looking along the snow-dusted Presidential crest toward the summit towers, the Great Gulf falling away below",
+        aspect: "portrait",
       },
     ],
   },
