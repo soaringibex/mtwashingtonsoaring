@@ -290,7 +290,7 @@ export default function FlyingPage() {
               <SectionHeading
                 eyebrow="Camp paperwork"
                 title="Signups and camp documents"
-                lede="The current-season signup sheet, schedule and logistics go out over the email list each fall — write to the list to get on it."
+                lede="The current-season signup sheet, schedule and logistics go out over the email list each fall."
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
                 {campDocs.map((doc) => (
@@ -298,7 +298,7 @@ export default function FlyingPage() {
                 ))}
               </div>
               <p className="mt-6 text-sm leading-7 text-slate-600">
-                To join the list, write to{" "}
+                The list address is{" "}
                 <a
                   href={`mailto:${site.email}`}
                   className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"

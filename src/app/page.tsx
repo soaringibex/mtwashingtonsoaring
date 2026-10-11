@@ -185,13 +185,12 @@ export default function HomePage() {
               <div className="mt-6 space-y-5 text-[1.0625rem] leading-8 text-slate-700">
                 <p>
                   The Mount Washington Soaring Association is unique amongst soaring clubs: it has
-                  only members — no dues, and no officers. All that is required for membership is
-                  an interest in flying in and around the Mt Washington valley, and a willingness
-                  to contribute to the annual wave camp that brings us all together each October.
+                  only members — no dues, and no officers. Its whole undertaking is the annual
+                  October wave camp at Gorham, and everything about it is voluntary.
                 </p>
                 <p>
-                  During the weeks leading up to each encampment, information — including a signup
-                  sheet — is distributed via an email list. Sign up by sending an email to{" "}
+                  During the weeks leading up to each encampment, information — including the
+                  signup sheet — is distributed on the email list:{" "}
                   <a
                     href={`mailto:${site.email}`}
                     className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"
@@ -203,7 +202,7 @@ export default function HomePage() {
               </div>
               <div className="mt-8">
                 <ButtonLink href={`mailto:${site.email}`} variant="dark">
-                  Join the email list
+                  {site.email}
                 </ButtonLink>
               </div>
             </Reveal>
@@ -399,15 +398,14 @@ export default function HomePage() {
             <div className="flex h-full flex-col justify-between rounded-3xl bg-gradient-to-br from-sky-600 to-sky-900 p-8 text-white sm:p-10">
               <div>
                 <p className="font-display text-xs font-semibold uppercase tracking-[0.28em] text-sky-200">
-                  Get on the list
+                  Camp information
                 </p>
                 <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-balance">
                   Camp information and signups go out by email.
                 </h3>
                 <p className="mt-4 max-w-3xl text-[1.0625rem] leading-8 text-sky-100">
                   A few weeks before each encampment, the mailing list gets the signup sheet,
-                  schedule and logistics. Any interested pilot is welcome — you do not need to
-                  belong to one of the founding clubs.
+                  schedule and logistics.
                 </p>
               </div>
               <div className="mt-8 flex flex-wrap gap-3">

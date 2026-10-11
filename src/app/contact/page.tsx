@@ -7,7 +7,7 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Get in touch with the Mount Washington Soaring Association — join the email list, find the field at Gorham (2G8), or reach the webmaster.",
+    "Get in touch with the Mount Washington Soaring Association — the camp email list, the field at Gorham (2G8), and the webmaster.",
 };
 
 export default function ContactPage() {
@@ -16,7 +16,7 @@ export default function ContactPage() {
       <PageHero
         eyebrow="Get in touch"
         title="Contact"
-        lede="The association has no officers and no dues. The best way to get involved is to join the email list and come to the October encampment at Gorham."
+        lede="The association has no officers and no dues. Camp information and signup sheets go out on the email list each fall."
       />
 
       <section className="py-16 sm:py-20">
@@ -24,11 +24,11 @@ export default function ContactPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="flex flex-col rounded-3xl bg-white p-7 shadow-sm ring-1 ring-slate-900/5">
               <h2 className="font-display text-lg font-semibold text-slate-900">
-                Join the mailing list
+                Camp email list
               </h2>
               <p className="mt-3 flex-1 text-sm leading-7 text-slate-600">
-                Camp information — including the signup sheet — is distributed by email during
-                the weeks leading up to each encampment. Send a note and you are on the list.
+                Camp information — including the signup sheet — goes out by email during the
+                weeks leading up to each encampment.
               </p>
               <div className="mt-5">
                 <ButtonLink href={`mailto:${site.email}`}>{site.email}</ButtonLink>

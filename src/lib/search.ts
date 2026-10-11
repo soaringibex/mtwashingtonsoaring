@@ -131,7 +131,7 @@ const pages: SearchEntry[] = [
     title: "Contact",
     href: "/contact",
     kind: "page",
-    text: "Join the email list, find the field at Gorham (2G8), or reach the webmaster.",
+    text: "The camp email list, the field at Gorham (2G8), and the webmaster.",
     keywords: "email mailing list address location gorham map airport 2g8",
   },
 ];
