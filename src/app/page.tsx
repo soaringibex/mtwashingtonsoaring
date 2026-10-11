@@ -108,7 +108,7 @@ export default function HomePage() {
               {entry ? (
                 <div className="mt-6 max-w-2xl border-l-2 border-sky-300/80 pl-5">
                   <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">
-                    2026 camp logbook · Glen Kelley
+                    camp logbook · Glen Kelley
                   </p>
                   <p className="mt-3 font-display text-xl font-semibold leading-snug text-white text-balance sm:text-2xl">
                     {entry.heading}
