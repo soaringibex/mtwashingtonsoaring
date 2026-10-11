@@ -275,6 +275,6 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 1252623, date: "2026-10-10", pilot: "Mark Brisson", aircraft: "DG 300", minutes: 79, distanceKm: 27.8, maxAltFt: 16900, ssa: [], record: false },
   { id: 1252649, date: "2026-10-10", pilot: "Thomas Van de Velde", aircraft: "ASG 29 18m", minutes: 289, distanceKm: 199.5, maxAltFt: 22300, ssa: [], ssaPending: ["SSA Diamond badge"], record: false },
   { id: 1252650, date: "2026-10-10", pilot: "Jared Granzow", aircraft: "JS3 TJ 15m", minutes: 278, distanceKm: 165.5, maxAltFt: 22600, ssa: [], ssaPending: ["SSA Diamond badge"], record: false },
-  { id: 1252666, date: "2026-10-10", pilot: "Richard Roelke", aircraft: "Duo Discus T", minutes: 135, distanceKm: 90.8, maxAltFt: 15000, ssa: [], record: false },
-  { id: 1252675, date: "2026-10-10", pilot: "R C Stokes", aircraft: "LS 8 18m", minutes: 244, distanceKm: 91.5, maxAltFt: 17700, ssa: [], record: false },
+  { id: 1252666, date: "2026-10-10", pilot: "Richard Roelke & David Sherrill", aircraft: "Duo Discus T", minutes: 135, distanceKm: 90.8, maxAltFt: 15000, ssa: [], record: false },
+  { id: 1252675, date: "2026-10-10", pilot: "R C Stokes", aircraft: "LS 8 18m", minutes: 244, distanceKm: 91.5, maxAltFt: 17700, ssa: [], ssaPending: ["SSA Gold badge"], record: false },
 ];

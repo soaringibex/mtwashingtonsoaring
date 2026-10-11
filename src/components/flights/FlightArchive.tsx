@@ -129,7 +129,9 @@ export function FlightArchive() {
             .filter((f) => f.date.startsWith(year))
             .sort((a, b) => (b.maxAltFt ?? 0) - (a.maxAltFt ?? 0));
           const counted = rows.filter(countsAsFlight);
-          const pilots = new Set(rows.map((f) => f.pilot)).size;
+          const pilots = new Set(
+            rows.flatMap((f) => f.pilot.split(" & ").map((name) => name.trim())),
+          ).size;
           const best = Math.max(...rows.map((f) => f.maxAltFt ?? 0));
           return (
             <section key={year}>

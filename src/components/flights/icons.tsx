@@ -20,6 +20,32 @@ export function BadgeIcon({ label }: { label: string }) {
   );
 }
 
+/** A gold medal with an asterisk — a badge completed on the flight but still awaiting
+ * confirmation in the SSA badge database. */
+export function PendingBadgeIcon({ label }: { label: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className="size-4" role="img" aria-label={label}>
+      <title>{label}</title>
+      <path
+        d="M8.5 2.5l3.5 6 3.5-6"
+        fill="none"
+        stroke="#d97706"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="14.5" r="6" fill="#fbbf24" stroke="#b45309" strokeWidth="1.6" />
+      <path
+        d="M12 11.6l1.05 2.1 2.3.33-1.66 1.62.39 2.29L12 16.86l-2.08 1.08.39-2.29-1.66-1.62 2.3-.33z"
+        fill="#b45309"
+      />
+      <g stroke="#b45309" strokeWidth="1.3" strokeLinecap="round">
+        <path d="M18.7 1.2v4.4M16.8 2.3l3.8 2.2M20.6 2.3l-3.8 2.2" />
+      </g>
+    </svg>
+  );
+}
+
 /** A diamond, for an SSA Diamond badge or Diamond Altitude leg. */
 export function DiamondIcon({ label }: { label: string }) {
   return (
@@ -107,6 +133,7 @@ export function FlightMarks({
 }) {
   const gold = ssa.filter((badge) => badge.includes("Gold"));
   const diamond = ssa.filter((badge) => badge.includes("Diamond"));
+  const pendingGold = ssaPending.filter((badge) => badge.includes("Gold"));
   const pendingDiamond = ssaPending.filter((badge) => badge.includes("Diamond"));
   const note = "earned on this flight — verified in the SSA badge database";
   return (
@@ -116,6 +143,11 @@ export function FlightMarks({
       ) : null}
       {gold.length ? <BadgeIcon label={`${gold.join(" · ")} — ${note}`} /> : null}
       {diamond.length ? <DiamondIcon label={`${diamond.join(" · ")} — ${note}`} /> : null}
+      {pendingGold.length ? (
+        <PendingBadgeIcon
+          label={`${pendingGold.join(" · ")} — completed on this flight; pending verification against the SSA badge database`}
+        />
+      ) : null}
       {pendingDiamond.length ? (
         <PendingDiamondIcon
           label={`${pendingDiamond.join(" · ")} — completed on this flight; pending verification against the SSA badge database`}
