@@ -103,7 +103,7 @@ export default function HomePage() {
                 {site.name}
               </p>
               <h1 className="mt-4 max-w-3xl font-display text-4xl font-bold tracking-tight text-white text-balance sm:text-6xl">
-                Ride the wave above the White Mountains.
+                2026 Wave Camp
               </h1>
               {entry ? (
                 <div className="mt-6 max-w-2xl border-l-2 border-sky-300/80 pl-5">
