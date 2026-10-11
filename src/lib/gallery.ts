@@ -67,6 +67,71 @@ export const albums: Album[] = [
         alt: "Gliders parked on the grass at Gorham under the ridgeline in full fall color",
         aspect: "landscape",
       },
+      {
+        src: "/images/gallery/2026/autumn-forest-below-the-ridge.webp",
+        alt: "Fall color across the forest below the ridge, a road winding through the valley",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/presidential-ridge-and-auto-road.webp",
+        alt: "The snow-dusted Presidential ridge from the northwest, the Auto Road along the crest",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/mount-washington-from-the-west.webp",
+        alt: "Mount Washington's snow-covered summit cone and the Auto Road, seen from the west",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-range-from-above.webp",
+        alt: "The Presidential Range from high above, fresh snow along the crest and the valley beyond",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-range-above-the-river-valley.webp",
+        alt: "The snowy range above the river valley, seen past the wing",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-range-from-the-southwest.webp",
+        alt: "The Presidential Range from the southwest, the river threading the valley below",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-range-in-the-distance.webp",
+        alt: "The Presidential Range in the distance, blue with haze, seen from the south",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/summit-cone-and-switchbacks.webp",
+        alt: "The snow-covered summit cone and the Auto Road's switchbacks, from the air",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/snow-along-the-summit-shoulder.webp",
+        alt: "Fresh snow along the summit shoulder of Mount Washington",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-valley-towns-from-the-air.webp",
+        alt: "The Androscoggin valley towns from the air, mountains to the horizon",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-cone-from-the-southwest.webp",
+        alt: "The snowy summit cone and the Auto Road from the southwest",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-ridge-north-of-the-summit.webp",
+        alt: "The ridge north of the summit with the Auto Road, from the air",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-field-and-valley-from-the-air.webp",
+        alt: "The Androscoggin valley towns and the Gorham field from the air, gliders lined on the grass",
+        aspect: "landscape",
+      },
     ],
   },
   {
