@@ -65,7 +65,7 @@ export const documentTexts: Record<string, DocumentText> = {
     blocks: [
       {
         type: "p",
-        text: "Refilling a glider's oxygen bottle at the field is a cascade transfill: the donor bottles are stacked by pressure, and the fullest one tops the bottle off first. What follows is the walk-through demonstrated at the 2026 wave camp.",
+        text: "Refilling a glider's oxygen bottle at the field is a cascade transfill: the donor bottles are stacked by pressure, and the fullest one tops the bottle off first. What follows is the walk-through demonstrated by Rick Roelke at the 2026 wave camp.",
       },
       {
         type: "img",

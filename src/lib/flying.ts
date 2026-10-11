@@ -71,7 +71,7 @@ export const oxygen: DocLink[] = [
     title: "Refilling an oxygen bottle",
     page: "/flying/oxygen-refill",
     description:
-      "A step-by-step cascade transfill, demonstrated at the 2026 camp — from purging the line to bleeding it before the fittings come apart.",
+      "A step-by-step cascade transfill, demonstrated by Rick Roelke at the 2026 camp — from purging the line to bleeding it before the fittings come apart.",
     meta: "Guide",
   },
 ];
