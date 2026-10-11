@@ -28,7 +28,6 @@ export const required: DocLink[] = [
   {
     title: "2026 Letter of Authorization (LOA)",
     href: "/files/2026-loa.pdf",
-    page: "/flying/2026-loa",
     description:
       "The current Certificate of Waiver or Authorization issued to the Mt Washington Soaring Association — all attendees review and sign it before flying. A copy is hosted here for convenience; the signed original is kept at the field.",
     meta: "PDF",
