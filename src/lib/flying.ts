@@ -67,6 +67,13 @@ export const oxygen: DocLink[] = [
     meta: "3 PDFs",
     external: true,
   },
+  {
+    title: "Refilling an oxygen bottle",
+    page: "/flying/oxygen-refill",
+    description:
+      "A step-by-step cascade transfill, demonstrated at the 2026 camp — from purging the line to bleeding it before the fittings come apart.",
+    meta: "Guide",
+  },
 ];
 
 /** Airspace, waivers and the paperwork behind the operations. */

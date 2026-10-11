@@ -59,6 +59,79 @@ export const documentTexts: Record<string, DocumentText> = {
       },
     ],
   },
+  // Hand-authored: the walk-through filmed at the 2026 camp — the words follow the
+  // demonstration, the stills are frames from it.
+  "oxygen-refill": {
+    blocks: [
+      {
+        type: "p",
+        text: "Refilling a glider's oxygen bottle at the field is a cascade transfill: the donor bottles are stacked by pressure, and the fullest one tops the bottle off first. What follows is the walk-through demonstrated at the 2026 wave camp.",
+      },
+      {
+        type: "img",
+        src: "/images/reading/oxygen-refill/the-cascade-rigs.webp",
+        width: 380,
+        height: 676,
+      },
+      { type: "h", text: "1. Purge the line" },
+      {
+        type: "p",
+        text: "Before anything is connected, crack the valve and let the tiniest amount of oxygen purge the transfer line. It is not strictly necessary, but the line has had a cap on it — and a capped line still has the opportunity for moisture to get in — so a short purge clears it.",
+      },
+      {
+        type: "img",
+        src: "/images/reading/oxygen-refill/purge-the-line.webp",
+        width: 380,
+        height: 676,
+      },
+      { type: "h", text: "2. Attach the bottle and check the rig" },
+      {
+        type: "p",
+        text: "Attach the bottle to the setup, then open its valve. Close the transfer valve, and make sure the bleed valve is closed. Then open the donor side and read the gauge — that one shows the pressure in the bottle on the rig.",
+      },
+      { type: "h", text: "3. Read the donors, and start with the highest" },
+      {
+        type: "p",
+        text: "Ours read a little over 1,500 psi, about 1,400, and 1,900. Start with the first bottle that is higher than the one you are filling — that is the whole point of a cascade. Start too low, and everything just ends up at the same pressure; you lose the cascade.",
+      },
+      {
+        type: "img",
+        src: "/images/reading/oxygen-refill/reading-the-gauge.webp",
+        width: 380,
+        height: 676,
+      },
+      { type: "h", text: "4. Fill slowly" },
+      {
+        type: "p",
+        text: "Open the valve slowly and do a slow fill. It will seem like the fill has stopped — that is how the valve behaves when it is only cracked; keep opening it gradually. When everything is steady, that bottle is done, and you move to the next-higher one.",
+      },
+      { type: "h", text: "5. Watch the pressure against the bottle's rating" },
+      {
+        type: "p",
+        text: "This bottle is capable of 3,000 psi, though some bottles are different. These tanks came pressurized to 2,400 — which is above the rating of some bottles — so keep an eye on the high-pressure gauge and never exceed the rating of the bottle you are filling.",
+      },
+      { type: "h", text: "6. Close everything, then bleed the lines" },
+      {
+        type: "p",
+        text: "Close the donor valve, then the bottle valve. Open the low-pressure bleed and let what is in the system flow back into that donor bottle, then shut it. You have to bleed the oxygen out of the line before the fitting will come off — even this small fill left a lot of pressure in the lines, and you cannot disconnect safely with that behind the fitting.",
+      },
+      {
+        type: "img",
+        src: "/images/reading/oxygen-refill/donors-and-transfer-lines.webp",
+        width: 380,
+        height: 676,
+      },
+      { type: "h", text: "7. A note on temperature" },
+      {
+        type: "p",
+        text: "A fill warms things slightly as the gas goes in. This was a very small fill — the temperature difference was barely noticeable in the bottle.",
+      },
+      {
+        type: "p",
+        text: "A field demonstration, not a manual: know your rig, know your bottles' ratings, and follow the instructions that came with your equipment.",
+      },
+    ],
+  },
   "the-mountains-win-again-2015": {
     "pages": 5,
     "bytes": 86249,
