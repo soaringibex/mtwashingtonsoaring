@@ -173,7 +173,7 @@ void main() {
   gl_FragColor = vec4(mix(c, uFogColor, f * 0.75), 1.0);
 }`;
 
-const TRACK_VS = `attribute vec3 aPos; attribute vec3 aOther; attribute float aSide; attribute vec3 aColor; attribute float aWidth; attribute float aFlight;
+const TRACK_VS = `attribute vec3 aPos; attribute vec3 aDir; attribute float aSide; attribute vec3 aColor; attribute float aWidth; attribute float aFlight;
 uniform mat4 uMVP; uniform vec2 uViewport; uniform float uSel;
 varying vec3 vColor;
 void main() {
@@ -182,10 +182,10 @@ void main() {
   vColor = mix(vec3(0.12, 0.16, 0.23), aColor, keep) * (isSel > 0.5 && uSel > -0.5 ? 1.35 : 1.0);
   float w = aWidth * (isSel > 0.5 ? 1.6 : 1.0);
   vec4 cp = uMVP * vec4(aPos, 1.0);
-  vec4 co = uMVP * vec4(aOther, 1.0);
+  vec4 cq = uMVP * vec4(aPos + aDir, 1.0);
   vec2 np = cp.xy / cp.w;
-  vec2 no = co.xy / co.w;
-  vec2 dir = normalize((no - np) * uViewport + vec2(1e-6));
+  vec2 nq = cq.xy / cq.w;
+  vec2 dir = normalize((nq - np) * uViewport + vec2(1e-6));
   vec2 nrm = vec2(-dir.y, dir.x);
   vec2 off = nrm * aSide * w * 2.0 / uViewport;
   vec4 p = cp;
@@ -488,29 +488,35 @@ export function FlightGlobe3D() {
       const pts = line.p;
       if (pts.length < 2) continue;
       const width = line.k >= 2 ? 1.2 : 0.9;
-      for (let i = 0; i < pts.length - 1; i += 1) {
-        const [lon1, lat1] = pts[i];
-        const [lon2, lat2] = pts[i + 1];
-        const a: [number, number, number] = [
-          (lon1 - scene.midLon) * scene.kmPerLon,
-          (lat1 - scene.midLat) * scene.kmPerLat,
-          scene.meshZ(lon1, lat1) + 0.045,
-        ];
-        const b: [number, number, number] = [
-          (lon2 - scene.midLon) * scene.kmPerLon,
-          (lat2 - scene.midLat) * scene.kmPerLat,
-          scene.meshZ(lon2, lat2) + 0.045,
-        ];
+      const world = pts.map(([lon, lat]) => [
+        (lon - scene.midLon) * scene.kmPerLon,
+        (lat - scene.midLat) * scene.kmPerLat,
+        scene.meshZ(lon, lat) + 0.045,
+      ] as [number, number, number]);
+      const tangent = world.map((_, i) => {
+        const a = world[Math.max(0, i - 2)];
+        const b = world[Math.min(world.length - 1, i + 2)];
+        const dx = b[0] - a[0];
+        const dy = b[1] - a[1];
+        const dz = b[2] - a[2];
+        const len = Math.hypot(dx, dy, dz) || 1;
+        return [dx / len, dy / len, dz / len] as [number, number, number];
+      });
+      for (let i = 0; i < world.length - 1; i += 1) {
+        const a = world[i];
+        const b = world[i + 1];
         if (Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.02) continue;
-        for (const [p, other, side] of [
-          [a, b, 1],
-          [a, b, -1],
-          [b, a, 1],
-          [b, a, -1],
-          [a, b, -1],
-          [b, a, 1],
+        const ta = tangent[i];
+        const tb = tangent[i + 1];
+        for (const [p, t, side] of [
+          [a, ta, 1],
+          [a, ta, -1],
+          [b, tb, 1],
+          [a, ta, -1],
+          [b, tb, -1],
+          [b, tb, 1],
         ] as [[number, number, number], [number, number, number], number][]) {
-          segs.push(p[0], p[1], p[2], other[0], other[1], other[2], side, c[0], c[1], c[2], width, -1);
+          segs.push(p[0], p[1], p[2], t[0], t[1], t[2], side, c[0], c[1], c[2], width, -1);
         }
         segCount += 1;
       }
@@ -572,23 +578,39 @@ export function FlightGlobe3D() {
         (lat - scene.midLat) * scene.kmPerLat,
         (alt / 1000) * EXAG,
       ] as [number, number, number]);
+      // One tangent per point, averaged across its neighbours: single-sample GPS
+      // altitude noise is meaningless at ribbon scale, and per-segment tangents
+      // turn it into sawteeth along the ribbon edges.
+      const tangent = world.map((_, i) => {
+        const a = world[Math.max(0, i - 2)];
+        const b = world[Math.min(world.length - 1, i + 2)];
+        const dx = b[0] - a[0];
+        const dy = b[1] - a[1];
+        const dz = b[2] - a[2];
+        const len = Math.hypot(dx, dy, dz) || 1;
+        return [dx / len, dy / len, dz / len] as [number, number, number];
+      });
+      const colorAt = (i: number) => mix(altRgb(pts[i][2] * 3.28084), SKY_BOTTOM, 1 - alpha);
       for (let i = 0; i < world.length - 1; i += 1) {
         const a = world[i];
         const b = world[i + 1];
         const dist = Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
         if (dist < 0.02) continue;
-        const altMid = ((pts[i][2] + pts[i + 1][2]) / 2) * 3.28084;
-        const c = mix(altRgb(altMid), SKY_BOTTOM, 1 - alpha);
-        const w = width; // CSS pixels — the shader expands the ribbon in screen space
-        for (const [p, other, side] of [
-          [a, b, 1],
-          [a, b, -1],
-          [b, a, 1],
-          [b, a, -1],
-          [a, b, -1],
-          [b, a, 1],
-        ] as [[number, number, number], [number, number, number], number][]) {
-          segs.push(p[0], p[1], p[2], other[0], other[1], other[2], side, c[0], c[1], c[2], w, flightIdx);
+        const ca = colorAt(i);
+        const cb = colorAt(i + 1);
+        const ta = tangent[i];
+        const tb = tangent[i + 1];
+        // The quad's corners carry their own point's tangent, so neighbouring
+        // quads meet along identical edges — a continuous ribbon, not a chain of bars.
+        for (const [p, t, c, side] of [
+          [a, ta, ca, 1],
+          [a, ta, ca, -1],
+          [b, tb, cb, 1],
+          [a, ta, ca, -1],
+          [b, tb, cb, -1],
+          [b, tb, cb, 1],
+        ] as [[number, number, number], [number, number, number], [number, number, number], number][]) {
+          segs.push(p[0], p[1], p[2], t[0], t[1], t[2], side, c[0], c[1], c[2], width, flightIdx);
         }
         segCount += 1;
       }
@@ -754,8 +776,8 @@ export function FlightGlobe3D() {
       const stride = 48;
       gl.enableVertexAttribArray(gl.getAttribLocation(track, "aPos"));
       gl.vertexAttribPointer(gl.getAttribLocation(track, "aPos"), 3, gl.FLOAT, false, stride, 0);
-      gl.enableVertexAttribArray(gl.getAttribLocation(track, "aOther"));
-      gl.vertexAttribPointer(gl.getAttribLocation(track, "aOther"), 3, gl.FLOAT, false, stride, 12);
+      gl.enableVertexAttribArray(gl.getAttribLocation(track, "aDir"));
+      gl.vertexAttribPointer(gl.getAttribLocation(track, "aDir"), 3, gl.FLOAT, false, stride, 12);
       gl.enableVertexAttribArray(gl.getAttribLocation(track, "aSide"));
       gl.vertexAttribPointer(gl.getAttribLocation(track, "aSide"), 1, gl.FLOAT, false, stride, 24);
       gl.enableVertexAttribArray(gl.getAttribLocation(track, "aColor"));
