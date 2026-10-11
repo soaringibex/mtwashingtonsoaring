@@ -40,10 +40,22 @@ export const documentTexts: Record<string, DocumentText> = {
         text: "Tomorrow should be a solid wave day. Sunday and Monday are less clear.",
       },
       { type: "h", text: "Saturday, October 10" },
-      { type: "p", text: "A great day in blue conditions. Numerous climbs to mid teens and low 20s." },
+      { type: "p", text: "We had a great first active flying day for Wave Camp 2026." },
       {
         type: "p",
-        text: "David Tauber and Chris Stokes completed Gold Badges. Jared Granzow, Nelson Howe, and Thomas Van de Velde completed their Diamond Badges. This was Jared's first wave flight.",
+        text: "The conditions were clear with great visibility. The required winds were certainly evident as well.",
+      },
+      {
+        type: "p",
+        text: "Several pilots towed to the Carter Range and then transitioned to the Presidential range. A few people took lower releases in thermal conditions and were able to then work up to connect with the wave.",
+      },
+      {
+        type: "p",
+        text: "Everyone who flew today was able to climb in wave conditions with many flights in the teens and low twenties. The high climbers seemed to be Jared Granzow and Nelson Howe, with climbs over 22K MSL.",
+      },
+      {
+        type: "p",
+        text: "Chris Stokes and David Tauber achieved Gold Climbs and finished their Gold Badges. Jared Granzow, Nelson Howe, and Thomas Van de Velde all achieved Diamond Climbs and completed their Diamond Badges. This was Jared's first wave flight. Who knew Diamond Climbs were so easy to get?",
       },
     ],
   },
