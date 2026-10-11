@@ -24,7 +24,7 @@ export function BadgeIcon({ label }: { label: string }) {
  * confirmation in the SSA badge database. */
 export function PendingBadgeIcon({ label }: { label: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="size-4" role="img" aria-label={label}>
+    <svg viewBox="0 0 24 24" className="size-5" role="img" aria-label={label}>
       <title>{label}</title>
       <path
         d="M8.5 2.5l3.5 6 3.5-6"
@@ -39,8 +39,9 @@ export function PendingBadgeIcon({ label }: { label: string }) {
         d="M12 11.6l1.05 2.1 2.3.33-1.66 1.62.39 2.29L12 16.86l-2.08 1.08.39-2.29-1.66-1.62 2.3-.33z"
         fill="#b45309"
       />
-      <g stroke="#b45309" strokeWidth="1.3" strokeLinecap="round">
-        <path d="M18.7 1.2v4.4M16.8 2.3l3.8 2.2M20.6 2.3l-3.8 2.2" />
+      <circle cx="18.6" cy="5.4" r="4.6" fill="#b45309" stroke="#ffffff" strokeWidth="1.1" />
+      <g stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round">
+        <path d="M18.6 2.6v5.6M16.2 4l4.8 2.8M21 4l-4.8 2.8" />
       </g>
     </svg>
   );
@@ -73,7 +74,7 @@ export function DiamondIcon({ label }: { label: string }) {
  * confirmation in the SSA badge database. */
 export function PendingDiamondIcon({ label }: { label: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="size-4" role="img" aria-label={label}>
+    <svg viewBox="0 0 24 24" className="size-5" role="img" aria-label={label}>
       <title>{label}</title>
       <path
         d="M7 4h10l4 4.5L12 20.5 3 8.5z"
@@ -89,8 +90,9 @@ export function PendingDiamondIcon({ label }: { label: string }) {
         strokeWidth="1.1"
         strokeLinejoin="round"
       />
-      <g stroke="#b45309" strokeWidth="1.3" strokeLinecap="round">
-        <path d="M18.7 1.2v4.4M16.8 2.3l3.8 2.2M20.6 2.3l-3.8 2.2" />
+      <circle cx="18.6" cy="5.4" r="4.6" fill="#b45309" stroke="#ffffff" strokeWidth="1.1" />
+      <g stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round">
+        <path d="M18.6 2.6v5.6M16.2 4l4.8 2.8M21 4l-4.8 2.8" />
       </g>
     </svg>
   );
