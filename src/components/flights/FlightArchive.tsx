@@ -172,6 +172,14 @@ export function FlightArchive() {
                   </table>
                 </div>
               </div>
+              {rows.some((flight) => flight.ssaPending?.length) ? (
+                <p className="mt-3 text-xs text-slate-500">
+                  <span className="font-bold text-amber-700" aria-hidden="true">
+                    *
+                  </span>{" "}
+                  Pending SSA validation.
+                </p>
+              ) : null}
             </section>
           );
         })}
