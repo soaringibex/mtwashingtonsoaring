@@ -16,7 +16,7 @@ export default function GalleryPage() {
       <PageHero
         eyebrow="From the field"
         title="Photos"
-        lede="Gliders on the grid at Gorham, wave clouds over the valley, and the summit from the air. Photos come from members and friends of the association — come fly with us and add to the collection."
+        lede="Gliders on the grid at Gorham, wave clouds over the valley, and the summit from the air. Photos come from members and friends of the association."
         image="/images/gallery/2024/oct-7.jpg"
         imageAlt="A white glider on the grass between yellow runway cones at Gorham"
         priority
