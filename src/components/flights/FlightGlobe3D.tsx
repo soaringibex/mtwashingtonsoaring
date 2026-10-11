@@ -570,7 +570,7 @@ export function FlightGlobe3D() {
     for (const flight of visibleFlights) {
       const pts = flight.pts;
       if (pts.length < 2) continue;
-      const width = flight.ssa.length ? 3 : flight.maxAltFt > 9000 ? 2 : 1.3;
+      const width = flight.ssa.length ? 1.5 : flight.maxAltFt > 9000 ? 1.0 : 0.65;
       const alpha = flight.maxAltFt > 9000 || flight.ssa.length ? 0.95 : 0.5;
       flightIdx += 1;
       const world = pts.map(([lon, lat, alt]) => [
