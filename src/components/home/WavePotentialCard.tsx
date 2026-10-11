@@ -1,21 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 import { mergedSeries } from "@/lib/forecast-model";
 import { computeWaveScore, signalLabel, WAVE_LEVELS, type WaveLevel } from "@/lib/wave-score";
 import { wxApiPath } from "@/lib/wx-datasets";
 
-const REFRESH_MS = 45 * 60 * 1000;
+/** The wave-forecast dataset refreshes server-side every 15 minutes; poll on that beat. */
+const REFRESH_MS = 15 * 60 * 1000;
 
-type Potential = { average: number; hours: number };
+type Potential = { average: number; hours: number; updatedAt: number };
 
 /**
  * Today's 10 AM–4 PM average of the same Scorer-parameter signal the Wavecast
  * dashboard computes hour by hour.
  */
-async function fetchTodayPotential(variant: "hrrr" | "hrdps"): Promise<Potential> {
+async function fetchTodayPotential(variant: "hrrr" | "hrdps"): Promise<Omit<Potential, "updatedAt">> {
   const data = (await fetchJson(wxApiPath("wave-forecast", { models: variant }))) as {
     hourly: Record<string, unknown>;
   };
@@ -76,26 +77,45 @@ async function fetchTodayPotential(variant: "hrrr" | "hrdps"): Promise<Potential
 /** Today's wave potential — the home page's hand-off to the Wavecast dashboard. */
 export function WavePotentialCard() {
   const [potential, setPotential] = useState<Potential | null>(null);
+  const lastUpdateRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
         const next = await fetchTodayPotential("hrrr").catch(() => fetchTodayPotential("hrdps"));
-        if (!cancelled) setPotential(next);
+        if (!cancelled) {
+          setPotential({ ...next, updatedAt: Date.now() });
+          lastUpdateRef.current = Date.now();
+        }
       } catch {
-        /* keep the last reading; the card only appears once data arrives */
+        /* keep the last reading; the next tick tries again */
       }
     };
     load();
     const timer = setInterval(load, REFRESH_MS);
+    const onVisible = () => {
+      // A tab left open in the background comes back current: if the last reading is
+      // older than one refresh window, fetch now instead of waiting on the timer.
+      if (document.visibilityState === "visible" && Date.now() - lastUpdateRef.current > REFRESH_MS) {
+        load();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
   if (!potential) return null;
+
+  const updated = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(potential.updatedAt));
 
   return (
     <Link
@@ -114,6 +134,7 @@ export function WavePotentialCard() {
       <p className="mt-2 text-sm text-slate-200">
         10 AM – 4 PM average · {potential.hours} hours
       </p>
+      <p className="mt-1 text-[11px] text-sky-200/70">Updated {updated}</p>
       <p className="mt-4 text-sm font-medium text-sky-200 group-hover:text-white">
         Open the Wavecast <span aria-hidden="true">→</span>
       </p>
