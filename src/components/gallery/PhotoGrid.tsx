@@ -9,6 +9,7 @@ type FlatPhoto = {
   alt: string;
   album: string;
   albumId: string;
+  credit?: string;
 };
 
 export function PhotoGrid({ albums }: { albums: Album[] }) {
@@ -22,6 +23,7 @@ export function PhotoGrid({ albums }: { albums: Album[] }) {
           alt: photo.alt,
           album: album.title,
           albumId: album.id,
+          credit: photo.credit,
         })),
       ),
     [albums],
@@ -119,6 +121,9 @@ export function PhotoGrid({ albums }: { albums: Album[] }) {
               <span className="font-semibold text-white">{current.album}</span>
               {" — "}
               {current.alt}
+              {current.credit ? (
+                <span className="text-slate-400"> · Photo: {current.credit}</span>
+              ) : null}
             </p>
 
             <button
