@@ -57,6 +57,16 @@ export const documentTexts: Record<string, DocumentText> = {
         type: "p",
         text: "Chris Stokes and David Tauber achieved Gold Climbs and finished their Gold Badges. Jared Granzow, Nelson Howe, and Thomas Van de Velde all achieved Diamond Climbs and completed their Diamond Badges. This was Jared's first wave flight. Who knew Diamond Climbs were so easy to get?",
       },
+      { type: "h", text: "Sunday, October 11" },
+      { type: "p", text: "A weak, overcast day. Many pilots chose to go hiking." },
+      {
+        type: "p",
+        text: "Still several pilots towed to Mt Madison and were able to maintain for over an hour.",
+      },
+      {
+        type: "p",
+        text: "Tomorrow looks better, but the low altitude moisture could be a problem.",
+      },
     ],
   },
   // Hand-authored: the walk-through filmed at the 2026 camp — the words follow the
