@@ -136,9 +136,9 @@ export default function ThreeWaysPage() {
 
           <Step id="wave" time="13:11 – 13:19" heading="The wave climb">
             <p>
-              The air smoothed out and the climb changed character. Now it was the wave: long straight legs
-              back and forth across the lift, the vario finally steady, and the altimeter winding up faster
-              than it had all flight. By 13:20 I was at 7,600 ft.
+              Reaching the top of the rotor, I pushed upwind into the primary wave. Nauseating turbulence
+              changed to long straight legs back and forth across the lift, the vario finally steady, and the
+              altimeter winding up faster than it had all flight. By 13:20 I was at 7,600 ft.
             </p>
           </Step>
 

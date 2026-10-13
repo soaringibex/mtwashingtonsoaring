@@ -93,7 +93,7 @@ const PHASES = [
     tone: "key",
     from: local(13, 11, 50),
     to: local(13, 19, 50),
-    note: "The air smooths into wave: long legs back and forth across the lift, 5,700 to 7,600 ft.",
+    note: "Reaching the top of the rotor and pushing upwind into the primary wave: long legs back and forth across the lift, 5,700 to 7,600 ft.",
   },
   {
     id: "upwind",
