@@ -88,8 +88,8 @@ export default function HomePage() {
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-slate-950">
         <Image
-          src="/images/home/presidential-range-from-the-air.webp"
-          alt="The snow-dusted Presidential Range seen from the air, fall color in the valleys below"
+          src="/images/home/the-summit-from-the-wing.webp"
+          alt="Mount Washington's summit and the Auto Road seen from the wing, a wall of cloud beyond"
           fill
           priority
           sizes="100vw"
