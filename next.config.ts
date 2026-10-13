@@ -1,6 +1,25 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        // Imagery ships with the deployment and new photos get new filenames, so both
+        // the browser and the image optimizer may keep these forever. Without this the
+        // files answer `max-age=0, must-revalidate`, and that low max-age also caps the
+        // optimizer's own cache — so every cold miss re-encodes the photo (seconds).
+        source: "/images/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+    ];
+  },
+  images: {
+    // Belt and braces with the header above: the optimizer keeps its variants a year
+    // rather than the 4-hour default, inside each deployment (URLs carry the build id).
+    minimumCacheTTL: 31536000,
+  },
   async redirects() {
     return [
       // Legacy Wild Apricot URLs → new locations
