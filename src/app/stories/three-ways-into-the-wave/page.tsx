@@ -145,9 +145,10 @@ export default function ThreeWaysPage() {
           <Step id="upwind" time="13:19 – 13:25" heading="Pushing upwind">
             <p>
               The last move was the upwind one. I pushed northwest into the strongest part of the primary,
-              over the rim of the Great Gulf near The Horn, and topped out at 7,943 ft at 13:24. The summit
-              cone slid by under the left wing (see the photo at the top of this page), with the undercast
-              lying over everything north of the mountain.
+              over the rim of the Great Gulf near The Horn, and topped out around 8,000 ft when we received
+              the radio call about the closing sky over Gorham airport. The summit cone slid by under the left
+              wing (see the photo at the top of this page), with the undercast lying over everything north of
+              the mountain.
             </p>
           </Step>
 

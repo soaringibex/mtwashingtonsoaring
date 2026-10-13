@@ -101,7 +101,7 @@ const PHASES = [
     tone: "key",
     from: local(13, 19, 50),
     to: local(13, 25, 0),
-    note: "The push upwind through the strongest part of the wave, topping out at 7,943 ft near The Horn.",
+    note: "The push upwind through the strongest part of the wave, topping out near 8,000 ft as the sky closed over Gorham.",
   },
   {
     id: "home",
