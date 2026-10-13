@@ -57,6 +57,71 @@ const PEAKS = [
   { name: "Kearsarge North", lat: 44.10966, lon: -71.09459 },
 ];
 
+type LabelKind = "airport" | "summit" | "place";
+
+/**
+ * Every label the overlay draws, in collision-priority order: the home field first (it
+ * anchors every track), then the summits, then the towns — a label that cannot find a
+ * clear spot steps aside for the ones before it.
+ */
+const LABELS: { name: string; lat: number; lon: number; kind: LabelKind }[] = [
+  { name: "Gorham 2G8", lat: 44.3939, lon: -71.194, kind: "airport" },
+  ...PEAKS.map((peak) => ({ ...peak, kind: "summit" as LabelKind })),
+  { name: "Berlin", lat: 44.4687, lon: -71.1851, kind: "place" },
+  { name: "Lancaster", lat: 44.4889, lon: -71.5692, kind: "place" },
+  { name: "Whitefield", lat: 44.3675, lon: -71.55, kind: "place" },
+  { name: "North Conway", lat: 44.0537, lon: -71.1284, kind: "place" },
+];
+
+type LabelStyle = {
+  font: string;
+  fill: string;
+  stroke: string;
+  strokeWidth: number;
+  dot: number;
+  dotFill: string;
+  dotStroke: string | null;
+  dotStrokeWidth: number;
+  leader: string;
+};
+
+const LABEL_FONT = "ui-sans-serif, system-ui, sans-serif";
+const LABEL_STYLES: Record<LabelKind, LabelStyle> = {
+  airport: {
+    font: `600 11px ${LABEL_FONT}`,
+    fill: "#f8fafc",
+    stroke: "rgba(2,6,23,0.9)",
+    strokeWidth: 3.5,
+    dot: 3.2,
+    dotFill: "#0ea5e9",
+    dotStroke: "#f8fafc",
+    dotStrokeWidth: 1.5,
+    leader: "rgba(248,250,252,0.5)",
+  },
+  summit: {
+    font: `500 11px ${LABEL_FONT}`,
+    fill: "#e2e8f0",
+    stroke: "rgba(2,6,23,0.85)",
+    strokeWidth: 3,
+    dot: 1.6,
+    dotFill: "rgba(226,232,240,0.9)",
+    dotStroke: null,
+    dotStrokeWidth: 0,
+    leader: "rgba(226,232,240,0.35)",
+  },
+  place: {
+    font: `500 10px ${LABEL_FONT}`,
+    fill: "rgba(226,232,240,0.85)",
+    stroke: "rgba(2,6,23,0.7)",
+    strokeWidth: 2.5,
+    dot: 1.3,
+    dotFill: "rgba(226,232,240,0.8)",
+    dotStroke: null,
+    dotStrokeWidth: 0,
+    leader: "rgba(226,232,240,0.3)",
+  },
+};
+
 const ALT_RAMP: [number, [number, number, number]][] = [
   [800, [45, 212, 191]],
   [6000, [74, 222, 128]],
@@ -803,7 +868,7 @@ export function FlightGlobe3D() {
       gl.drawArrays(gl.TRIANGLES, 0, state.trackVerts);
     }
 
-    // Summit labels on the transparent overlay canvas.
+    // Summit and place labels on the transparent overlay canvas.
     const labelCanvas = labelCanvasRef.current;
     if (labelCanvas) {
       if (labelCanvas.width !== bw || labelCanvas.height !== bh) {
@@ -814,22 +879,23 @@ export function FlightGlobe3D() {
       if (lctx) {
         lctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         lctx.clearRect(0, 0, cssW, cssH);
-        lctx.font = "500 11px ui-sans-serif, system-ui, sans-serif";
         lctx.textAlign = "center";
         lctx.textBaseline = "bottom";
         const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
-        for (const peak of PEAKS) {
-          const x = (peak.lon - scene.midLon) * scene.kmPerLon;
-          const y = (peak.lat - scene.midLat) * scene.kmPerLat;
-          const z = scene.meshZ(peak.lon, peak.lat) + 0.06;
+        for (const label of LABELS) {
+          const style = LABEL_STYLES[label.kind];
+          const x = (label.lon - scene.midLon) * scene.kmPerLon;
+          const y = (label.lat - scene.midLat) * scene.kmPerLat;
+          const z = scene.meshZ(label.lon, label.lat) + 0.06;
           const w = mvp[3] * x + mvp[7] * y + mvp[11] * z + mvp[15];
           if (w <= 0.5) continue;
           const sx = ((mvp[0] * x + mvp[4] * y + mvp[8] * z + mvp[12]) / w / 2 + 0.5) * cssW;
           const sy = (0.5 - (mvp[1] * x + mvp[5] * y + mvp[9] * z + mvp[13]) / w / 2) * cssH;
           if (sx < -60 || sy < -20 || sx > cssW + 60 || sy > cssH + 20) continue;
-          // Keep the labels legible: the most important summit wins the spot, the
-          // rest shift vertically until they clear an earlier one (or drop out).
-          const textW = lctx.measureText(peak.name).width;
+          // Keep the labels legible: the most important label wins the spot, the rest
+          // shift vertically until they clear an earlier one (or drop out).
+          lctx.font = style.font;
+          const textW = lctx.measureText(label.name).width;
           let ty: number | null = null;
           for (const dy of [0, -13, 13, -26, 26, -39, 39, -52, 52]) {
             const y1 = sy - 4 + dy;
@@ -843,22 +909,27 @@ export function FlightGlobe3D() {
           }
           if (ty === null) continue;
           lctx.beginPath();
-          lctx.arc(sx, sy, 1.6, 0, Math.PI * 2);
-          lctx.fillStyle = "rgba(226,232,240,0.9)";
+          lctx.arc(sx, sy, style.dot, 0, Math.PI * 2);
+          lctx.fillStyle = style.dotFill;
           lctx.fill();
+          if (style.dotStroke) {
+            lctx.strokeStyle = style.dotStroke;
+            lctx.lineWidth = style.dotStrokeWidth;
+            lctx.stroke();
+          }
           if (Math.abs(ty - (sy - 4)) > 2) {
             lctx.beginPath();
             lctx.moveTo(sx, sy - 3);
             lctx.lineTo(sx, ty + 2);
-            lctx.strokeStyle = "rgba(226,232,240,0.35)";
+            lctx.strokeStyle = style.leader;
             lctx.lineWidth = 1;
             lctx.stroke();
           }
-          lctx.lineWidth = 3;
-          lctx.strokeStyle = "rgba(2,6,23,0.85)";
-          lctx.strokeText(peak.name, sx, ty);
-          lctx.fillStyle = "#e2e8f0";
-          lctx.fillText(peak.name, sx, ty);
+          lctx.lineWidth = style.strokeWidth;
+          lctx.strokeStyle = style.stroke;
+          lctx.strokeText(label.name, sx, ty);
+          lctx.fillStyle = style.fill;
+          lctx.fillText(label.name, sx, ty);
         }
       }
     }
