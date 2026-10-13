@@ -85,7 +85,7 @@ const PHASES = [
     tone: "key",
     from: local(13, 0, 0),
     to: local(13, 11, 50),
-    note: "Circling out of the valley in the rotor's churned air, 3,500 to 5,700 ft in twelve minutes.",
+    note: "Circling out of the valley in the rotor's turbulent air, 3,500 to 5,700 ft in twelve minutes.",
   },
   {
     id: "wave",

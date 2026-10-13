@@ -129,9 +129,8 @@ export default function ThreeWaysPage() {
 
           <Step id="rotor" time="13:00 – 13:11" heading="Climbing out in the rotor">
             <p>
-              Then the third method started to work. I climbed out of the valley in the rotor&apos;s churned
-              air, circling in broken lift for twelve steady minutes, from 3,500 to 5,700 ft. The best five of
-              them averaged 350 ft/min.
+              Finally. I climbed out of the valley in the rotor&apos;s turbulent air, circling in broken lift
+              for twelve steady minutes, from 3,500 to 5,700 ft. The best five of them averaged 350 ft/min.
             </p>
           </Step>
 
