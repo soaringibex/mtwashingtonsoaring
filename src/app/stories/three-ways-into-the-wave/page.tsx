@@ -69,8 +69,8 @@ export default function ThreeWaysPage() {
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">
             Monday&apos;s forecast called for a weak start and a strong finish, and it delivered both. Getting to
-            7,943 ft took all three of the ways into the Mt Washington wave: the long tow, the ridge, and the
-            rotor.
+            8,000 ft took all mountain soaring techniques to get into the Mt Washington wave: the low save,
+            the ridge to get back up, and a turbulent rotor climb to transition upwind into the wave.
           </p>
           <p className="mt-4 text-sm text-slate-300/90">
             Thomas Van de Velde · October 12, 2026 · Gorham (2G8)
@@ -84,7 +84,7 @@ export default function ThreeWaysPage() {
       {/* Everything else scrolls up over the pinned opener. */}
       <div className="relative z-10">
         <FlightScrollStory>
-          <Step id="tow" time="12:12 – 12:27" heading="A tow that went nowhere">
+          <Step id="tow" time="12:12 – 12:27" heading="A no-contact release">
             <p>
               The first tow was the direct kind, out toward the primary, and it went nowhere. I released at
               4,300 ft into air that wasn&apos;t working yet. I spent ten minutes probing the lee side and made
@@ -110,7 +110,7 @@ export default function ThreeWaysPage() {
             <p>
               Then the day began to change, as forecast. By 12:55 the ridge had carried me to 3,900 ft, and I
               left it to cross the valley west, under the rotor, for the lee of the Presidential range. The
-              crossing cost about 700 ft and bottomed at 3,200 — low, but under the right sky.
+              crossing cost about 700 ft and bottomed at 3,200; low, but with a rotor cloud in sight.
             </p>
             <figure>
               <Image
