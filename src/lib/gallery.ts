@@ -20,6 +20,18 @@ export const albums: Album[] = [
     blurb: "The opening days at Gorham — virga, a rainbow, the field, and the snow-dusted range from the air.",
     photos: [
       {
+        src: "/images/gallery/2026/the-covered-glider-under-a-lenticular.webp",
+        alt: "A glider under wing covers on the Gorham turf, a dog beside it, and a lenticular wave cloud over the fall ridge",
+        aspect: "landscape",
+        credit: "Nelson Howe",
+      },
+      {
+        src: "/images/gallery/2026/the-asg-29-above-the-fall-valleys.webp",
+        alt: "Nelson Howe airborne in the ASG 29, the wing out over the fall valleys below",
+        aspect: "portrait",
+        credit: "Nelson Howe",
+      },
+      {
         src: "/images/gallery/2026/cockpit-over-the-summit.webp",
         alt: "The cockpit over Mount Washington — the panel, the phone mount and the Oudie reading 7,559 ft",
         aspect: "landscape",
