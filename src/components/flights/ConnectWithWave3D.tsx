@@ -50,7 +50,8 @@ const PHASE_COLORS: Record<string, [number, number, number]> = {
   tow: [0.58, 0.65, 0.75],
   ridge: [0.96, 0.62, 0.04],
   transit: [0.13, 0.83, 0.93],
-  climb: [0.2, 0.83, 0.6],
+  rotor: [0.2, 0.83, 0.6],
+  wave: [0.96, 0.45, 0.71],
   upwind: [0.66, 0.55, 0.98],
   home: [0.58, 0.65, 0.75],
 };
@@ -59,7 +60,8 @@ const PHASE_SHORT: Record<string, string> = {
   tow: "Tow & sink",
   ridge: "The ridge",
   transit: "Below the rotor",
-  climb: "The climb",
+  rotor: "Rotor climb",
+  wave: "Wave climb",
   upwind: "Upwind",
   home: "Home",
 };
@@ -225,7 +227,8 @@ const PHASE_VIEWS: Record<string, { yaw: number; pitch: number }> = {
   tow: { yaw: 118, pitch: 28 },
   ridge: { yaw: 318, pitch: 28 },
   transit: { yaw: 160, pitch: 32 },
-  climb: { yaw: 100, pitch: 30 },
+  rotor: { yaw: 155, pitch: 34 },
+  wave: { yaw: 130, pitch: 30 },
   upwind: { yaw: 200, pitch: 30 },
   home: { yaw: 118, pitch: 30 },
 };
@@ -358,9 +361,12 @@ export function ConnectWithWave3D() {
 
     const W = mosaic.width;
     const H = mosaic.height;
-    const scale = Math.min(1, MAX_TEX / Math.max(W, H));
-    const TW = Math.max(2, Math.round(W * scale));
-    const TH = Math.max(2, Math.round(H * scale));
+    // A power-of-two square texture so WebGL 1 can build mipmaps for it — without
+    // them the relief aliases into crawling noise at the grazing angles the phase
+    // views use. Sampling stretches the square back over the mosaic's rectangle;
+    // the mesh's 0..1 UVs keep the content aligned either way.
+    const TW = Math.max(2, Math.min(MAX_TEX, 2 ** Math.ceil(Math.log2(Math.max(W, H)))));
+    const TH = TW;
     const elev = mosaic.elevations;
     const pxPerDegLon = 1 / mosaic.lonStep;
     const pxPerDegLat = 1 / mosaic.latStep;
@@ -369,9 +375,9 @@ export function ConnectWithWave3D() {
     const ly = 0.5;
     const lz = Math.SQRT1_2;
     for (let ty = 0; ty < TH; ty += 1) {
-      const sy = Math.min(H - 1, Math.round(ty / scale));
+      const sy = Math.min(H - 1, Math.round((ty / (TH - 1)) * (H - 1)));
       for (let tx = 0; tx < TW; tx += 1) {
-        const sx = Math.min(W - 1, Math.round(tx / scale));
+        const sx = Math.min(W - 1, Math.round((tx / (TW - 1)) * (W - 1)));
         const i = sy * W + sx;
         const h = elev[i];
         const hx = elev[sy * W + Math.min(W - 1, sx + 1)] - elev[sy * W + Math.max(0, sx - 1)];
@@ -531,7 +537,7 @@ export function ConnectWithWave3D() {
       const halfN = Math.max(0.4, (maxY - minY) / 2);
       const aspect = (canvasRef.current?.clientWidth ?? 1440) / (canvasRef.current?.clientHeight ?? 900);
       const fit = Math.max(halfN / Math.tan(FOV / 2), halfE / (Math.tan(FOV / 2) * aspect));
-      const dist = Math.min(260, Math.max(7, fit * 1.25));
+      const dist = Math.min(260, Math.max(5.5, fit * 1.25));
       const zs = sel.map(([, , alt]) => scene.worldZ(alt)).sort((a, b) => a - b);
       const cz = zs[Math.floor(zs.length / 2)];
       return {
@@ -694,10 +700,11 @@ export function ConnectWithWave3D() {
       const tex = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, scene.TW, scene.TH, 0, gl.RGBA, gl.UNSIGNED_BYTE, scene.texData);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.generateMipmap(gl.TEXTURE_2D);
       state.terra = { vbo, ibo, tex, count: scene.indexCount };
       uploadedRef.current.scene = scene;
     }

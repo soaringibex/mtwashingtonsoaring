@@ -117,7 +117,8 @@ export default function ThreeWaysPage() {
             The whole flight in 3D — drag to orbit, scroll to zoom, and the buttons walk the stages.{" "}
             <span className="text-amber-600">Amber</span> is the low work on the Moriah–Carter ridge;{" "}
             <span className="text-cyan-600">cyan</span>, the crossing below the rotor;{" "}
-            <span className="text-emerald-600">green</span>, the climb; and{" "}
+            <span className="text-emerald-600">green</span>, the rotor climb;{" "}
+            <span className="text-pink-600">pink</span>, the wave climb above it; and{" "}
             <span className="text-violet-600">violet</span>, the push upwind into the primary. The barogram along
             the bottom is a scrubber — play the flight, or drag to any minute; the grey mass under the line is
             the terrain directly beneath the track.
@@ -160,11 +161,12 @@ export default function ThreeWaysPage() {
               under the right sky.
             </p>
             <p>
-              What followed was the third method, working exactly as it is drawn up. From 12:58 I climbed,
-              first in the rotor&apos;s churned air over the valley, until the lift smoothed and steepened into
-              real wave — the kind you can circle in like a thermal. In twenty-two minutes I went from 3,400 to
-              7,600 feet; the best five minutes of it, shortly after one o&apos;clock, averaged 350 feet a
-              minute.
+              What followed was the third method, working exactly as it is drawn up. I climbed out of the valley
+              in the rotor&apos;s churned air, circling in broken lift — twelve steady minutes of turns from
+              3,500 to 5,700 feet, the best five of them averaging 350 feet a minute. Then the air smoothed and
+              the climb changed character. Now it was the wave itself: long straight legs back and forth across
+              the lift line, the vario steadier, and the altimeter winding up faster than it had all flight. By
+              13:20 I was at 7,600 feet.
             </p>
             <p>
               The last move was the upwind one. I pushed northwest into the strongest part of the primary, over
