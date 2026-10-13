@@ -57,20 +57,36 @@ const PEAKS = [
   { name: "Kearsarge North", lat: 44.10966, lon: -71.09459 },
 ];
 
-type LabelKind = "airport" | "summit" | "place";
+type LabelKind = "airport" | "summit" | "place" | "waypoint";
 
 /**
  * Every label the overlay draws, in collision-priority order: the home field first (it
- * anchors every track), then the summits, then the towns — a label that cannot find a
- * clear spot steps aside for the ones before it.
+ * anchors every track), then the summits, then the towns, then the remaining waypoints —
+ * a label that cannot find a clear spot steps aside for the ones before it.
+ *
+ * The Gorham 2G8 point and the waypoint set come from the Worldwide Soaring Turnpoint
+ * Exchange's Gorham, New Hampshire file (soaringweb.org/TP/Gorham): waypoint 27/Gorham
+ * is "the Gorham waypoint" — the start and finish point of the wave tasks — and the rest
+ * are the file's local turnpoints, minus those the summit and town labels above already
+ * mark (Mt Washington, Wildcat, North Conway, Whitefield and Berlin's field).
  */
 const LABELS: { name: string; lat: number; lon: number; kind: LabelKind }[] = [
-  { name: "Gorham 2G8", lat: 44.3939, lon: -71.194, kind: "airport" },
+  { name: "Gorham 2G8", lat: 44.39472, lon: -71.19805, kind: "airport" },
   ...PEAKS.map((peak) => ({ ...peak, kind: "summit" as LabelKind })),
   { name: "Berlin", lat: 44.4687, lon: -71.1851, kind: "place" },
   { name: "Lancaster", lat: 44.4889, lon: -71.5692, kind: "place" },
   { name: "Whitefield", lat: 44.3675, lon: -71.55, kind: "place" },
   { name: "North Conway", lat: 44.0537, lon: -71.1284, kind: "place" },
+  { name: "Mt Washington Hotel", lat: 44.2575, lon: -71.43972, kind: "waypoint" },
+  { name: "The Horn", lat: 44.29472, lon: -71.27888, kind: "waypoint" },
+  { name: "Pine Mountain", lat: 44.36638, lon: -71.215, kind: "waypoint" },
+  { name: "Twin Mountain", lat: 44.26417, lon: -71.54667, kind: "waypoint" },
+  { name: "Jackson", lat: 44.15667, lon: -71.18167, kind: "waypoint" },
+  { name: "Glen", lat: 44.10583, lon: -71.18612, kind: "waypoint" },
+  { name: "Groveton", lat: 44.615, lon: -71.48612, kind: "waypoint" },
+  { name: "Errol", lat: 44.7925, lon: -71.16417, kind: "waypoint" },
+  { name: "Old Speck Mountain", lat: 44.57083, lon: -70.95445, kind: "waypoint" },
+  { name: "Bald Pate Mountain", lat: 44.60833, lon: -70.89445, kind: "waypoint" },
 ];
 
 type LabelStyle = {
@@ -78,10 +94,10 @@ type LabelStyle = {
   fill: string;
   stroke: string;
   strokeWidth: number;
-  dot: number;
-  dotFill: string;
-  dotStroke: string | null;
-  dotStrokeWidth: number;
+  glyph: "dot" | "ring" | "triangle";
+  glyphSize: number;
+  glyphColor: string;
+  glyphRing: string | null;
   leader: string;
 };
 
@@ -92,10 +108,10 @@ const LABEL_STYLES: Record<LabelKind, LabelStyle> = {
     fill: "#f8fafc",
     stroke: "rgba(2,6,23,0.9)",
     strokeWidth: 3.5,
-    dot: 3.2,
-    dotFill: "#0ea5e9",
-    dotStroke: "#f8fafc",
-    dotStrokeWidth: 1.5,
+    glyph: "ring",
+    glyphSize: 3.2,
+    glyphColor: "#0ea5e9",
+    glyphRing: "#f8fafc",
     leader: "rgba(248,250,252,0.5)",
   },
   summit: {
@@ -103,10 +119,10 @@ const LABEL_STYLES: Record<LabelKind, LabelStyle> = {
     fill: "#e2e8f0",
     stroke: "rgba(2,6,23,0.85)",
     strokeWidth: 3,
-    dot: 1.6,
-    dotFill: "rgba(226,232,240,0.9)",
-    dotStroke: null,
-    dotStrokeWidth: 0,
+    glyph: "dot",
+    glyphSize: 1.6,
+    glyphColor: "rgba(226,232,240,0.9)",
+    glyphRing: null,
     leader: "rgba(226,232,240,0.35)",
   },
   place: {
@@ -114,11 +130,22 @@ const LABEL_STYLES: Record<LabelKind, LabelStyle> = {
     fill: "rgba(226,232,240,0.85)",
     stroke: "rgba(2,6,23,0.7)",
     strokeWidth: 2.5,
-    dot: 1.3,
-    dotFill: "rgba(226,232,240,0.8)",
-    dotStroke: null,
-    dotStrokeWidth: 0,
+    glyph: "dot",
+    glyphSize: 1.3,
+    glyphColor: "rgba(226,232,240,0.8)",
+    glyphRing: null,
     leader: "rgba(226,232,240,0.3)",
+  },
+  waypoint: {
+    font: `500 10px ${LABEL_FONT}`,
+    fill: "rgba(186,230,253,0.85)",
+    stroke: "rgba(2,6,23,0.7)",
+    strokeWidth: 2.5,
+    glyph: "triangle",
+    glyphSize: 4,
+    glyphColor: "rgba(125,211,252,0.9)",
+    glyphRing: null,
+    leader: "rgba(186,230,253,0.35)",
   },
 };
 
@@ -909,13 +936,23 @@ export function FlightGlobe3D() {
           }
           if (ty === null) continue;
           lctx.beginPath();
-          lctx.arc(sx, sy, style.dot, 0, Math.PI * 2);
-          lctx.fillStyle = style.dotFill;
-          lctx.fill();
-          if (style.dotStroke) {
-            lctx.strokeStyle = style.dotStroke;
-            lctx.lineWidth = style.dotStrokeWidth;
+          if (style.glyph === "triangle") {
+            lctx.moveTo(sx, sy - style.glyphSize);
+            lctx.lineTo(sx + style.glyphSize, sy + style.glyphSize * 0.75);
+            lctx.lineTo(sx - style.glyphSize, sy + style.glyphSize * 0.75);
+            lctx.closePath();
+            lctx.strokeStyle = style.glyphColor;
+            lctx.lineWidth = 1.4;
             lctx.stroke();
+          } else {
+            lctx.arc(sx, sy, style.glyphSize, 0, Math.PI * 2);
+            lctx.fillStyle = style.glyphColor;
+            lctx.fill();
+            if (style.glyphRing) {
+              lctx.strokeStyle = style.glyphRing;
+              lctx.lineWidth = 1.5;
+              lctx.stroke();
+            }
           }
           if (Math.abs(ty - (sy - 4)) > 2) {
             lctx.beginPath();
