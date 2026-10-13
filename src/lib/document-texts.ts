@@ -67,6 +67,24 @@ export const documentTexts: Record<string, DocumentText> = {
         type: "p",
         text: "Tomorrow looks better, but the low altitude moisture could be a problem.",
       },
+      { type: "h", text: "Monday, October 12" },
+      { type: "p", text: "We had an interesting day at Wave Camp today." },
+      {
+        type: "p",
+        text: "Thomas Van de Velde entertained us with the latest technology for towing out to the grid — an e-bike with a tow bar. It worked surprisingly well.",
+      },
+      {
+        type: "p",
+        text: "Our weather forecast suggested difficulties. The day would start weak and get stronger. Unfortunately, cloud cover, low ceilings, and gusty conditions would move in and shut us down as the day went on.",
+      },
+      {
+        type: "p",
+        text: "Rick Roelke called it accurately. Early low launches found it difficult to stay airborne in the weak conditions. An early trip to the summit indicated the wind was too light for effective wave. As the day went on, conditions improved and tows to the primary began to connect.",
+      },
+      {
+        type: "p",
+        text: "Unfortunately, the low ceilings continued to threaten and the wind gusts got exciting enough for our tow pilots to recommend a recall and end of the day. At this point, the wave was really starting to cook, and despite a clear window over the Rt 16 valley, our pilots did the right thing and performed an orderly recovery in sporty landing conditions. Well done!",
+      },
     ],
   },
   // Hand-authored: the walk-through filmed at the 2026 camp — the words follow the
