@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { SatellitePin, usePinBox } from "@/components/weather/SatellitePin";
 import { SectionNote } from "@/components/weather/SectionNote";
+import { polarPinPixels, POLAR_SIZE } from "@/lib/satellite";
 
 /**
  * The daily polar passes — MODIS true colour at 250 m, one or two sharp looks a day
@@ -74,6 +76,8 @@ export function SatellitePasses() {
   const [fullSize, setFullSize] = useState(false);
   const baseRef = useRef<string | null>(null);
   const urlRef = useRef<string | null>(null);
+  const reviewImageRef = useRef<HTMLImageElement | null>(null);
+  const pinBox = usePinBox(reviewImageRef, reviewOpen);
 
   // Deferred kick, matching the dashboard header — avoids a synchronous write in the effect.
   useEffect(() => {
@@ -210,13 +214,21 @@ export function SatellitePasses() {
 
         <div className="relative mt-4 overflow-hidden rounded-2xl bg-slate-900 ring-1 ring-slate-900/10">
           {state.status === "ready" ? (
-            <img
-              src={state.url}
-              width={2400}
-              height={1540}
-              alt={`Satellite pass over the Northeast — ${dayLabel(state.date, today)}`}
-              className="block h-auto w-full"
-            />
+            <>
+              <img
+                src={state.url}
+                width={2400}
+                height={1540}
+                alt={`Satellite pass over the Northeast — ${dayLabel(state.date, today)}`}
+                className="block h-auto w-full"
+              />
+              <SatellitePin
+                style={{
+                  left: `${(polarPinPixels().x / POLAR_SIZE.width) * 100}%`,
+                  top: `${(polarPinPixels().y / POLAR_SIZE.height) * 100}%`,
+                }}
+              />
+            </>
           ) : (
             <div className="grid aspect-[2400/1540] w-full place-items-center px-6 text-center">
               <p
@@ -319,11 +331,14 @@ export function SatellitePasses() {
 
           <div
             className={
-              fullSize ? "mt-4 min-h-0 flex-1 overflow-auto" : "relative mt-4 min-h-0 flex-1"
+              fullSize
+                ? "relative mt-4 min-h-0 flex-1 overflow-auto"
+                : "relative mt-4 min-h-0 flex-1"
             }
             onClick={(event) => event.stopPropagation()}
           >
             <img
+              ref={reviewImageRef}
               src={state.url}
               width={2400}
               height={1540}
@@ -332,6 +347,14 @@ export function SatellitePasses() {
                 fullSize ? "max-w-none" : "absolute inset-0 h-full w-full object-contain"
               }
             />
+            {pinBox ? (
+              <SatellitePin
+                style={{
+                  left: pinBox.offsetX + polarPinPixels().x * pinBox.scale,
+                  top: pinBox.offsetY + polarPinPixels().y * pinBox.scale,
+                }}
+              />
+            ) : null}
           </div>
 
           <p

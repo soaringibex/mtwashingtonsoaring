@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SatellitePasses } from "@/components/weather/SatellitePasses";
+import { SatellitePin, usePinBox } from "@/components/weather/SatellitePin";
 import { SectionNote } from "@/components/weather/SectionNote";
+import { GOES_PIN_PIXELS, GOES_SIZE } from "@/lib/satellite";
 
 /**
  * GOES-East satellite review — the highest-resolution imagery NOAA publishes for the
@@ -92,6 +94,8 @@ export function SatellitePanel() {
   const [loadedReviewStamp, setLoadedReviewStamp] = useState<string | null>(null);
   const [fullSize, setFullSize] = useState(false);
   const loop = useRef({ start: 0, end: 0 });
+  const reviewImageRef = useRef<HTMLImageElement | null>(null);
+  const pinBox = usePinBox(reviewImageRef, reviewOpen);
 
   // Fresh frames every five minutes; catch up the moment a background tab returns.
   useEffect(() => {
@@ -271,6 +275,12 @@ export function SatellitePanel() {
                 No frame for this time — that scan is missing. Step to another frame.
               </div>
             ) : null}
+            <SatellitePin
+              style={{
+                left: `${(GOES_PIN_PIXELS.x / GOES_SIZE.width) * 100}%`,
+                top: `${(GOES_PIN_PIXELS.y / GOES_SIZE.height) * 100}%`,
+              }}
+            />
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -427,7 +437,9 @@ export function SatellitePanel() {
 
           <div
             className={
-              fullSize ? "mt-4 min-h-0 flex-1 overflow-auto" : "relative mt-4 min-h-0 flex-1"
+              fullSize
+                ? "relative mt-4 min-h-0 flex-1 overflow-auto"
+                : "relative mt-4 min-h-0 flex-1"
             }
             onClick={(event) => event.stopPropagation()}
           >
@@ -455,6 +467,7 @@ export function SatellitePanel() {
                   </p>
                 ) : null}
                 <img
+                  ref={reviewImageRef}
                   src={frameUrl(selected, "2400x2400")}
                   width={2400}
                   height={2400}
@@ -468,6 +481,14 @@ export function SatellitePanel() {
                   }
                   onLoad={() => setLoadedReviewStamp(stamp)}
                 />
+                {reviewLoaded && pinBox ? (
+                  <SatellitePin
+                    style={{
+                      left: pinBox.offsetX + GOES_PIN_PIXELS.x * pinBox.scale,
+                      top: pinBox.offsetY + GOES_PIN_PIXELS.y * pinBox.scale,
+                    }}
+                  />
+                ) : null}
               </>
             )}
           </div>

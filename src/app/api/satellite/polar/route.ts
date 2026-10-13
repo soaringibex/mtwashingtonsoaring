@@ -19,9 +19,10 @@
 //    most recent usable pass; an explicit ?date= asks for that date only and 404s when
 //    its imagery is not there yet.
 
+import { polarBboxString } from "@/lib/satellite";
+
 const SNAPSHOT = "https://wvs.earthdata.nasa.gov/api/v1/snapshot";
 /** The Northeast, from the Mid-Atlantic to the St. Lawrence — the wave in its setting. */
-const BBOX = "-77,40.5,-65,48.2";
 const PROBE_SIZE = { width: 400, height: 256 };
 const RENDER_SIZE = { width: 2400, height: 1540 };
 /** Measured: empty ≈ 1.7 kB, real days ≈ 5.9–11.3 kB (see the header). */
@@ -55,7 +56,7 @@ function snapshotUrl(
     REQUEST: "GetSnapshot",
     LAYERS: `${layer},Coastlines_15m`,
     CRS: "EPSG:4326",
-    BBOX,
+    BBOX: polarBboxString(),
     WIDTH: String(size.width),
     HEIGHT: String(size.height),
     FORMAT: "image/jpeg",
