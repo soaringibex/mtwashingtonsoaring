@@ -89,7 +89,8 @@ export default function ThreeWaysPage() {
               The first tow was the direct kind, out toward the primary, and it went nowhere. I released at
               4,300 ft into air that wasn&apos;t working yet. I spent ten minutes probing the lee side and made
               one fast run east looking for a window, before giving up. By 12:27 I was down to 2,300 ft and
-              heading back towards Gorham looking for a last ditch save at the Moriah–Carter ridge.
+              heading back towards Gorham looking for a last ditch save at the Moriah–Carter ridge. I found a
+              small thermal just strong enough to lift me on the foothills of the Carters.
             </p>
           </Step>
 
