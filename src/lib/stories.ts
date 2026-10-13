@@ -14,6 +14,13 @@ export const storyGroups: StoryGroup[] = [
     blurb: "What it is actually like up there — including the days that go sideways.",
     stories: [
       {
+        title: "Three ways into the wave",
+        page: "/stories/three-ways-into-the-wave",
+        description:
+          "Monday's flight at the 2026 camp — a tow that went nowhere, a low save on the Moriah–Carter ridge, and a climb through the rotor to 7,900 feet in the primary. The three routes into the Mount Washington wave, with the flight drawn in 3D.",
+        meta: "Story",
+      },
+      {
         title: "NH Speed Record in the Wave",
         page: "/stories/nh-speed-record-in-the-wave",
         description:

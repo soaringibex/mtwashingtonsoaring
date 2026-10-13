@@ -13,6 +13,9 @@ function storyForSlug(slug: string) {
 export function generateStaticParams() {
   return stories
     .filter((story) => story.page?.startsWith(prefix))
+    // Stories on their own custom routes (e.g. the 3D flight article) have no
+    // document text and are served by their own page — not by this route.
+    .filter((story) => documentTexts[story.page!.slice(prefix.length)])
     .map((story) => ({ slug: story.page!.slice(prefix.length) }));
 }
 
