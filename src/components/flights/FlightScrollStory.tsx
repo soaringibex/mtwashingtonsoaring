@@ -68,7 +68,7 @@ export function FlightScrollStory({ children }: { children: ReactNode }) {
       <div className={`relative z-10 ${OVERLAP} pointer-events-none`}>
         <div className="flex h-[44svh] items-end justify-center pb-16">
           <p className="rounded-full bg-slate-950/60 px-4 py-1.5 text-xs text-slate-300 ring-1 ring-white/10 backdrop-blur-sm">
-            Keep scrolling — the flight flies itself, phase by phase
+            Keep scrolling — the flight plays itself, phase by phase
           </p>
         </div>
         {children}

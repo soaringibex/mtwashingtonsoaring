@@ -61,7 +61,7 @@ const PHASES = [
     tone: "context",
     from: local(12, 12, 24),
     to: local(12, 27, 0),
-    note: "A direct tow toward the primary, released at 4,300 ft into air that wasn't working yet — the easiest way up, and on this day it failed.",
+    note: "A direct tow toward the primary, released at 4,300 ft into air that wasn't working yet. It went nowhere.",
   },
   {
     id: "ridge",
@@ -69,7 +69,7 @@ const PHASES = [
     tone: "key",
     from: local(12, 27, 0),
     to: local(12, 55, 10),
-    note: "Down to 1,857 ft, working the northwest-facing flank of the Moriah–Carter ridge — ridge lift, scraps of rotor, and a lot of patience.",
+    note: "Down to 1,857 ft, working the northwest-facing flank of the Moriah–Carter ridge in ridge lift and the odd scrap of rotor.",
   },
   {
     id: "transit",
@@ -77,7 +77,7 @@ const PHASES = [
     tone: "key",
     from: local(12, 55, 10),
     to: local(13, 0, 0),
-    note: "West across the valley beneath the rotor, aiming for the lee of the Presidential ridge — bottoming out at 3,200 ft, then into the first usable lift.",
+    note: "West across the valley beneath the rotor for the lee of the Presidential range, bottoming out at 3,200 ft.",
   },
   {
     id: "rotor",
@@ -85,7 +85,7 @@ const PHASES = [
     tone: "key",
     from: local(13, 0, 0),
     to: local(13, 11, 50),
-    note: "Climbing out of the valley in the rotor's churned air — steady circling over the lee slopes, 3,500 to 5,700 ft in twelve minutes.",
+    note: "Circling out of the valley in the rotor's churned air, 3,500 to 5,700 ft in twelve minutes.",
   },
   {
     id: "wave",
@@ -93,7 +93,7 @@ const PHASES = [
     tone: "key",
     from: local(13, 11, 50),
     to: local(13, 19, 50),
-    note: "The air smooths into wave: long straight legs back and forth across the lift line, 5,700 to 7,600 ft.",
+    note: "The air smooths into wave: long legs back and forth across the lift, 5,700 to 7,600 ft.",
   },
   {
     id: "upwind",
@@ -109,7 +109,7 @@ const PHASES = [
     tone: "context",
     from: local(13, 25, 0),
     to: local(13, 36, 30),
-    note: "Downwind and down, ahead of the camp's recall — an orderly glide home with the wave still building behind.",
+    note: "Downwind and down ahead of the recall, with the wave still building behind.",
   },
 ];
 

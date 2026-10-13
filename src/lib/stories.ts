@@ -17,7 +17,7 @@ export const storyGroups: StoryGroup[] = [
         title: "Three ways into the wave",
         page: "/stories/three-ways-into-the-wave",
         description:
-          "Monday's flight at the 2026 camp — a tow that went nowhere, a low save on the Moriah–Carter ridge, and a climb through the rotor to 7,900 feet in the primary. The three routes into the Mount Washington wave, with the flight told phase by phase in a scroll-driven 3D scene.",
+          "Thomas Van de Velde's account of Monday's flight at the 2026 camp — a tow that didn't connect, a low save on the Moriah–Carter ridge, and a climb through the rotor to 7,943 ft. All three ways into the Mt Washington wave, told phase by phase in 3D.",
         meta: "Story",
       },
       {
