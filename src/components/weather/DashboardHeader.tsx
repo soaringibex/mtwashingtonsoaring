@@ -71,7 +71,8 @@ export function DashboardHeader() {
 
         <p className="hidden max-w-md text-xs leading-5 text-slate-400 lg:block">
           Wave potential for the Presidential Range — the Scorer-parameter signal, the column of
-          wind, the summit forecast, and the fields around the mountain.
+          wind, the summit forecast, the fields around the mountain, and the satellite&rsquo;s view
+          of the cloud.
         </p>
 
         <div className="ml-auto flex items-center gap-x-6">

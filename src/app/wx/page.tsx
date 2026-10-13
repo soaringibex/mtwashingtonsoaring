@@ -3,6 +3,7 @@ import { SectionNote } from "@/components/weather/SectionNote";
 import Link from "next/link";
 import { DashboardHeader } from "@/components/weather/DashboardHeader";
 import { FieldReports } from "@/components/weather/FieldReports";
+import { SatellitePanel } from "@/components/weather/SatellitePanel";
 import { WavePanel } from "@/components/weather/WavePanel";
 import { WindPanel } from "@/components/weather/WindPanel";
 import { Container } from "@/components/ui/Container";
@@ -10,7 +11,7 @@ import { Container } from "@/components/ui/Container";
 export const metadata: Metadata = {
   title: "Wavecast",
   description:
-    "The day's wave forecast for Mount Washington — a Scorer-parameter wave signal, the live column of wind aloft, the summit forecast hour by hour, nearby field reports, and the forecasts to read before you fly.",
+    "The day's wave forecast for Mount Washington — a Scorer-parameter wave signal, the live column of wind aloft, the summit forecast hour by hour, nearby field reports, five-minute satellite imagery of the Northeast, and the forecasts to read before you fly.",
 };
 
 const forecastLinks = [
@@ -61,6 +62,8 @@ export default function WxPage() {
             <WindPanel />
 
             <FieldReports />
+
+            <SatellitePanel />
 
             <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
