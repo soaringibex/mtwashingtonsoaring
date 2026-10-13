@@ -77,7 +77,17 @@ export function FlightScrollStory({ children }: { children: ReactNode }) {
 
     const onWheel = (e: WheelEvent) => {
       const hold = holdRef.current;
-      if (hold && e.deltaY > 0 && window.scrollY >= hold.y - 4) e.preventDefault();
+      if (!hold || e.deltaY <= 0) return;
+      if (window.scrollY >= hold.y - 1) {
+        // At the resting line: swallow the tick whole, so nothing nudges back and forth.
+        e.preventDefault();
+        return;
+      }
+      if (window.scrollY + e.deltaY > hold.y) {
+        // The tick that would cross the line settles at it instead of fighting it.
+        e.preventDefault();
+        window.scrollTo(0, hold.y);
+      }
     };
 
     let touchY = 0;
@@ -88,7 +98,10 @@ export function FlightScrollStory({ children }: { children: ReactNode }) {
       const hold = holdRef.current;
       if (!hold) return;
       const dy = (e.touches[0]?.clientY ?? 0) - touchY;
-      if (dy < 0 && window.scrollY >= hold.y - 4) e.preventDefault();
+      if (dy < 0 && window.scrollY >= hold.y - 2) {
+        e.preventDefault();
+        window.scrollTo(0, hold.y);
+      }
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -96,7 +109,12 @@ export function FlightScrollStory({ children }: { children: ReactNode }) {
       if (!hold) return;
       const forward =
         e.key === "ArrowDown" || e.key === "PageDown" || e.key === " " || e.key === "Spacebar";
-      if (forward && window.scrollY >= hold.y - 4) e.preventDefault();
+      if (!forward) return;
+      const step = e.key === "ArrowDown" ? 40 : window.innerHeight * 0.9;
+      if (window.scrollY + step > hold.y) {
+        e.preventDefault();
+        window.scrollTo(0, hold.y);
+      }
     };
 
     const onResize = () => {

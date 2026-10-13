@@ -542,13 +542,19 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
       const dist = Math.min(260, Math.max(5.5, fit * 1.25));
       const zs = sel.map(([, , alt]) => scene.worldZ(alt)).sort((a, b) => a - b);
       const cz = zs[Math.floor(zs.length / 2)];
+      // Bias the frame so the story card — a column on the left, or a sheet at the
+      // bottom on phones — never covers the phase. The content shifts right (and a
+      // little up) by a fixed fraction of the view.
+      const halfH = Math.tan(FOV / 2) * dist;
+      const yawR = (view.yaw * Math.PI) / 180;
+      const shift = halfH * aspect * 0.32;
       return {
         yaw: view.yaw,
         pitch: view.pitch,
         zoom: dist,
-        tx: (minX + maxX) / 2,
-        ty: (minY + maxY) / 2,
-        tz: Math.max(1.6, Math.min(cz, 8.5)),
+        tx: (minX + maxX) / 2 + Math.cos(yawR) * shift,
+        ty: (minY + maxY) / 2 - Math.sin(yawR) * shift,
+        tz: Math.max(1.6, Math.min(cz, 8.5)) - halfH * 0.1,
       };
     },
     [scene, track, wholeView],
