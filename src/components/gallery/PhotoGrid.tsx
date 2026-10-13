@@ -117,14 +117,11 @@ export function PhotoGrid({ albums }: { albums: Album[] }) {
                 className="object-contain"
               />
             </div>
-            <p className="mt-4 text-center text-sm text-slate-300">
-              <span className="font-semibold text-white">{current.album}</span>
-              {" — "}
-              {current.alt}
-              {current.credit ? (
-                <span className="text-slate-400"> · Photo: {current.credit}</span>
-              ) : null}
-            </p>
+            {current.credit ? (
+              <p className="mt-4 text-center text-sm text-slate-300">
+                Photo: {current.credit}
+              </p>
+            ) : null}
 
             <button
               type="button"
