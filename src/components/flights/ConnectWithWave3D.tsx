@@ -1052,6 +1052,9 @@ export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DPr
     };
     const contextMenu = (e: MouseEvent) => e.preventDefault();
     const wheel = (e: WheelEvent) => {
+      // In scroll-story mode the wheel belongs to the page: the scene zooms only
+      // in the standalone viewer, where the canvas is a full page of its own.
+      if (scroll) return;
       e.preventDefault();
       setCamera((c) => ({ ...c, zoom: Math.min(320, Math.max(3, c.zoom * (1 + e.deltaY * 0.0012))) }));
     };
@@ -1070,7 +1073,7 @@ export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DPr
       canvas.removeEventListener("pointercancel", up);
       canvas.removeEventListener("wheel", wheel);
     };
-  }, []);
+  }, [scroll]);
 
   useEffect(() => {
     camRef.current = camera;
