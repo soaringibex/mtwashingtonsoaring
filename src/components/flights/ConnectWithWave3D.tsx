@@ -1,14 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PHASE_COLORS, PHASE_SHORT, hexToUnitRgb } from "@/lib/flight-phases";
 import { fetchTerrainMosaic, mosaicElevation, type TerrainMosaic } from "@/lib/terrain-tiles";
 
 /**
  * The flight of 2026-10-12 in three dimensions — one glider's track over the
  * Presidential and Carter ranges, drawn with the same WebGL terrain pipeline as
- * the camp's /flights/3d view, but built to tell one story: the phases are
- * clickable, the camera flies to each, and the barogram at the bottom is a
- * scrubber that runs the whole flight.
+ * the camp's /flights/3d view, but built to tell one story.
+ *
+ * Two ways to drive it:
+ *  - standalone ("explore"): its own phase buttons, note cards and barogram;
+ *  - scroll mode (`phase` + `scroll` props): the story page's scroll position
+ *    picks the phase — the camera flies there and the barogram retraces that
+ *    segment — while the barogram's play/scrub stay available.
  *
  * Terrain comes from the shared /api/terrain mosaic at zoom 12 (~27 m per
  * pixel); the track is the pilot's own IGC file, decimated to one fix per four
@@ -44,26 +49,6 @@ type TrackData = {
   utcOffsetHours: number;
   points: TrackPoint[];
   phases: Phase[];
-};
-
-const PHASE_COLORS: Record<string, [number, number, number]> = {
-  tow: [0.58, 0.65, 0.75],
-  ridge: [0.96, 0.62, 0.04],
-  transit: [0.13, 0.83, 0.93],
-  rotor: [0.2, 0.83, 0.6],
-  wave: [0.96, 0.45, 0.71],
-  upwind: [0.66, 0.55, 0.98],
-  home: [0.58, 0.65, 0.75],
-};
-
-const PHASE_SHORT: Record<string, string> = {
-  tow: "Tow & sink",
-  ridge: "The ridge",
-  transit: "Below the rotor",
-  rotor: "Rotor climb",
-  wave: "Wave climb",
-  upwind: "Upwind",
-  home: "Home",
 };
 
 /** The summits worth a label, each snapped to its own top on the terrain mesh. */
@@ -170,7 +155,7 @@ varying vec2 vUv; varying float vDepth;
 void main() {
   vec3 c = texture2D(uTex, vUv).rgb;
   float f = clamp((vDepth - uFogNear) / (uFogFar - uFogNear), 0.0, 1.0);
-  gl_FragColor = vec4(mix(c, uFogColor, f * 0.75), 1.0);
+  gl_FragColor = vec4(mix(c, uFogColor, f * 0.55), 1.0);
 }`;
 
 const TRACK_VS = `attribute vec3 aPos; attribute vec3 aDir; attribute float aSide; attribute vec3 aColor; attribute float aWidth; attribute float aPhase;
@@ -224,28 +209,38 @@ type Camera = { yaw: number; pitch: number; zoom: number; tx: number; ty: number
 /** Fixed camera poses per phase — tuned so the terrain reads and the track crosses the frame. */
 const PHASE_VIEWS: Record<string, { yaw: number; pitch: number }> = {
   whole: { yaw: 205, pitch: 29 },
-  tow: { yaw: 118, pitch: 28 },
+  tow: { yaw: 118, pitch: 34 },
   ridge: { yaw: 318, pitch: 28 },
-  transit: { yaw: 160, pitch: 32 },
+  transit: { yaw: 140, pitch: 36 },
   rotor: { yaw: 155, pitch: 34 },
   wave: { yaw: 130, pitch: 30 },
-  upwind: { yaw: 200, pitch: 30 },
-  home: { yaw: 118, pitch: 30 },
+  upwind: { yaw: 190, pitch: 36 },
+  home: { yaw: 75, pitch: 36 },
 };
 
 const fmt = new Intl.NumberFormat("en-US");
 
-export function ConnectWithWave3D() {
+export type ConnectWithWave3DProps = {
+  /** Controlled phase spotlight (scroll mode); omitted → the scene manages it. */
+  phase?: string;
+  /** Scroll-story mode: no built-in buttons or note cards; each phase flies and plays as it is set. */
+  scroll?: boolean;
+};
+
+export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DProps = {}) {
   const [track, setTrack] = useState<TrackData | null>(null);
   const [mosaic, setMosaic] = useState<TerrainMosaic | null>(null);
   const [dataError, setDataError] = useState(false);
   const [glError, setGlError] = useState(false);
   const [sizeTick, setSizeTick] = useState(0);
 
-  const [selection, setSelection] = useState<string>("whole");
+  const [internalSelection, setInternalSelection] = useState<string>("whole");
+  const selection = phase ?? internalSelection;
   const [time, setTime] = useState<number | null>(null); // scrub position, unix sec
   const [playing, setPlaying] = useState(false);
   const [noteDismissed, setNoteDismissed] = useState(false);
+  /** Bumped to cancel an in-flight scroll segment when the phase changes or the reader takes over. */
+  const autoTokenRef = useRef(0);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const labelCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -387,7 +382,7 @@ export function ConnectWithWave3D() {
         const len = Math.hypot(dzdx, dzdy, 1);
         const light = Math.max(0, (-dzdx / len) * lx + (dzdy / len) * ly + (1 / len) * lz);
         const base = terrainRgb(h);
-        const lit = 0.5 + 0.78 * light;
+        const lit = 0.56 + 0.72 * light;
         const o = (ty * TW + tx) * 4;
         texData[o] = Math.min(255, base[0] * lit);
         texData[o + 1] = Math.min(255, base[1] * lit);
@@ -435,7 +430,7 @@ export function ConnectWithWave3D() {
       const phase = phaseIndexAt(pts[i][3]);
       const def = track.phases[phase];
       const key = def.tone === "key";
-      const c = PHASE_COLORS[def.id] ?? [0.6, 0.6, 0.6];
+      const c = hexToUnitRgb(PHASE_COLORS[def.id] ?? "#9ca3af");
       return { color: key ? c : mix(c, SKY_BOTTOM, 0.35), width: key ? 1.25 : 0.55, phase };
     };
     for (let i = 0; i < world.length - 1; i += 1) {
@@ -614,8 +609,9 @@ export function ConnectWithWave3D() {
   }, [wholeView]);
 
   const select = (id: string) => {
-    setSelection(id);
+    setInternalSelection(id);
     setNoteDismissed(false);
+    autoTokenRef.current += 1; // a hand-picked phase outranks a scroll segment
     const view = phaseView(id);
     if (view) flyTo(view);
   };
@@ -628,6 +624,31 @@ export function ConnectWithWave3D() {
     setTime(t);
   }, []);
   const scrubTime = time === null ? null : Math.min(Math.max(time, start), end);
+
+  // Scroll-story mode: when the reader's scroll picks a phase, fly to it and retrace
+  // that segment on the barogram (cancelled if they press play or drag the scrubber).
+  useEffect(() => {
+    if (!scroll || !phase) return;
+    const view = phaseView(phase);
+    if (view) flyTo(view);
+    if (phase === "whole" || !track) return;
+    const p = track.phases.find((x) => x.id === phase);
+    if (!p) return;
+    setPlaying(false);
+    const token = ++autoTokenRef.current;
+    const t0 = performance.now();
+    const dur = Math.min(9000, Math.max(4200, (p.to - p.from) * 180));
+    let raf = requestAnimationFrame(function step(now: number) {
+      if (autoTokenRef.current !== token) return;
+      const k = Math.min(1, (now - t0) / dur);
+      seek(p.from + (p.to - p.from) * k);
+      if (k < 1) raf = requestAnimationFrame(step);
+    });
+    return () => {
+      cancelAnimationFrame(raf);
+      autoTokenRef.current += 1;
+    };
+  }, [scroll, phase, track, phaseView, flyTo, seek]);
 
   // Play through the flight.
   useEffect(() => {
@@ -766,8 +787,8 @@ export function ConnectWithWave3D() {
     gl.uniformMatrix4fv(gl.getUniformLocation(terrain, "uMVP"), false, mvp);
     gl.uniformMatrix4fv(gl.getUniformLocation(terrain, "uMV"), false, view);
     gl.uniform3fv(gl.getUniformLocation(terrain, "uFogColor"), SKY_BOTTOM);
-    gl.uniform1f(gl.getUniformLocation(terrain, "uFogNear"), dist * 0.62);
-    gl.uniform1f(gl.getUniformLocation(terrain, "uFogFar"), dist * 1.85);
+    gl.uniform1f(gl.getUniformLocation(terrain, "uFogNear"), dist * 0.78);
+    gl.uniform1f(gl.getUniformLocation(terrain, "uFogFar"), dist * 2.7);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, state.terra.tex);
     gl.uniform1i(gl.getUniformLocation(terrain, "uTex"), 0);
@@ -869,8 +890,7 @@ export function ConnectWithWave3D() {
           const text = PHASE_SHORT[id] ?? id;
           const y = tryPlace("600 10px ui-sans-serif, system-ui, sans-serif", sx, sy, text, [18, -12, 40, -32]);
           if (y === null) continue;
-          const c = PHASE_COLORS[id] ?? [0.8, 0.8, 0.8];
-          drawLabel(text, sx, y, `rgb(${c.map((v) => Math.round(v * 255)).join(",")})`);
+          drawLabel(text, sx, y, PHASE_COLORS[id] ?? "#e2e8f0");
         }
 
         // Summits last — map furniture for the reader who orbits.
@@ -1114,7 +1134,7 @@ export function ConnectWithWave3D() {
       id: p.id,
       x0: x(p.from),
       x1: x(p.to),
-      color: PHASE_COLORS[p.id] ?? [0.6, 0.6, 0.6],
+      color: PHASE_COLORS[p.id] ?? "#9ca3af",
     }));
     const widthPx = (t: number) => x(t);
     return { width, height, altPath, groundPath, bands, widthPx };
@@ -1127,12 +1147,18 @@ export function ConnectWithWave3D() {
     <div className="relative h-full w-full bg-slate-950">
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 block h-full w-full cursor-grab touch-none select-none active:cursor-grabbing"
+        className={
+          scroll
+            ? "pointer-events-none absolute inset-0 block h-full w-full select-none touch-none lg:pointer-events-auto lg:cursor-grab lg:active:cursor-grabbing"
+            : "absolute inset-0 block h-full w-full cursor-grab touch-none select-none active:cursor-grabbing"
+        }
         aria-label="Three-dimensional view of the flight of 12 October 2026 over the White Mountains"
       />
       <canvas ref={labelCanvasRef} aria-hidden="true" className="pointer-events-none absolute inset-0 block h-full w-full" />
 
-      {/* Phase buttons — pinned below the site header while the section is on screen. */}
+      {/* Phase buttons — pinned below the site header while the section is on screen.
+          Hidden in scroll mode: the scroll cards are the navigation there. */}
+      {!scroll ? (
       <div className="pointer-events-none sticky top-16 z-20 sm:top-[4.5rem] xl:top-20">
         <div className="flex items-start gap-2 px-3 pt-3">
           <div className="pointer-events-auto flex flex-1 flex-wrap items-center gap-1.5">
@@ -1149,8 +1175,6 @@ export function ConnectWithWave3D() {
               Whole flight
             </button>
             {track?.phases.map((phase) => {
-              const c = PHASE_COLORS[phase.id] ?? [0.6, 0.6, 0.6];
-              const rgb = `rgb(${c.map((v) => Math.round(v * 255)).join(",")})`;
               const active = selection === phase.id;
               return (
                 <button
@@ -1166,7 +1190,11 @@ export function ConnectWithWave3D() {
                         : "bg-slate-950/50 text-slate-100 ring-1 ring-white/15 hover:bg-slate-800/70"
                   }`}
                 >
-                  <span aria-hidden="true" className="h-2 w-2 rounded-full" style={{ backgroundColor: rgb }} />
+                  <span
+                    aria-hidden="true"
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: PHASE_COLORS[phase.id] ?? "#9ca3af" }}
+                  />
                   {PHASE_SHORT[phase.id] ?? phase.label}
                 </button>
               );
@@ -1179,9 +1207,10 @@ export function ConnectWithWave3D() {
           ) : null}
         </div>
       </div>
+      ) : null}
 
       {/* Phase note */}
-      {noteVisible && selectedPhase ? (
+      {!scroll && noteVisible && selectedPhase ? (
         <div className="pointer-events-auto absolute bottom-20 left-3 right-3 z-20 rounded-2xl bg-slate-950/85 p-4 ring-1 ring-white/15 backdrop-blur-sm sm:right-auto sm:w-80">
           <div className="flex items-start justify-between gap-3">
             <p className="font-display text-sm font-semibold text-white">{selectedPhase.label}</p>
@@ -1208,6 +1237,7 @@ export function ConnectWithWave3D() {
             type="button"
             onClick={() => {
               if (!track) return;
+              autoTokenRef.current += 1; // the reader takes over from any scroll segment
               if (time === null || time >= track.landing) seek(track.takeoff);
               setPlaying((p) => !p);
             }}
@@ -1233,6 +1263,7 @@ export function ConnectWithWave3D() {
               className="h-14 w-full cursor-crosshair sm:h-16"
               onPointerDown={(e) => {
                 if (!track) return;
+                autoTokenRef.current += 1;
                 setPlaying(false);
                 const el = e.currentTarget;
                 const rect = el.getBoundingClientRect();
@@ -1269,7 +1300,7 @@ export function ConnectWithWave3D() {
                       y={0}
                       width={Math.max(1, band.x1 - band.x0)}
                       height={profile.height}
-                      fill={`rgb(${band.color.map((v) => Math.round(v * 255)).join(",")})`}
+                      fill={band.color}
                       opacity={selection === "whole" || selection === band.id ? 0.16 : 0.05}
                     />
                   ))}
@@ -1282,7 +1313,7 @@ export function ConnectWithWave3D() {
                       y={profile.height - 3}
                       width={Math.max(1, band.x1 - band.x0)}
                       height={3}
-                      fill={`rgb(${band.color.map((v) => Math.round(v * 255)).join(",")})`}
+                      fill={band.color}
                       opacity={selection === "whole" || selection === band.id ? 1 : 0.35}
                     />
                   ))}
@@ -1347,9 +1378,11 @@ export function ConnectWithWave3D() {
         </p>
       ) : null}
 
-      <p className="pointer-events-none absolute bottom-[4.8rem] right-3 z-10 hidden text-[11px] text-slate-400 sm:block">
-        drag to orbit · right-drag to pan · scroll to zoom
-      </p>
+      {!scroll ? (
+        <p className="pointer-events-none absolute bottom-[4.8rem] right-3 z-10 hidden text-[11px] text-slate-400 sm:block">
+          drag to orbit · right-drag to pan · scroll to zoom
+        </p>
+      ) : null}
     </div>
   );
 }

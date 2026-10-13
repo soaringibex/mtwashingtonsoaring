@@ -1,16 +1,51 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ConnectWithWave3D } from "@/components/flights/ConnectWithWave3D";
+import type { ReactNode } from "react";
+import { FlightScrollStory } from "@/components/flights/FlightScrollStory";
 import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/ui/PageHero";
 import { Prose } from "@/components/ui/Prose";
+import { PHASE_COLORS, PHASE_SHORT } from "@/lib/flight-phases";
 
 export const metadata: Metadata = {
   title: "Three ways into the wave",
   description:
-    "Monday's flight at the 2026 Gorham camp — and the three ways into the Mount Washington wave: the direct tow, the high road over the Carters, and the low road through the rotor.",
+    "Monday's flight at the 2026 Gorham camp — and the three ways into the Mount Washington wave: the direct tow, the high road over the Carters, and the low road through the rotor. The flight told phase by phase as an interactive 3D scroll.",
 };
+
+/** One phase of the flight: a scroll step whose card crosses the scene's focus line. */
+function Step({
+  id,
+  time,
+  heading,
+  children,
+}: {
+  id: string;
+  time: string;
+  heading: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      data-phase={id}
+      className="flex min-h-[80svh] items-end px-3 pb-24 sm:min-h-[92svh] sm:items-center sm:px-6 sm:pb-0 lg:px-10"
+    >
+      <article className="pointer-events-auto w-full max-w-md rounded-2xl bg-slate-950/85 p-5 shadow-xl ring-1 ring-white/15 backdrop-blur-sm sm:ml-4 lg:ml-10 xl:ml-16">
+        <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">
+          <span
+            aria-hidden="true"
+            className="h-2.5 w-2.5 shrink-0 rounded-full"
+            style={{ backgroundColor: PHASE_COLORS[id] ?? "#9ca3af" }}
+          />
+          {PHASE_SHORT[id] ?? id} · {time}
+        </p>
+        <h3 className="mt-3 font-display text-xl font-semibold tracking-tight text-white">{heading}</h3>
+        <div className="mt-3 space-y-3 text-sm leading-6 text-slate-300">{children}</div>
+      </article>
+    </div>
+  );
+}
 
 export default function ThreeWaysPage() {
   return (
@@ -98,103 +133,115 @@ export default function ThreeWaysPage() {
             <h2>Monday&apos;s flight</h2>
             <p>
               Monday ran the whole list, in order. I launched at 12:12; the first tow was the direct kind, out
-              toward the primary; and it went nowhere.
+              toward the primary; and it went nowhere. Below, the flight plays itself: keep scrolling and each
+              phase comes into focus in turn — the camera runs to it, and the marker retraces it on the
+              barogram. <span className="font-medium text-amber-600">Amber</span> is the low work on the
+              Moriah–Carter ridge; <span className="font-medium text-cyan-600">cyan</span>, the crossing below
+              the rotor; <span className="font-medium text-emerald-600">green</span>, the rotor climb;{" "}
+              <span className="font-medium text-pink-600">pink</span>, the wave climb above it; and{" "}
+              <span className="font-medium text-violet-600">violet</span>, the push upwind into the primary. Press
+              play at any point to run the whole flight; on a computer, drag the scene to orbit it.
             </p>
           </Prose>
         </Container>
 
-        <section
-          aria-label="The flight of October 12, 2026 in 3D"
-          className="mt-12 border-y border-slate-900/10 bg-slate-950"
-        >
-          <div className="h-[72svh] max-h-[780px] min-h-[520px]">
-            <ConnectWithWave3D />
-          </div>
-        </section>
-
-        <Container width="2xl">
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-500">
-            The whole flight in 3D — drag to orbit, scroll to zoom, and the buttons walk the stages.{" "}
-            <span className="text-amber-600">Amber</span> is the low work on the Moriah–Carter ridge;{" "}
-            <span className="text-cyan-600">cyan</span>, the crossing below the rotor;{" "}
-            <span className="text-emerald-600">green</span>, the rotor climb;{" "}
-            <span className="text-pink-600">pink</span>, the wave climb above it; and{" "}
-            <span className="text-violet-600">violet</span>, the push upwind into the primary. The barogram along
-            the bottom is a scrubber — play the flight, or drag to any minute; the grey mass under the line is
-            the terrain directly beneath the track.
-          </p>
-
-          <Prose className="mt-10">
+        <FlightScrollStory>
+          <Step id="tow" time="12:12 – 12:27" heading="A tow that went nowhere">
             <p>
               The tow released me at 4,300 feet into air that wasn&apos;t working yet. I spent the next ten
-              minutes hoping it would change — a couple of probes on the lee side, one fast run east looking for
-              a window — before conceding. By 12:27 I was down to 2,300 feet and pointing at the only thing that
-              was working at all: the Moriah–Carter ridge.
+              minutes hoping it would change — a couple of probes on the lee side, one fast run east looking
+              for a window — before conceding. By 12:27 I was down to 2,300 feet and pointing at the only thing
+              that was working at all: the Moriah–Carter ridge.
             </p>
+          </Step>
+
+          <Step id="ridge" time="12:27 – 12:55" heading="Down to the rocks">
             <p>
               The next half hour was the real work of the day. The ridge&apos;s northwest-facing flank was
               giving just enough — true ridge lift, plus the odd scrap of rotor — to hold and slowly gain. I
               worked it in the low two thousands, crossing the slope between Imp Face and Mount Surprise, never
-              far off the rocks. At 12:35 came the low point of the flight: 1,857 feet. Thin air, on a flank
-              with no landing options anywhere below it. That is the kind of moment that decides whether a
-              flight becomes a story or an incident.
+              far off the rocks.
             </p>
+            <p>
+              At 12:35 came the low point of the flight: 1,857 feet. Thin air, on a flank with no landing
+              options anywhere below it. That is the kind of moment that decides whether a flight becomes a
+              story or an incident.
+            </p>
+          </Step>
 
+          <Step id="transit" time="12:55 – 13:00" heading="Across the valley">
+            <p>
+              Then the day began to change, as forecast. By 12:55 the ridge had carried me up to 3,900 feet,
+              and I made the second decision: leave the ridge and cross the valley west, under the rotor, for
+              the lee of the Presidential range. The crossing cost about 700 feet and bottomed at 3,200 — low,
+              but under the right sky.
+            </p>
             <figure>
               <Image
                 src="/images/gallery/2026/clouds-spilling-over-the-ridge.webp"
                 alt="Cloud spilling over a mountain ridge, with an undercast beyond and blue sky above"
                 width={2016}
                 height={1134}
-                className="w-full rounded-2xl ring-1 ring-slate-900/5"
+                sizes="(min-width: 640px) 26rem, 92vw"
+                className="w-full rounded-xl ring-1 ring-white/10"
               />
-              <figcaption className="mt-3 text-sm leading-6 text-slate-500">
+              <figcaption className="mt-2 text-xs leading-5 text-slate-400">
                 Cloud spilling over the ridge while the wave gets going — the rotor&apos;s signature, below the
                 smooth air I was working toward.
               </figcaption>
             </figure>
+          </Step>
 
+          <Step id="rotor" time="13:00 – 13:11" heading="Twelve minutes of turns">
             <p>
-              Then the day began to change, as forecast. By 12:55 the ridge had carried me up to 3,900 feet, and
-              I made the second decision: leave the ridge and cross the valley west, under the rotor, for the
-              lee of the Presidential range. The crossing cost about 700 feet and bottomed at 3,200 — low, but
-              under the right sky.
+              Then the third method started working. I climbed out of the valley in the rotor&apos;s churned
+              air, circling in broken lift — twelve steady minutes of turns from 3,500 to 5,700 feet, the best
+              five of them averaging 350 feet a minute.
             </p>
+          </Step>
+
+          <Step id="wave" time="13:11 – 13:19" heading="The legs begin">
             <p>
-              What followed was the third method, working exactly as it is drawn up. I climbed out of the valley
-              in the rotor&apos;s churned air, circling in broken lift — twelve steady minutes of turns from
-              3,500 to 5,700 feet, the best five of them averaging 350 feet a minute. Then the air smoothed and
-              the climb changed character. Now it was the wave itself: long straight legs back and forth across
-              the lift line, the vario steadier, and the altimeter winding up faster than it had all flight. By
-              13:20 I was at 7,600 feet.
+              Then the air smoothed and the climb changed character. Now it was the wave itself: long straight
+              legs back and forth across the lift line, the vario steadier, and the altimeter winding up faster
+              than it had all flight. By 13:20 I was at 7,600 feet.
             </p>
+          </Step>
+
+          <Step id="upwind" time="13:19 – 13:25" heading="Into the primary">
             <p>
               The last move was the upwind one. I pushed northwest into the strongest part of the primary, over
               the rim of the Great Gulf near The Horn, and topped out at 7,943 feet at 13:24. The summit cone
               slid by below the left wing — as the photograph at the top of this piece shows — with the
               undercast lying over everything north of the mountain.
             </p>
+          </Step>
 
+          <Step id="home" time="13:25 – 13:36" heading="Ahead of the recall">
+            <p>
+              Below me, the camp was already shutting down. The ceiling was lowering, the gusts were up, and the
+              tow pilots had called the recall while the wave was only beginning to cook. I gave the mountain
+              one more look, turned downwind, and rode the long descent home. Landing came at 13:36.
+            </p>
             <figure>
               <Image
                 src="/images/gallery/2026/cockpit-over-the-summit.webp"
                 alt="Cockpit view of a glider over the mountains, with the flight computer showing 7,559 feet at 13:25"
                 width={2016}
                 height={1518}
-                className="w-full rounded-2xl ring-1 ring-slate-900/5"
+                sizes="(min-width: 640px) 26rem, 92vw"
+                className="w-full rounded-xl ring-1 ring-white/10"
               />
-              <figcaption className="mt-3 text-sm leading-6 text-slate-500">
+              <figcaption className="mt-2 text-xs leading-5 text-slate-400">
                 13:25 on the panel: 7,559 feet and Gorham six miles out, turning for home with the wave still
                 building.
               </figcaption>
             </figure>
+          </Step>
+        </FlightScrollStory>
 
-            <p>
-              Below me, the camp was already shutting down. The ceiling was lowering, the gusts were up, and the
-              tow pilots had called the recall while the wave was only beginning to cook. I gave the mountain
-              one more look, turned downwind, and rode the long descent home. Landing came at 13:36.
-            </p>
-
+        <Container width="2xl">
+          <Prose className="mt-16">
             <h2>What the hard way is worth</h2>
             <p>
               The arithmetic is easy to do and easy to misread. A long tow on a day when it works would have put
