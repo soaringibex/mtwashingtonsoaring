@@ -20,6 +20,31 @@ export const albums: Album[] = [
     blurb: "The opening days at Gorham — virga, a rainbow, the field, and the snow-dusted range from the air.",
     photos: [
       {
+        src: "/images/gallery/2026/cockpit-over-the-summit.webp",
+        alt: "The cockpit over Mount Washington — the panel, the phone mount and the Oudie reading 7,559 ft",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/clouds-spilling-over-the-ridge.webp",
+        alt: "Clouds spilling over the Presidential ridge with the undercast beyond, from the air",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-summit-from-the-wing.webp",
+        alt: "Mount Washington's summit and the Auto Road seen from the wing, a wall of cloud beyond",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/the-e-bike-tow.webp",
+        alt: "The e-bike and its tow bar moving a glider across the field, pickup and trailer behind",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2026/pilots-on-the-grid.webp",
+        alt: "Pilots gathered among trucks, gliders and a golf cart on the grid at Gorham",
+        aspect: "landscape",
+      },
+      {
         src: "/images/gallery/2026/the-field-and-valley-from-the-air.webp",
         alt: "The Androscoggin valley towns and the Gorham field from the air, gliders lined on the grass",
         aspect: "landscape",
