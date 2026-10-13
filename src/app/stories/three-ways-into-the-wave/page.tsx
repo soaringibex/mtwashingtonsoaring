@@ -4,7 +4,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { FlightScrollStory } from "@/components/flights/FlightScrollStory";
 import { Container } from "@/components/ui/Container";
-import { PageHero } from "@/components/ui/PageHero";
 import { Prose } from "@/components/ui/Prose";
 import { PHASE_COLORS, PHASE_SHORT } from "@/lib/flight-phases";
 
@@ -50,95 +49,40 @@ function Step({
 export default function ThreeWaysPage() {
   return (
     <>
-      <PageHero
-        eyebrow="From the 2026 camp"
-        title="Three ways into the wave"
-        lede="Monday's forecast called for a weak start and a strong finish, and it delivered both. Getting to 7,943 ft took all three of the ways into the Mt Washington wave: the long tow, the ridge, and the rotor."
-        image="/images/gallery/2026/the-summit-from-the-wing.webp"
-        imageAlt="The summit cone of Mount Washington seen from the wing of a glider, with an undercast beyond"
-        priority
-      />
-
-      <article className="py-14 sm:py-18">
-        <Container width="2xl">
-          <Link
-            href="/stories"
-            className="text-sm font-medium text-sky-700 transition-colors hover:text-sky-600"
-          >
-            <span aria-hidden="true">←</span> All stories
-          </Link>
-
-          <p className="mt-8 text-sm text-slate-500">Thomas Van de Velde · October 12, 2026 · Gorham (2G8)</p>
-
-          <Prose className="mt-8">
-            <p>
-              The day started weak and got stronger, then the cloud and the gusts moved in and shut us down,
-              which is exactly what the forecast had said would happen. I launched my ASG 29 at 12:12 into air
-              that was barely moving. The wind aloft was northwesterly but too light for the wave to organize;
-              it built through the afternoon, and the camp was recalled just as the wave started cooking.
-            </p>
-            <p>
-              I got 84 minutes out of it, and most of the first hour was spent below 4,000 ft, scratching for
-              every foot of altitude. There are three ways to reach the Mt Washington wave from Gorham, and
-              Monday&apos;s flight went through all of them.
-            </p>
-
-            <h2>1 · The direct tow</h2>
-            <p>
-              The first way up is the simplest: pay for a long tow to the wave. The tow takes you down the
-              valley toward the mountain and releases you in lift, often lower than you would guess; wave can
-              be found well below the summit. The most reliable window anywhere on the mountain is near{" "}
-              <Link href="/flying">The Horn</Link>, the northern shoulder above the Great Gulf. It works, and
-              it is how most of us get our first wave contact here.
-            </p>
-            <p>
-              The drawbacks are practical. Long tows aren&apos;t cheap, and each one keeps the towplane busy
-              while other gliders wait on the grid. The ride out passes through the rotor, which on a rough
-              day is the worst air you will touch all flight. And the glider that arrives on the rope has no
-              picture of the lower air at all: you know where the wave is, but nothing about what the valley
-              is doing. If the wave lets go, you are a long glide from a landing with no plan B.
-            </p>
-
-            <h2>2 · The high road, over the Carters</h2>
-            <p>
-              The second way is to get high first. A 3,000 ft tow puts you on the Moriah–Carter ridge
-              southeast of the field. From there the ridge is a ladder: work it south, climb in ridge lift and
-              whatever scrap of rotor or thermal you find, and at your best height turn west for the lee side
-              of the Presidential range, aiming at the wave line you think is working.
-            </p>
-            <p>
-              The pilot brief describes this as the usual route, and it has an honest logic: you cross the
-              valley with altitude in hand, and the ridge stays behind you as an escape. The spoiler is that
-              the wave can starve the same ridge you are climbing. When its sink settles on the ridge, the
-              lift that was supposed to carry you south simply isn&apos;t there, and every mile south is a
-              mile further from the field over ground with nowhere to land. You also make the jump west with
-              whatever altitude you have managed, which may not be much.
-            </p>
-
-            <h2>3 · The low road, climbing in rotor</h2>
-            <p>
-              The third way starts from underneath. On the lee side of the mountains the air below the wave
-              curls back on itself — the rotor. It is not smooth lift. It comes in broken, punchy pieces with
-              sink on all sides, and on most days it is marked by shredded clouds. When the wave is late, or a
-              tow doesn&apos;t connect, it is the way up that&apos;s left.
-            </p>
-            <p>
-              You climb it in small bites, staying near a place you can retreat to, working downwind as you
-              gain altitude until the air smooths into wave. Then you push upwind into the primary. That last
-              move costs altitude and is easy to get wrong, but it is the one that saves the day.
-            </p>
-
-            <h2>Monday&apos;s flight</h2>
-            <p>
-              Monday ran all three, in order. The flight below plays itself as you scroll: the scene follows
-              the phases and the marker retraces each one on the barogram. Amber is the low work on the
-              Moriah–Carter ridge; cyan, the crossing below the rotor; green, the rotor climb; pink, the wave
-              climb above it; and violet, the push upwind into the primary. Press play to run the whole
-              flight, and drag the scene to orbit it if you&apos;re on a computer.
-            </p>
-          </Prose>
+      {/* Full-screen opener — the flight scrolls up over it. */}
+      <section className="sticky top-0 z-0 h-[100svh] min-h-[560px]">
+        <Image
+          src="/images/gallery/2026/the-summit-from-the-wing.webp"
+          alt="The summit cone of Mount Washington seen from the wing of a glider, with an undercast beyond"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/10" />
+        <Container className="absolute inset-x-0 bottom-0 pb-14 sm:pb-16">
+          <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">
+            From the 2026 camp
+          </p>
+          <h1 className="mt-4 max-w-3xl font-display text-4xl font-bold tracking-tight text-white text-balance sm:text-5xl">
+            Three ways into the wave
+          </h1>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">
+            Monday&apos;s forecast called for a weak start and a strong finish, and it delivered both. Getting to
+            7,943 ft took all three of the ways into the Mt Washington wave: the long tow, the ridge, and the
+            rotor.
+          </p>
+          <p className="mt-4 text-sm text-slate-300/90">
+            Thomas Van de Velde · October 12, 2026 · Gorham (2G8)
+          </p>
+          <p className="mt-8 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-300/70">
+            Scroll <span aria-hidden="true">↓</span>
+          </p>
         </Container>
+      </section>
 
+      {/* Everything else scrolls up over the pinned opener. */}
+      <div className="relative z-10">
         <FlightScrollStory>
           <Step id="tow" time="12:12 – 12:27" heading="A tow that went nowhere">
             <p>
@@ -229,49 +173,111 @@ export default function ThreeWaysPage() {
           </Step>
         </FlightScrollStory>
 
-        <Container width="2xl">
-          <Prose className="mt-16">
-            <h2>What I took away from it</h2>
-            <p>
-              On paper, this climb cost more than it should have. A long tow on a day when it works would have
-              put me in the wave in fifteen minutes; the low road took an hour and most of my margin. What it
-              bought instead is a picture the tow never gives you: where the rotor actually sits on a
-              northwest day, how the valley feels when the wave is late, and which parts of the ridge to
-              trust. I&apos;ll take that trade.
-            </p>
-            <p>
-              All three ways work; the day decides which one you get. Monday offered the low road, with a
-              marginal ridge and a late wave, and then spent an hour proving it was the one that would
-              connect. When the wave is forecast to build, it usually does. Having the patience to climb to it
-              is most of the game.
-            </p>
-          </Prose>
+        <div className="bg-white">
+          <Container width="2xl" className="pb-20">
+            <Prose className="pt-16">
+              <p>
+                By the numbers: 84 minutes, most of the first hour below 4,000 ft, and a top-out at 7,943 ft.
+                What follows is a closer look at the three routes — how each one works, and what each one
+                costs.
+              </p>
 
-          <p className="mt-10 text-sm leading-7 text-slate-500">
-            The trace is logged at{" "}
-            <a
-              href="https://weglide.org/flight/1253598"
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium text-sky-700 hover:text-sky-600"
-            >
-              WeGlide ↗
-            </a>
-            . The day also appears in{" "}
-            <Link
-              href="/stories/2026-wave-camp-logbook-glen-kelley"
-              className="font-medium text-sky-700 hover:text-sky-600"
-            >
-              Glen Kelley&apos;s camp logbook
-            </Link>
-            , and every camp flight since 2016 is drawn in{" "}
-            <Link href="/flights/3d" className="font-medium text-sky-700 hover:text-sky-600">
-              the 3D archive
-            </Link>
-            .
-          </p>
-        </Container>
-      </article>
+              <h2>1 · The direct tow</h2>
+              <p>
+                The first way up is the simplest: pay for a long tow to the wave. The tow takes you down the
+                valley toward the mountain and releases you in lift, often lower than you would guess; wave
+                can be found well below the summit. The most reliable window anywhere on the mountain is near{" "}
+                <Link href="/flying">The Horn</Link>, the northern shoulder above the Great Gulf. It works,
+                and it is how most of us get our first wave contact here.
+              </p>
+              <p>
+                The drawbacks are practical. Long tows aren&apos;t cheap, and each one keeps the towplane busy
+                while other gliders wait on the grid. The ride out passes through the rotor, which on a rough
+                day is the worst air you will touch all flight. And the glider that arrives on the rope has no
+                picture of the lower air at all: you know where the wave is, but nothing about what the
+                valley is doing. If the wave lets go, you are a long glide from a landing with no plan B.
+              </p>
+
+              <h2>2 · The high road, over the Carters</h2>
+              <p>
+                The second way is to get high first. A 3,000 ft tow puts you on the Moriah–Carter ridge
+                southeast of the field. From there the ridge is a ladder: work it south, climb in ridge lift
+                and whatever scrap of rotor or thermal you find, and at your best height turn west for the lee
+                side of the Presidential range, aiming at the wave line you think is working.
+              </p>
+              <p>
+                The pilot brief describes this as the usual route, and it has an honest logic: you cross the
+                valley with altitude in hand, and the ridge stays behind you as an escape. The spoiler is that
+                the wave can starve the same ridge you are climbing. When its sink settles on the ridge, the
+                lift that was supposed to carry you south simply isn&apos;t there, and every mile south is a
+                mile further from the field over ground with nowhere to land. You also make the jump west
+                with whatever altitude you have managed, which may not be much.
+              </p>
+
+              <h2>3 · The low road, climbing in rotor</h2>
+              <p>
+                The third way starts from underneath. On the lee side of the mountains the air below the wave
+                curls back on itself — the rotor. It is not smooth lift. It comes in broken, punchy pieces
+                with sink on all sides, and on most days it is marked by shredded clouds. When the wave is
+                late, or a tow doesn&apos;t connect, it is the way up that&apos;s left.
+              </p>
+              <p>
+                You climb it in small bites, staying near a place you can retreat to, working downwind as you
+                gain altitude until the air smooths into wave. Then you push upwind into the primary. That
+                last move costs altitude and is easy to get wrong, but it is the one that saves the day.
+              </p>
+
+              <h2>What I took away from it</h2>
+              <p>
+                On paper, this climb cost more than it should have. A long tow on a day when it works would
+                have put me in the wave in fifteen minutes; the low road took an hour and most of my margin.
+                What it bought instead is a picture the tow never gives you: where the rotor actually sits on
+                a northwest day, how the valley feels when the wave is late, and which parts of the ridge to
+                trust. I&apos;ll take that trade.
+              </p>
+              <p>
+                All three ways work; the day decides which one you get. Monday offered the low road, with a
+                marginal ridge and a late wave, and then spent an hour proving it was the one that would
+                connect. When the wave is forecast to build, it usually does. Having the patience to climb to
+                it is most of the game.
+              </p>
+            </Prose>
+
+            <p className="mt-10 text-sm leading-7 text-slate-500">
+              The trace is logged at{" "}
+              <a
+                href="https://weglide.org/flight/1253598"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-sky-700 hover:text-sky-600"
+              >
+                WeGlide ↗
+              </a>
+              . The day also appears in{" "}
+              <Link
+                href="/stories/2026-wave-camp-logbook-glen-kelley"
+                className="font-medium text-sky-700 hover:text-sky-600"
+              >
+                Glen Kelley&apos;s camp logbook
+              </Link>
+              , and every camp flight since 2016 is drawn in{" "}
+              <Link href="/flights/3d" className="font-medium text-sky-700 hover:text-sky-600">
+                the 3D archive
+              </Link>
+              .
+            </p>
+
+            <p className="mt-10">
+              <Link
+                href="/stories"
+                className="text-sm font-medium text-sky-700 transition-colors hover:text-sky-600"
+              >
+                <span aria-hidden="true">←</span> All stories
+              </Link>
+            </p>
+          </Container>
+        </div>
+      </div>
     </>
   );
 }

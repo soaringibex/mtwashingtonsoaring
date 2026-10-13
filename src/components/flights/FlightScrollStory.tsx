@@ -58,7 +58,7 @@ export function FlightScrollStory({ children }: { children: ReactNode }) {
     <section
       ref={rootRef}
       aria-label="The flight of October 12, 2026, told phase by phase as you scroll"
-      className="relative border-y border-slate-900/10 bg-slate-950"
+      className="relative bg-slate-950"
     >
       <div className={`${STICKY} ${HEIGHT}`}>
         <ConnectWithWave3D phase={active} scroll />
@@ -66,7 +66,7 @@ export function FlightScrollStory({ children }: { children: ReactNode }) {
 
       {/* The steps overlay the sticky stage's flow space; only the cards take pointers. */}
       <div className={`relative z-10 ${OVERLAP} pointer-events-none`}>
-        <div className="flex h-[44svh] items-end justify-center pb-16">
+        <div className="flex h-[36svh] items-end justify-center pb-16">
           <p className="rounded-full bg-slate-950/60 px-4 py-1.5 text-xs text-slate-300 ring-1 ring-white/10 backdrop-blur-sm">
             Keep scrolling — the flight plays itself, phase by phase
           </p>
