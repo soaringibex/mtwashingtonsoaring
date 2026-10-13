@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import { SectionNote } from "@/components/weather/SectionNote";
 import Link from "next/link";
 import { DashboardHeader } from "@/components/weather/DashboardHeader";
-import { FieldReports } from "@/components/weather/FieldReports";
-import { SatellitePanel } from "@/components/weather/SatellitePanel";
-import { WavePanel } from "@/components/weather/WavePanel";
-import { WindPanel } from "@/components/weather/WindPanel";
+import { WxTabs } from "@/components/weather/WxTabs";
 import { Container } from "@/components/ui/Container";
 
 export const metadata: Metadata = {
@@ -57,13 +54,7 @@ export default function WxPage() {
               </p>
             </section>
 
-            <WavePanel />
-
-            <WindPanel />
-
-            <FieldReports />
-
-            <SatellitePanel />
+            <WxTabs />
 
             <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
