@@ -225,9 +225,11 @@ export type ConnectWithWave3DProps = {
   phase?: string;
   /** Scroll-story mode: no built-in buttons or note cards; each phase flies and plays as it is set. */
   scroll?: boolean;
+  /** Scroll-story mode: a phase's track run finished — or the reader took over the scrubber. */
+  onPhasePlayed?: (phaseId: string) => void;
 };
 
-export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DProps = {}) {
+export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: ConnectWithWave3DProps = {}) {
   const [track, setTrack] = useState<TrackData | null>(null);
   const [mosaic, setMosaic] = useState<TerrainMosaic | null>(null);
   const [dataError, setDataError] = useState(false);
@@ -241,6 +243,11 @@ export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DPr
   const [noteDismissed, setNoteDismissed] = useState(false);
   /** Bumped to cancel an in-flight scroll segment when the phase changes or the reader takes over. */
   const autoTokenRef = useRef(0);
+  /** Kept in a ref so an unstable parent callback cannot restart a segment mid-flight. */
+  const onPhasePlayedRef = useRef(onPhasePlayed);
+  useEffect(() => {
+    onPhasePlayedRef.current = onPhasePlayed;
+  }, [onPhasePlayed]);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const labelCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -627,6 +634,7 @@ export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DPr
 
   // Scroll-story mode: when the reader's scroll picks a phase, fly to it and retrace
   // that segment on the barogram (cancelled if they press play or drag the scrubber).
+  // The run reports back when it finishes so the page's scroll interlock can let go.
   useEffect(() => {
     if (!scroll || !phase) return;
     const view = phaseView(phase);
@@ -635,14 +643,24 @@ export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DPr
     const p = track.phases.find((x) => x.id === phase);
     if (!p) return;
     setPlaying(false);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      // No autoplay motion: show the segment's end state and release the page.
+      seek(p.to);
+      onPhasePlayedRef.current?.(p.id);
+      return;
+    }
     const token = ++autoTokenRef.current;
     const t0 = performance.now();
-    const dur = Math.min(9000, Math.max(4200, (p.to - p.from) * 180));
+    const dur = Math.min(4200, Math.max(2400, (p.to - p.from) * 6));
     let raf = requestAnimationFrame(function step(now: number) {
       if (autoTokenRef.current !== token) return;
       const k = Math.min(1, (now - t0) / dur);
       seek(p.from + (p.to - p.from) * k);
-      if (k < 1) raf = requestAnimationFrame(step);
+      if (k < 1) {
+        raf = requestAnimationFrame(step);
+      } else {
+        onPhasePlayedRef.current?.(p.id);
+      }
     });
     return () => {
       cancelAnimationFrame(raf);
@@ -1241,6 +1259,7 @@ export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DPr
             onClick={() => {
               if (!track) return;
               autoTokenRef.current += 1; // the reader takes over from any scroll segment
+              if (scroll && phase) onPhasePlayedRef.current?.(phase);
               if (time === null || time >= track.landing) seek(track.takeoff);
               setPlaying((p) => !p);
             }}
@@ -1267,6 +1286,7 @@ export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DPr
               onPointerDown={(e) => {
                 if (!track) return;
                 autoTokenRef.current += 1;
+                if (scroll && phase) onPhasePlayedRef.current?.(phase);
                 setPlaying(false);
                 const el = e.currentTarget;
                 const rect = el.getBoundingClientRect();
