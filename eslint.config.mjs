@@ -6,11 +6,14 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    // The satellite panel renders live NOAA frames as plain <img> elements: every URL is
-    // a fresh five-minute JPEG on a public CDN, so the image optimizer would only add
-    // latency and spend its quota re-encoding them — and the panel needs explicit srcset
-    // control to keep phone data use down.
-    files: ["src/components/weather/SatellitePanel.tsx"],
+    // The satellite panels render live NOAA/NASA frames as plain <img> elements: every
+    // URL is a fresh image on a public CDN, so the image optimizer would only add
+    // latency and spend its quota re-encoding them — and the panels need explicit
+    // srcset control to keep phone data use down.
+    files: [
+      "src/components/weather/SatellitePanel.tsx",
+      "src/components/weather/SatellitePasses.tsx",
+    ],
     rules: {
       "@next/next/no-img-element": "off",
     },

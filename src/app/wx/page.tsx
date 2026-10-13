@@ -11,7 +11,7 @@ import { Container } from "@/components/ui/Container";
 export const metadata: Metadata = {
   title: "Wavecast",
   description:
-    "The day's wave forecast for Mount Washington — a Scorer-parameter wave signal, the live column of wind aloft, the summit forecast hour by hour, nearby field reports, five-minute satellite imagery of the Northeast, and the forecasts to read before you fly.",
+    "The day's wave forecast for Mount Washington — a Scorer-parameter wave signal, the live column of wind aloft, the summit forecast hour by hour, nearby field reports, a five-minute satellite loop and the daily polar passes of the Northeast, and the forecasts to read before you fly.",
 };
 
 const forecastLinks = [

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { SatellitePasses } from "@/components/weather/SatellitePasses";
 import { SectionNote } from "@/components/weather/SectionNote";
 
 /**
@@ -28,6 +29,10 @@ const SIZES = "(min-width: 768px) 768px, calc(100vw - 96px)";
 
 const LIGHT_PILL =
   "inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-sky-50 hover:text-sky-700 disabled:pointer-events-none disabled:opacity-40";
+const MODES: { id: "loop" | "passes"; label: string }[] = [
+  { id: "loop", label: "Loop" },
+  { id: "passes", label: "Daily passes" },
+];
 const PLAY_PILL =
   "inline-flex items-center gap-1.5 rounded-full bg-sky-700 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-800";
 const DARK_PILL =
@@ -78,6 +83,7 @@ function preloadFrame(ms: number): void {
 
 export function SatellitePanel() {
   const [now, setNow] = useState<number | null>(null);
+  const [mode, setMode] = useState<"loop" | "passes">("loop");
   const [offset, setOffset] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [loadedStamp, setLoadedStamp] = useState<string | null>(null);
@@ -180,11 +186,28 @@ export function SatellitePanel() {
   }
 
   const header = (
-    <div className="flex flex-wrap items-baseline justify-between gap-2">
+    <div className="flex flex-wrap items-center justify-between gap-2">
       <p className="font-display text-xs font-semibold uppercase tracking-[0.28em] text-sky-700">
         Satellite
       </p>
-      <p className="text-xs text-slate-400">NOAA GOES-East · GeoColor</p>
+      <div className="flex rounded-full bg-slate-100 p-1" role="group" aria-label="Satellite view">
+        {MODES.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            aria-pressed={mode === option.id}
+            onClick={() => {
+              setPlaying(false);
+              setMode(option.id);
+            }}
+            className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+              mode === option.id ? "bg-sky-700 text-white" : "text-slate-600 hover:text-sky-700"
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 
@@ -198,8 +221,8 @@ export function SatellitePanel() {
       >
         {header}
         <SectionNote>
-          Five-minute frames of the Northeast from the GOES-East satellite — the sharpest view of
-          the wave&rsquo;s cloud as it builds, sits, and washes out. Step through the last six
+          Five-minute frames of the Northeast from the GOES-East satellite — a minute-by-minute view
+          of the wave&rsquo;s cloud as it builds, sits, and washes out. Step through the last six
           hours, or open any frame full size to read the structure up close.
         </SectionNote>
         <div className="mx-auto mt-5 w-full max-w-3xl" aria-hidden="true">
@@ -216,126 +239,132 @@ export function SatellitePanel() {
     >
       {header}
 
-      <SectionNote>
-        Five-minute frames of the Northeast from the GOES-East satellite — the sharpest view of the
-        wave&rsquo;s cloud as it builds, sits, and washes out. Step through the last six hours, or
-        open any frame full size to read the structure up close.
-      </SectionNote>
+      {mode === "passes" ? (
+        <SatellitePasses />
+      ) : (
+        <>
+        <SectionNote>
+          Five-minute frames of the Northeast from the GOES-East satellite — a minute-by-minute view
+          of the wave&rsquo;s cloud as it builds, sits, and washes out. Step through the last six
+          hours, or open any frame full size to read the structure up close.
+        </SectionNote>
 
-      <div className="mx-auto mt-5 w-full max-w-3xl">
-        <div className="relative overflow-hidden rounded-2xl bg-slate-900 ring-1 ring-slate-900/10">
-          <img
-            src={frameUrl(selected, "1200x1200")}
-            srcSet={frameSrcSet(selected)}
-            sizes={SIZES}
-            width={2400}
-            height={2400}
-            alt={`GOES-East GeoColor satellite frame — ${label}`}
-            className="block h-auto w-full"
-            decoding="async"
-            onLoad={() => setLoadedStamp(stamp)}
-            onError={() => {
-              setMissing((prev) => new Set(prev).add(stamp));
-              setLoadedStamp(stamp);
+        <div className="mx-auto mt-5 w-full max-w-3xl">
+          <div className="relative overflow-hidden rounded-2xl bg-slate-900 ring-1 ring-slate-900/10">
+            <img
+              src={frameUrl(selected, "1200x1200")}
+              srcSet={frameSrcSet(selected)}
+              sizes={SIZES}
+              width={2400}
+              height={2400}
+              alt={`GOES-East GeoColor satellite frame — ${label}`}
+              className="block h-auto w-full"
+              decoding="async"
+              onLoad={() => setLoadedStamp(stamp)}
+              onError={() => {
+                setMissing((prev) => new Set(prev).add(stamp));
+                setLoadedStamp(stamp);
+              }}
+            />
+            {isMissing ? (
+              <div className="absolute inset-0 grid place-items-center bg-slate-900/85 px-6 text-center text-sm text-slate-200">
+                No frame for this time — that scan is missing. Step to another frame.
+              </div>
+            ) : null}
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <p className="font-display text-sm font-semibold tabular-nums text-slate-800">{label}</p>
+            {offset === 0 ? (
+              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-700 ring-1 ring-emerald-600/20">
+                latest
+              </span>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                setPlaying(false);
+                setReviewOpen(true);
+              }}
+              disabled={isMissing}
+              className={`ml-auto ${LIGHT_PILL}`}
+            >
+              Full resolution
+              <span aria-hidden="true" className="text-slate-400">
+                ⤢
+              </span>
+            </button>
+          </div>
+
+          <input
+            type="range"
+            min={0}
+            max={frames.length - 1}
+            value={frames.length - 1 - offset}
+            onChange={(event) => {
+              setPlaying(false);
+              setOffset(frames.length - 1 - Number(event.target.value));
             }}
+            aria-label="Frame time — left is six hours ago, right is the latest frame"
+            className="mt-4 w-full cursor-pointer accent-sky-700"
           />
-          {isMissing ? (
-            <div className="absolute inset-0 grid place-items-center bg-slate-900/85 px-6 text-center text-sm text-slate-200">
-              No frame for this time — that scan is missing. Step to another frame.
-            </div>
-          ) : null}
+          <div className="mt-1 flex justify-between text-[11px] text-slate-400">
+            <span>−6 hours</span>
+            <span>latest</span>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => stepBy(1)}
+              disabled={offset >= frames.length - 1}
+              title="Back five minutes"
+              className={LIGHT_PILL}
+            >
+              <span aria-hidden="true">◀</span> 5 min
+            </button>
+            <button
+              type="button"
+              onClick={togglePlay}
+              disabled={isMissing}
+              title="Play the two hours up to this frame"
+              className={PLAY_PILL}
+            >
+              {playing ? "Pause" : "Play"}
+            </button>
+            <button
+              type="button"
+              onClick={() => stepBy(-1)}
+              disabled={offset <= 0}
+              title="Forward five minutes"
+              className={LIGHT_PILL}
+            >
+              5 min <span aria-hidden="true">▶</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPlaying(false);
+                setOffset(0);
+              }}
+              disabled={offset === 0}
+              title="Jump to the latest frame"
+              className={`ml-auto ${LIGHT_PILL}`}
+            >
+              Latest
+            </button>
+          </div>
+
+          <p className="mt-3 text-xs leading-5 text-slate-400">
+            NOAA/NESDIS STAR · GOES-East (GOES-19) GeoColor · five-minute scans. Full-resolution
+            frames are 2400 × 2400 — NOAA&rsquo;s largest rendering of this view. Frame times are
+            Eastern; the timestamp inside the image is UTC.
+          </p>
         </div>
+        </>
+      )}
 
-        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-          <p className="font-display text-sm font-semibold tabular-nums text-slate-800">{label}</p>
-          {offset === 0 ? (
-            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-700 ring-1 ring-emerald-600/20">
-              latest
-            </span>
-          ) : null}
-          <button
-            type="button"
-            onClick={() => {
-              setPlaying(false);
-              setReviewOpen(true);
-            }}
-            disabled={isMissing}
-            className={`ml-auto ${LIGHT_PILL}`}
-          >
-            Full resolution
-            <span aria-hidden="true" className="text-slate-400">
-              ⤢
-            </span>
-          </button>
-        </div>
-
-        <input
-          type="range"
-          min={0}
-          max={frames.length - 1}
-          value={frames.length - 1 - offset}
-          onChange={(event) => {
-            setPlaying(false);
-            setOffset(frames.length - 1 - Number(event.target.value));
-          }}
-          aria-label="Frame time — left is six hours ago, right is the latest frame"
-          className="mt-4 w-full cursor-pointer accent-sky-700"
-        />
-        <div className="mt-1 flex justify-between text-[11px] text-slate-400">
-          <span>−6 hours</span>
-          <span>latest</span>
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => stepBy(1)}
-            disabled={offset >= frames.length - 1}
-            title="Back five minutes"
-            className={LIGHT_PILL}
-          >
-            <span aria-hidden="true">◀</span> 5 min
-          </button>
-          <button
-            type="button"
-            onClick={togglePlay}
-            disabled={isMissing}
-            title="Play the two hours up to this frame"
-            className={PLAY_PILL}
-          >
-            {playing ? "Pause" : "Play"}
-          </button>
-          <button
-            type="button"
-            onClick={() => stepBy(-1)}
-            disabled={offset <= 0}
-            title="Forward five minutes"
-            className={LIGHT_PILL}
-          >
-            5 min <span aria-hidden="true">▶</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setPlaying(false);
-              setOffset(0);
-            }}
-            disabled={offset === 0}
-            title="Jump to the latest frame"
-            className={`ml-auto ${LIGHT_PILL}`}
-          >
-            Latest
-          </button>
-        </div>
-
-        <p className="mt-3 text-xs leading-5 text-slate-400">
-          NOAA/NESDIS STAR · GOES-East (GOES-19) GeoColor · five-minute scans. Full-resolution
-          frames are 2400 × 2400 — NOAA&rsquo;s largest rendering of this view. Frame times are
-          Eastern; the timestamp inside the image is UTC.
-        </p>
-      </div>
-
-      {reviewOpen ? (
+      {mode === "loop" && reviewOpen ? (
         <div
           role="dialog"
           aria-modal="true"
