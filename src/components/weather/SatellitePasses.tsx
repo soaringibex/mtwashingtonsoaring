@@ -277,8 +277,8 @@ export function SatellitePasses() {
 
         <p className="mt-3 text-xs leading-5 text-slate-400">
           NASA Worldview / GIBS · MODIS Terra and Aqua true colour at 250 m, with NOAA-21
-          VIIRS (750 m) as the afternoon backup · 15 m coastlines · passes are rendered a
-          few hours after the overflight, and days are Eastern.
+          VIIRS (750 m) as the afternoon backup · passes are rendered a few hours after
+          the overflight, and days are Eastern.
         </p>
       </div>
 
