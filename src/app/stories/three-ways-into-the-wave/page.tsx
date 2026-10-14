@@ -74,9 +74,10 @@ export default function ThreeWaysPage() {
             Three ways into the wave
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">
-            Monday&apos;s forecast called for a weak start and a strong finish, and it delivered both. Getting to
-            8,000 ft took all mountain soaring techniques to get into the Mt Washington wave: the low save,
-            the ridge to get back up, and a turbulent rotor climb to transition upwind into the wave.
+            Monday&apos;s forecast called for a weak start and stronger conditions in the afternoon with threat
+            of the sky below closing in on us. Getting to 8,000 ft that day required a mix of mountain flying
+            techniques ranging from a low save to climbing a ridge to get back up, and a turbulent rotor climb
+            to transition upwind into the wave.
           </p>
           <p className="mt-4 text-sm text-slate-300/90">
             Thomas Van de Velde · October 12, 2026 · Gorham (2G8)
