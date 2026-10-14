@@ -93,11 +93,12 @@ export default function ThreeWaysPage() {
         <FlightScrollStory>
           <Step id="tow" time="12:12 – 12:27" heading="A no-contact release">
             <p>
-              The first tow was the direct kind, out toward the primary, and it went nowhere. I released at
-              4,300 ft into air that wasn&apos;t working yet. I spent ten minutes probing the lee side and made
-              one fast run east looking for a window, before giving up. By 12:27 I was down to 2,300 ft and
-              heading back towards Gorham looking for a last ditch save at the Moriah–Carter ridge. I found a
-              small thermal just strong enough to lift me on the foothills of the Carters.
+              I gambled on a direct tow to the primary wave as the easy way in but ended up taking the hard
+              route. I released at 4,300 ft into air that wasn&apos;t working yet. I spent ten minutes probing
+              the lee side and made one fast run east looking for a window, before giving up. By 12:27 I was
+              down to 2,300 ft and heading back towards Gorham looking for a last ditch save at the
+              Moriah–Carter ridge. I found a small thermal just strong enough to lift me on the foothills of
+              the Carters.
             </p>
           </Step>
 
