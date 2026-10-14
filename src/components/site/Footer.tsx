@@ -116,15 +116,6 @@ export function Footer() {
           <p>
             © {year} {site.name}. All rights reserved.
           </p>
-          <p>
-            Website sponsored by{" "}
-            <a
-              href={site.sponsor.url}
-              className="font-medium text-slate-400 transition-colors hover:text-white"
-            >
-              {site.sponsor.name}
-            </a>
-          </p>
         </div>
       </Container>
     </footer>

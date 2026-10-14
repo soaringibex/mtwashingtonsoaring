@@ -9,10 +9,6 @@ export const site = {
     airport: "Gorham Municipal Airport (2G8)",
     town: "Gorham, New Hampshire",
   },
-  sponsor: {
-    name: "Data Minds Consulting",
-    url: "https://www.data-minds.com",
-  },
   nav: [
     { href: "/flying", label: "Flying here", beta: false },
     { href: "/stories", label: "Stories", beta: false },
