@@ -155,9 +155,21 @@ export default function SteppingUpPage() {
               The last move was the upwind one. I pushed northwest into the strongest part of the primary,
               over the rim of the Great Gulf near The Horn, and topped out around 8,000 ft when we received
               the radio call about the closing sky over Gorham airport. The summit cone slid by under the left
-              wing (see the photo at the top of this page), with the undercast lying over everything north of
-              the mountain.
+              wing, with the undercast lying over everything north of the mountain.
             </p>
+            <figure>
+              <Image
+                src="/images/gallery/2026/the-summit-from-the-wing.webp"
+                alt="The summit cone of Mount Washington seen from the wing of a glider, with an undercast beyond"
+                width={1800}
+                height={1355}
+                sizes="(min-width: 640px) 26rem, 92vw"
+                className="w-full rounded-xl ring-1 ring-white/10"
+              />
+              <figcaption className="mt-2 text-xs leading-5 text-slate-400">
+                The summit cone under the left wing, the undercast over everything north.
+              </figcaption>
+            </figure>
           </Step>
 
           <Step id="home" time="13:25 – 13:36" heading="Going home">
