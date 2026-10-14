@@ -234,22 +234,64 @@ function drawArcArrow(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: 
   ctx.restore();
 }
 
-/** A small puffy cloud of overlapping lobes, drawn in screen space. */
+/** A puffy cumulus, drawn in screen space: a soft body and rounded puffs, white on
+ * top melting into a blue-grey underside — as photographic as a canvas doodle gets. */
 function drawCloud(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
-  const lobes: [number, number, number][] = [
-    [-22, 6, 13],
-    [-6, -6, 18],
-    [14, 0, 14],
-    [30, 7, 11],
-    [2, 9, 13],
-  ];
   ctx.save();
-  ctx.fillStyle = "rgba(241,245,249,0.95)";
+
+  // A soft shadow beneath the mass for depth.
+  const base = ctx.createRadialGradient(cx, cy + 16, 6, cx, cy + 16, 60);
+  base.addColorStop(0, "rgba(15,23,42,0.28)");
+  base.addColorStop(1, "rgba(15,23,42,0)");
+  ctx.fillStyle = base;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + 16, 60, 17, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // The body: one wide soft mass, sunlit on top, cool at the base.
+  const body = ctx.createLinearGradient(cx, cy - 30, cx, cy + 22);
+  body.addColorStop(0, "rgba(255,255,255,0.97)");
+  body.addColorStop(0.55, "rgba(238,244,250,0.93)");
+  body.addColorStop(1, "rgba(196,207,220,0.5)");
+  ctx.fillStyle = body;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + 1, 52, 23, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Rounded puffs packed into the body so the two read as one mass.
+  const lobes: [number, number, number][] = [
+    [-30, 3, 16],
+    [-12, -6, 22],
+    [8, -8, 20],
+    [28, 2, 15],
+    [-44, 8, 11],
+    [44, 8, 11],
+  ];
   for (const [dx, dy, r] of lobes) {
+    const puff = ctx.createRadialGradient(cx + dx, cy + dy - r * 0.45, r * 0.15, cx + dx, cy + dy, r);
+    puff.addColorStop(0, "rgba(255,255,255,0.98)");
+    puff.addColorStop(0.68, "rgba(240,245,250,0.9)");
+    puff.addColorStop(1, "rgba(205,216,228,0)");
+    ctx.fillStyle = puff;
     ctx.beginPath();
     ctx.arc(cx + dx, cy + dy, r, 0, Math.PI * 2);
     ctx.fill();
   }
+
+  // Soft crown highlights where the sun catches the top.
+  for (const [dx, dy, r] of [
+    [-12, -14, 13],
+    [10, -12, 11],
+  ] as [number, number, number][]) {
+    const cap = ctx.createRadialGradient(cx + dx, cy + dy - r * 0.3, r * 0.1, cx + dx, cy + dy, r);
+    cap.addColorStop(0, "rgba(255,255,255,0.85)");
+    cap.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = cap;
+    ctx.beginPath();
+    ctx.arc(cx + dx, cy + dy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   ctx.restore();
 }
 
@@ -619,8 +661,10 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
     if (rotor) {
       const sel = track.points.filter(([, , , t]) => t >= rotor.from && t < rotor.to);
       if (sel.length > 0) {
-        const lon = sel.reduce((a, [l]) => a + l, 0) / sel.length;
-        const lat = sel.reduce((a, [, l]) => a + l, 0) / sel.length;
+        // Shifted to the right of the climb for the rotor camera's view, so the
+        // drawing sits clear of the circling and the card.
+        const lon = sel.reduce((a, [l]) => a + l, 0) / sel.length + 0.018;
+        const lat = sel.reduce((a, [, l]) => a + l, 0) / sel.length + 0.018;
         rotorAnchor = wp(lon, lat);
       }
     }
@@ -1077,9 +1121,8 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
           const p = project(annot.rotor[0], annot.rotor[1], annot.rotor[2]);
           if (p) {
             const [rx, ry] = p;
-            drawCloud(lctx, rx, ry - 78 + Math.sin(spinTick * 0.05) * 3);
-            drawArcArrow(lctx, rx - 36, ry, 22, spin, "rgba(52,211,153,0.95)");
-            drawArcArrow(lctx, rx + 36, ry, 22, spin, "rgba(52,211,153,0.95)");
+            drawCloud(lctx, rx, ry - 74 + Math.sin(spinTick * 0.05) * 3);
+            drawArcArrow(lctx, rx, ry, 24, spin, "rgba(52,211,153,0.95)");
           }
         }
         if (ridgeVisible && annot) {
