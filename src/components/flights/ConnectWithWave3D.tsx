@@ -489,7 +489,7 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
     const calls = [
       { text: "release · 4,300 ft", pt: nearest(at(12, 18, 2)) },
       { text: "low point · 1,857 ft", pt: nearest(at(12, 35, 0)) },
-      { text: "top · 7,943 ft", pt: nearest(at(13, 24, 10)) },
+      { text: "top · 8,000 ft", pt: nearest(at(13, 24, 10)) },
     ];
     return { phases, calls };
   }, [track]);

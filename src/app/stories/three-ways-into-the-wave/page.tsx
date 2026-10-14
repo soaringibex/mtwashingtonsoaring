@@ -10,7 +10,7 @@ import { PHASE_COLORS, PHASE_SHORT } from "@/lib/flight-phases";
 export const metadata: Metadata = {
   title: "Three ways into the wave",
   description:
-    "Monday's flight at the 2026 Gorham camp, told as a scroll: a tow that didn't connect, a low save down to 1,857 ft on the Moriah–Carter ridge, and a climb through the rotor to 7,943 ft. All three ways into the Mt Washington wave, drawn in 3D as you read.",
+    "Monday's flight at the 2026 Gorham camp, told as a scroll: a tow that didn't connect, a low save down to 1,857 ft on the Moriah–Carter ridge, and a climb through the rotor to around 8,000 ft. All three ways into the Mt Washington wave, drawn in 3D as you read.",
 };
 
 /** One phase of the flight: a scroll step whose card crosses the scene's focus line. */
@@ -178,7 +178,8 @@ export default function ThreeWaysPage() {
           <Container width="2xl" className="pb-20">
             <Prose className="pt-16">
               <p>
-                By the numbers: 84 minutes, most of the first hour below 4,000 ft, and a top-out at 7,943 ft.
+                By the numbers: 84 minutes, most of the first hour below 4,000 ft, and a top-out around
+                8,000 ft.
                 What follows is a closer look at the three routes — how each one works, and what each one
                 costs.
               </p>
