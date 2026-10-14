@@ -1084,9 +1084,13 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
           const p = project(annot.rotor[0], annot.rotor[1], annot.rotor[2]);
           if (p) {
             const [rx, ry] = p;
-            drawCloud(lctx, rx, ry - 78 + Math.sin(spinTick * 0.05) * 3);
-            // The cycle sits off to the right of the climb, below the cloud's line.
-            drawArcArrow(lctx, rx + 110, ry + 100, 56, spin, "rgba(52,211,153,0.95)");
+            // The climb runs up the side of the circulating ring, which sits off
+            // to the right; the rotor cloud rides its top, just overlapping it.
+            const ringX = rx + 92;
+            const ringY = ry + 84;
+            const ringR = 64;
+            drawArcArrow(lctx, ringX, ringY, ringR, spin, "rgba(255,255,255,0.95)");
+            drawCloud(lctx, ringX, ringY - ringR - 18 + Math.sin(spinTick * 0.05) * 3);
           }
         }
         if (ridgeVisible && annot) {
