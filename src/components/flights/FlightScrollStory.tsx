@@ -72,7 +72,17 @@ export function FlightScrollStory({ children }: { children: ReactNode }) {
 
     const onScroll = () => {
       const hold = holdRef.current;
-      if (hold && window.scrollY > hold.y) window.scrollTo(0, hold.y);
+      if (hold && window.scrollY > hold.y) {
+        // A tick that slips in before the hold lands can overshoot the line (a wheel
+        // event can commit before the hold effect runs, on some displays at subpixel
+        // geometry). Absorb a small overshoot by moving the line down to the reader —
+        // no visible bounce — and only clamp back for a genuine leap past the stop.
+        if (window.scrollY - hold.y <= window.innerHeight * 0.25) {
+          hold.y = window.scrollY;
+        } else {
+          window.scrollTo(0, hold.y);
+        }
+      }
       if (!raf) raf = requestAnimationFrame(update);
     };
 
