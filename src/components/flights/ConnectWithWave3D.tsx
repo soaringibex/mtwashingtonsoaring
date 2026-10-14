@@ -67,6 +67,8 @@ const PEAKS = [
   { name: "The Horn", lat: 44.2947, lon: -71.2789 },
   { name: "Mt Moriah", lat: 44.34053, lon: -71.13172 },
   { name: "Carter Dome", lat: 44.2674, lon: -71.17912 },
+  { name: "Mount Surprise", lat: 44.3623, lon: -71.1517 },
+  { name: "Imp Face", lat: 44.32173, lon: -71.18757 },
   { name: "Wildcat", lat: 44.2592, lon: -71.20161 },
   { name: "Pine Mountain", lat: 44.36588, lon: -71.21519 },
   { name: "Gorham (2G8)", lat: 44.3934, lon: -71.1934 },

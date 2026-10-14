@@ -54,6 +54,8 @@ const PEAKS = [
   { name: "Mt Jackson", lat: 44.20715, lon: -71.31157 },
   { name: "Wildcat Mountain", lat: 44.26174, lon: -71.20239 },
   { name: "Carter Dome", lat: 44.26953, lon: -71.17973 },
+  { name: "Mount Surprise", lat: 44.3623, lon: -71.1517 },
+  { name: "Imp Face", lat: 44.32173, lon: -71.18757 },
   { name: "Kearsarge North", lat: 44.10966, lon: -71.09459 },
 ];
 
