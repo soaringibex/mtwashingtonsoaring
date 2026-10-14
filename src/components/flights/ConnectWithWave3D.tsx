@@ -210,13 +210,14 @@ function program(gl: WebGLRenderingContext, vs: string, fs: string): WebGLProgra
   return p;
 }
 
-/** A spinning circulation arrow: an arc with a head, drawn in screen space. */
+/** A spinning circulation arrow: an arc with a head, drawn in screen space.
+ * Line weight and head scale with the radius. */
 function drawArcArrow(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, start: number, color: string): void {
   const sweep = Math.PI * 1.5;
   const a1 = start + sweep;
   ctx.save();
   ctx.strokeStyle = color;
-  ctx.lineWidth = 3.5;
+  ctx.lineWidth = Math.max(3, r * 0.13);
   ctx.lineCap = "round";
   ctx.beginPath();
   ctx.arc(cx, cy, r, start, a1);
@@ -224,7 +225,7 @@ function drawArcArrow(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: 
   const px = cx + r * Math.cos(a1);
   const py = cy + r * Math.sin(a1);
   const angle = Math.atan2(Math.cos(a1), -Math.sin(a1));
-  const size = 10;
+  const size = Math.max(9, r * 0.42);
   ctx.beginPath();
   ctx.moveTo(px, py);
   ctx.lineTo(px - size * Math.cos(angle - 0.5), py - size * Math.sin(angle - 0.5));
@@ -661,12 +662,12 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
     if (rotor) {
       const sel = track.points.filter(([, , , t]) => t >= rotor.from && t < rotor.to);
       if (sel.length > 0) {
-        // The drawing floats at the TOP of the rotor climb — the phase's last fix,
-        // at its own altitude — a touch to the right of the last circle, so it
-        // marks where the climb finished rather than the ground below it.
+        // The cloud anchors on the top of the rotor climb — the phase's last fix,
+        // at its own altitude — so it hovers over the last circle; the arrow ring
+        // is drawn to the right of the climb instead (see the draw pass).
         const [lon, lat] = sel[sel.length - 1];
         const topAlt = Math.max(...sel.map(([, , alt]) => alt));
-        rotorAnchor = [scene.worldX(lon + 0.01), scene.worldY(lat + 0.01), scene.worldZ(topAlt)];
+        rotorAnchor = [scene.worldX(lon), scene.worldY(lat), scene.worldZ(topAlt)];
       }
     }
     return {
@@ -1076,6 +1077,24 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
           lctx.fillText(text, sx, y);
         };
 
+        // Phase annotations, drawn under the text so labels stay legible over them:
+        // the rotor's circulation and the ridge's up-slope wind.
+        const spin = spinTick * 0.08;
+        if (rotorVisible && annot?.rotor) {
+          const p = project(annot.rotor[0], annot.rotor[1], annot.rotor[2]);
+          if (p) {
+            const [rx, ry] = p;
+            drawCloud(lctx, rx, ry - 78 + Math.sin(spinTick * 0.05) * 3);
+            // The cycle sits off to the right of the climb, below the cloud's line.
+            drawArcArrow(lctx, rx + 110, ry + 100, 56, spin, "rgba(52,211,153,0.95)");
+          }
+        }
+        if (ridgeVisible && annot) {
+          const a = project(annot.ridge.tail[0], annot.ridge.tail[1], annot.ridge.tail[2]);
+          const b = project(annot.ridge.head[0], annot.ridge.head[1], annot.ridge.head[2]);
+          if (a && b) drawWindArrow(lctx, a, b, spinTick);
+        }
+
         // The moments that carry numbers.
         for (const call of labelPoints.calls) {
           const p = project(scene.worldX(call.pt[0]), scene.worldY(call.pt[1]), scene.worldZ(call.pt[2]));
@@ -1114,22 +1133,6 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
           const y2 = tryPlace("500 11px ui-sans-serif, system-ui, sans-serif", sx, sy, peak.name, [-5, 17, -26, 30]);
           if (y2 === null) continue;
           drawLabel(peak.name, sx, y2, "#e2e8f0");
-        }
-
-        // Phase annotations: the rotor's circulation and the ridge's up-slope wind.
-        const spin = spinTick * 0.08;
-        if (rotorVisible && annot?.rotor) {
-          const p = project(annot.rotor[0], annot.rotor[1], annot.rotor[2]);
-          if (p) {
-            const [rx, ry] = p;
-            drawCloud(lctx, rx, ry - 74 + Math.sin(spinTick * 0.05) * 3);
-            drawArcArrow(lctx, rx, ry, 24, spin, "rgba(52,211,153,0.95)");
-          }
-        }
-        if (ridgeVisible && annot) {
-          const a = project(annot.ridge.tail[0], annot.ridge.tail[1], annot.ridge.tail[2]);
-          const b = project(annot.ridge.head[0], annot.ridge.head[1], annot.ridge.head[2]);
-          if (a && b) drawWindArrow(lctx, a, b, spinTick);
         }
 
         // The moving marker.
