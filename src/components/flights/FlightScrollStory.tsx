@@ -26,8 +26,11 @@ const HOLD_MAX_MS = 11000;
 export function FlightScrollStory({ children }: { children: ReactNode }) {
   const rootRef = useRef<HTMLElement | null>(null);
   const [active, setActive] = useState("whole");
+  /** True once the reader has reached the current hold line — the run starts there,
+   * not while the card is still being approached. */
+  const [armed, setArmed] = useState(false);
   /** While set, the page cannot scroll past `y` — the active card's resting line. */
-  const holdRef = useRef<{ phase: string; y: number } | null>(null);
+  const holdRef = useRef<{ phase: string; y: number; arrived: boolean } | null>(null);
   const holdTimerRef = useRef<number | null>(null);
   const playedRef = useRef<Set<string>>(new Set());
 
@@ -67,22 +70,21 @@ export function FlightScrollStory({ children }: { children: ReactNode }) {
           break;
         }
       }
+      // Reaching the resting line arms the current phase's run; the cap restarts here
+      // so a slow approach can never eat into the run's own time.
+      const hold = holdRef.current;
+      if (hold && !hold.arrived && window.scrollY >= hold.y - 1) {
+        hold.arrived = true;
+        if (holdTimerRef.current !== null) window.clearTimeout(holdTimerRef.current);
+        holdTimerRef.current = window.setTimeout(() => releaseHold(), HOLD_MAX_MS);
+        setArmed(true);
+      }
       setActive((prev) => (prev === next ? prev : next));
     };
 
     const onScroll = () => {
       const hold = holdRef.current;
-      if (hold && window.scrollY > hold.y) {
-        // A tick that slips in before the hold lands can overshoot the line (a wheel
-        // event can commit before the hold effect runs, on some displays at subpixel
-        // geometry). Absorb a small overshoot by moving the line down to the reader —
-        // no visible bounce — and only clamp back for a genuine leap past the stop.
-        if (window.scrollY - hold.y <= window.innerHeight * 0.25) {
-          hold.y = window.scrollY;
-        } else {
-          window.scrollTo(0, hold.y);
-        }
-      }
+      if (hold && window.scrollY > hold.y) window.scrollTo(0, hold.y);
       if (!raf) raf = requestAnimationFrame(update);
     };
 
@@ -151,15 +153,30 @@ export function FlightScrollStory({ children }: { children: ReactNode }) {
     };
   }, [releaseHold]);
 
-  // A new phase takes focus: hold the page at its card until the track run finishes.
+  // A new phase takes focus: hold the page at its card until that phase's track run has
+  // finished. Going back up is always free, and the hold lets go on its own: when the
+  // scene reports the run, when the reader takes over the scrubber, or when the safety
+  // timer expires. A phase already watched never holds again.
   useEffect(() => {
-    if (active === "whole" || playedRef.current.has(active)) return;
+    if (active === "whole" || playedRef.current.has(active)) {
+      // No interlock for the lead-in or an already-watched phase; the scene may still
+      // replay its run, so leave it armed.
+      releaseHold();
+      setArmed(true);
+      return;
+    }
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const el = rootRef.current?.querySelector<HTMLElement>(`[data-phase="${active}"]`);
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const restY = window.scrollY + rect.top + rect.height / 2 - window.innerHeight * 0.55;
-    holdRef.current = { phase: active, y: Math.max(restY, window.scrollY) };
+    // A whole-pixel line: the browser's own subpixel quantization can otherwise
+    // disagree with a fractional target, which reads as a one-pixel vibration.
+    const y = Math.round(Math.max(restY, window.scrollY));
+    holdRef.current = { phase: active, y, arrived: false };
+    const alreadyThere = window.scrollY >= y - 1;
+    if (alreadyThere) holdRef.current.arrived = true;
+    setArmed(alreadyThere);
     if (holdTimerRef.current !== null) window.clearTimeout(holdTimerRef.current);
     holdTimerRef.current = window.setTimeout(() => releaseHold(), HOLD_MAX_MS);
   }, [active, releaseHold]);
@@ -171,7 +188,7 @@ export function FlightScrollStory({ children }: { children: ReactNode }) {
       className="relative bg-slate-950"
     >
       <div className={`${STICKY} ${HEIGHT}`}>
-        <ConnectWithWave3D phase={active} scroll onPhasePlayed={onPhasePlayed} />
+        <ConnectWithWave3D phase={active} scroll runArmed={armed} onPhasePlayed={onPhasePlayed} />
       </div>
 
       {/* The steps overlay the sticky stage's flow space; only the cards take pointers. */}

@@ -358,11 +358,13 @@ export type ConnectWithWave3DProps = {
   phase?: string;
   /** Scroll-story mode: no built-in buttons or note cards; each phase flies and plays as it is set. */
   scroll?: boolean;
+  /** Scroll-story mode: the reader is resting at the phase's card — the run may start. */
+  runArmed?: boolean;
   /** Scroll-story mode: a phase's track run finished — or the reader took over the scrubber. */
   onPhasePlayed?: (phaseId: string) => void;
 };
 
-export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: ConnectWithWave3DProps = {}) {
+export function ConnectWithWave3D({ phase, scroll = false, runArmed = true, onPhasePlayed }: ConnectWithWave3DProps = {}) {
   const [track, setTrack] = useState<TrackData | null>(null);
   const [mosaic, setMosaic] = useState<TerrainMosaic | null>(null);
   const [dataError, setDataError] = useState(false);
@@ -819,6 +821,9 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
       onPhasePlayedRef.current?.(p.id);
       return;
     }
+    // Scroll-story mode: the run is the reward of resting at the card — it waits for
+    // the reader to arrive, rather than playing during the approach.
+    if (scroll && !runArmed) return;
     const token = ++autoTokenRef.current;
     const t0 = performance.now();
     const dur = ((p.to - p.from) / SEGMENT_RATE) * 1000;
@@ -836,7 +841,7 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
       cancelAnimationFrame(raf);
       autoTokenRef.current += 1;
     };
-  }, [scroll, phase, track, phaseView, flyTo, seek]);
+  }, [scroll, phase, track, phaseView, flyTo, seek, runArmed]);
 
   // The rotor's arrows spin and the ridge's wind dashes march — a ~30 fps tick
   // while those phases are on screen, a still frame otherwise.
