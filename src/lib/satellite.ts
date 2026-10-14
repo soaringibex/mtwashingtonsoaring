@@ -25,12 +25,11 @@ export function polarPinPixels(): { x: number; y: number } {
  * Gorham's pixel in the GOES Northeast sector image (2400×2400).
  *
  * The sector is an ABI fixed-grid crop — a geostationary projection no corner box can
- * describe — so this was calibrated against the drawn state and national borders in a
- * clear-sky sector image: the 45th-parallel segment, the VT/NH and NH/ME border lines,
- * and the coastline were matched to their real coordinates, and the persistent estimate
- * (border math and an iterative coastline fit agree) lands Gorham just
- * north-west of the White Mountains. Accurate to roughly ±20 px, ~3 px at panel scale.
+ * describe — so this is calibrated from city lights: on a clear night-sector image the
+ * Natural Earth populated places were matched to their light clusters and the projection
+ * fitted to them (about 35 cities matched, median error ≈ 5 px). Gorham lands in the
+ * Androscoggin valley, just west of Berlin's lights, where the field sits.
  */
-export const GOES_PIN_PIXELS = { x: 1605, y: 1029 };
+export const GOES_PIN_PIXELS = { x: 1611, y: 938 };
 
 export const GOES_SIZE = { width: 2400, height: 2400 };
