@@ -4,17 +4,18 @@
 // 250 m instead of the GOES loop's five-minute half-kilometre. NASA's regional snapshot
 // service stopped returning usable imagery for this box (blank white sheets, or half
 // missing), so the box is now composed from the WMTS tile pyramid Worldview itself draws:
-// level 7 of the 250 m set covers the box in 5×7 tiles, each 2.8125° × 1.40625°, at the
-// same ground scale the panel displays.
+// level 7 of the 250 m set is a 160 × 80 grid of 512 px tiles, each 2.25° × 2.25°.
+// Those numbers come from the WMTS capabilities document, not from a 2ⁿ guess — the
+// first cut of this route assumed square power-of-two tiles, fetched the Gulf of Mexico
+// for a New England box, and pinned "Gorham" to open water.
 //
 // Two measured quirks shape this route:
 //
 //  - A day's mosaic fills in as the passes come down, and the archive has holes: a real
-//    tile measured 40–90 kB, an empty one (coastline-free black) ≈ 5 kB. Tiles below
-//    TILE_MIN_BYTES count as missing, and a candidate day is only served when its tiles
-//    cover MIN_COVERAGE of the box — so a half-filled day falls through to the next
-//    candidate instead of rendering as a black wedge (measured: good days 77–99 %,
-//    broken days 0–2 %).
+//    tile measured 15–80 kB, an empty one ≈ 4.7 kB. Tiles below TILE_MIN_BYTES count as
+//    missing, and a candidate day is only served when its tiles cover MIN_COVERAGE of
+//    the box — so a half-filled day falls through to the next candidate instead of
+//    rendering as black noise.
 //
 //  - MODIS carries this region's best true colour (250 m; VIIRS true colour is 750 m),
 //    so mornings prefer Terra and afternoons prefer Aqua, with NOAA-21 VIIRS as the
@@ -26,14 +27,14 @@ import sharp from "sharp";
 import { POLAR_BBOX } from "@/lib/satellite";
 
 const WMTS = "https://gibs-a.earthdata.nasa.gov/wmts/epsg4326/best/wmts.cgi";
-/** Level 7 of the 250 m set: 512 px per 2.8125° × 1.40625° tile. */
+/** Level 7 of the 250 m set: a 160 × 80 matrix of 512 px tiles, each 2.25° × 2.25°. */
 const TILE_MATRIX = 7;
 const TILE_SIZE = 512;
-const LON_STEP = 360 / 2 ** TILE_MATRIX;
-const LAT_STEP = 180 / 2 ** TILE_MATRIX;
+const LON_STEP = 360 / 160;
+const LAT_STEP = 180 / 80;
 const RENDER_SIZE = { width: 2400, height: 1540 };
-/** Measured: real tiles 40–90 kB, empty tiles ≈ 5 kB. */
-const TILE_MIN_BYTES = 15_000;
+/** Measured: real tiles 15–80 kB, empty tiles ≈ 4.7 kB. */
+const TILE_MIN_BYTES = 9000;
 /** Measured: good days 77–99 %, broken days 0–2 %. */
 const MIN_COVERAGE = 0.85;
 /** "Latest" tries today, then yesterday — no further, or it stops being "latest". */
@@ -168,10 +169,18 @@ async function compose(tiles: Tile[]): Promise<Buffer> {
     top: (tile.row - rows.from) * TILE_SIZE,
   }));
 
-  return sharp({
+  // Two sharp stages, on purpose: sharp runs `composite` after `extract`/`resize` in its
+  // pipeline, so chaining them in one call pastes the tiles onto the already-cropped
+  // canvas — the crop picks the mosaic's top-left corner instead of the box, shifting
+  // the served image most of a tile row north. Materialise the mosaic first, then crop.
+  const mosaic = await sharp({
     create: { width, height, channels: 3, background: { r: 0, g: 0, b: 0 } },
   })
     .composite(composites)
+    .png()
+    .toBuffer();
+
+  return sharp(mosaic)
     .extract({
       left: Math.round(crop.left),
       top: Math.round(crop.top),
