@@ -661,11 +661,12 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
     if (rotor) {
       const sel = track.points.filter(([, , , t]) => t >= rotor.from && t < rotor.to);
       if (sel.length > 0) {
-        // Shifted to the right of the climb for the rotor camera's view, so the
-        // drawing sits clear of the circling and the card.
-        const lon = sel.reduce((a, [l]) => a + l, 0) / sel.length + 0.018;
-        const lat = sel.reduce((a, [, l]) => a + l, 0) / sel.length + 0.018;
-        rotorAnchor = wp(lon, lat);
+        // The drawing floats at the TOP of the rotor climb — the phase's last fix,
+        // at its own altitude — a touch to the right of the last circle, so it
+        // marks where the climb finished rather than the ground below it.
+        const [lon, lat] = sel[sel.length - 1];
+        const topAlt = Math.max(...sel.map(([, , alt]) => alt));
+        rotorAnchor = [scene.worldX(lon + 0.01), scene.worldY(lat + 0.01), scene.worldZ(topAlt)];
       }
     }
     return {
