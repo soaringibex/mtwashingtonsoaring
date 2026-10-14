@@ -6,9 +6,9 @@ import { Container } from "@/components/ui/Container";
 import { PHASE_COLORS, PHASE_SHORT } from "@/lib/flight-phases";
 
 export const metadata: Metadata = {
-  title: "Three ways into the wave",
+  title: "Stepping Up to the Wave",
   description:
-    "Monday's flight at the 2026 Gorham camp, told as a scroll: a tow that didn't connect, a low save down to 1,857 ft on the Moriah–Carter ridge, and a climb through the rotor to around 8,000 ft. All three ways into the Mt Washington wave, drawn in 3D as you read.",
+    "Monday's flight at the 2026 Gorham camp, told as a scroll: a tow that didn't connect, a low save down to 1,857 ft on the Moriah–Carter ridge, and a climb through the rotor to around 8,000 ft. Stepping up to the Mt Washington wave, drawn in 3D as you read.",
 };
 
 /** One phase of the flight: a scroll step whose card crosses the scene's focus line. */
@@ -52,7 +52,7 @@ function Step({
   );
 }
 
-export default function ThreeWaysPage() {
+export default function SteppingUpPage() {
   return (
     <>
       {/* Full-screen opener — the flight scrolls up over it. */}
@@ -71,13 +71,13 @@ export default function ThreeWaysPage() {
             From the 2026 camp
           </p>
           <h1 className="mt-4 max-w-3xl font-display text-4xl font-bold tracking-tight text-white text-balance sm:text-5xl">
-            Three ways into the wave
+            Stepping Up to the Wave
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">
-            Monday&apos;s forecast called for a weak start and stronger conditions in the afternoon with threat
-            of the sky below closing in on us. Getting to 8,000 ft that day required a mix of mountain flying
-            techniques ranging from a low save to climbing a ridge to get back up, and a turbulent rotor climb
-            to transition upwind into the wave.
+            Monday&apos;s forecast called for a weak start and stronger conditions in the afternoon. There was
+            also a risk of the clouds below closing in under us. Getting to 8,000 ft took a mix of mountain
+            flying techniques. I needed a low save, a ridge climb to get back up, and a turbulent rotor climb
+            before I could move upwind into the wave.
           </p>
           <p className="mt-4 text-sm text-slate-300/90">
             Thomas Van de Velde · October 12, 2026 · Gorham (2G8)
@@ -144,8 +144,8 @@ export default function ThreeWaysPage() {
 
           <Step id="wave" time="13:11 – 13:19" heading="The wave climb">
             <p>
-              Reaching the top of the rotor, I pushed upwind into the primary wave. Nauseating turbulence
-              changed to long straight legs back and forth across the lift, the vario finally steady, and the
+              Reaching the top of the rotor, I pushed upwind into the primary wave. Rough turbulence
+              changed to long smooth legs back and forth across the lift, the vario finally steady, and the
               altimeter winding up faster than it had all flight. By 13:20 I was at 7,600 ft.
             </p>
           </Step>

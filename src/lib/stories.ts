@@ -14,10 +14,10 @@ export const storyGroups: StoryGroup[] = [
     blurb: "What it is actually like up there — including the days that go sideways.",
     stories: [
       {
-        title: "Three ways into the wave",
+        title: "Stepping Up to the Wave",
         page: "/stories/three-ways-into-the-wave",
         description:
-          "Thomas Van de Velde's account of Monday's flight at the 2026 camp — a tow that didn't connect, a low save on the Moriah–Carter ridge, and a climb through the rotor to around 8,000 ft. All three ways into the Mt Washington wave, told phase by phase in 3D.",
+          "Thomas Van de Velde's account of Monday's flight at the 2026 camp — a tow that didn't connect, a low save on the Moriah–Carter ridge, and a climb through the rotor to around 8,000 ft. Stepping up to the Mt Washington wave, told phase by phase in 3D.",
         meta: "Story",
       },
       {
