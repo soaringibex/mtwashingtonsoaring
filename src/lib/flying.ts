@@ -146,14 +146,6 @@ export const gorham: DocLink[] = [
 /** Paperwork for the camp itself. */
 export const campDocs: DocLink[] = [
   {
-    title: "Wave Camp 2024 signup",
-    href: "https://docs.google.com/spreadsheets/d/1QqAfY1uB0M5ioKqful38e9puV7iPFJ9299Z0-GEaUps/edit?gid=0#gid=0",
-    description:
-      "Last public signup spreadsheet — an example of what the current-season sheet looks like. Current signups go out over the email list each season.",
-    meta: "Google Sheets",
-    external: true,
-  },
-  {
     title: "Mount Washington wave camp information (2016)",
     href: "/files/2016-wave-camp-information.pdf",
     page: "/flying/2016-wave-camp-information",
