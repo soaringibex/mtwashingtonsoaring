@@ -175,8 +175,8 @@ export default function SteppingUpPage() {
           <Step id="home" time="13:25 – 13:36" heading="Going home">
             <p>
               The camp was already shutting down below me: the ceiling was lowering, the gusts were up, and
-              the tow pilots had called the recall while the wave was only starting to cook. I took one more
-              look at the mountain, turned downwind, and rode the long glide home. I landed at 13:36.
+              the tow pilots had stopped launching gliders in the turbulent air. I took one more look at the
+              mountain, turned downwind, and rode the long glide home. I landed at 13:36.
             </p>
             <figure>
               <Image
