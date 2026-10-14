@@ -1423,7 +1423,7 @@ export const documentTexts: Record<string, DocumentText> = {
   },
   "2016-wave-camp-information": {
     "pages": 3,
-    "bytes": 18728,
+    "bytes": 15309,
     "blocks": [
       {
         "type": "p",
@@ -1456,10 +1456,6 @@ export const documentTexts: Record<string, DocumentText> = {
       {
         "type": "p",
         "text": "There is a $100 registration fee for non-members. The best way to pay the registration fee is via PayPal to paypalrr@roelke.org. Please submit the payment as early as you can, and note that it is refundable if you are unable to attend. If you cannot use PayPal, then please arrange payment by sending an email to wavecamp@roelke.org."
-      },
-      {
-        "type": "p",
-        "text": "There is an online signup sheet: http://tinyurl.com/gorham2016"
       },
       {
         "type": "p",
@@ -1503,7 +1499,7 @@ export const documentTexts: Record<string, DocumentText> = {
       },
       {
         "type": "p",
-        "text": "Go to the signup sheet (http://tinyurl.com/gorham2016) and add your name and information. Do not edit the sheet, other than with updates to your row."
+        "text": "Go to the signup sheet and add your name and information. Do not edit the sheet, other than with updates to your row."
       },
       {
         "type": "p",
