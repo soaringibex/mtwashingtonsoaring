@@ -19,8 +19,9 @@ import { ConnectWithWave3D } from "@/components/flights/ConnectWithWave3D";
 const STICKY = "sticky top-16 z-0 sm:top-[4.5rem] xl:top-20";
 const HEIGHT = "h-[calc(100svh-4rem)] sm:h-[calc(100svh-4.5rem)] xl:h-[calc(100svh-5rem)]";
 const OVERLAP = "-mt-[calc(100svh-4rem)] sm:-mt-[calc(100svh-4.5rem)] xl:-mt-[calc(100svh-5rem)]";
-/** The hold gives up after this long, whatever the scene is doing. */
-const HOLD_MAX_MS = 6500;
+/** The hold gives up after this long, whatever the scene is doing — the longest
+ * phase (the ridge) runs ~8.1 s at the constant rate, plus the camera flight. */
+const HOLD_MAX_MS = 11000;
 
 export function FlightScrollStory({ children }: { children: ReactNode }) {
   const rootRef = useRef<HTMLElement | null>(null);

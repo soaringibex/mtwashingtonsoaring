@@ -26,6 +26,12 @@ const EXAG = 2.3;
 const FOV = (50 * Math.PI) / 180;
 const MAX_TEX = 2048;
 const PLAY_SECONDS = 75; // whole flight in 75 s when playing
+/**
+ * One constant playback speed for every phase's track run — calibrated on the tow
+ * leg: its 876 s of flight play in 4.2 s. A longer phase simply takes longer, so
+ * the marker never speeds up from card to card.
+ */
+const SEGMENT_RATE = 876 / 4.2; // flight seconds per real second
 
 type TrackPoint = [number, number, number, number]; // lon, lat, alt m, unix sec
 
@@ -657,7 +663,7 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
     }
     const token = ++autoTokenRef.current;
     const t0 = performance.now();
-    const dur = Math.min(4200, Math.max(2400, (p.to - p.from) * 6));
+    const dur = ((p.to - p.from) / SEGMENT_RATE) * 1000;
     let raf = requestAnimationFrame(function step(now: number) {
       if (autoTokenRef.current !== token) return;
       const k = Math.min(1, (now - t0) / dur);
