@@ -210,6 +210,84 @@ function program(gl: WebGLRenderingContext, vs: string, fs: string): WebGLProgra
   return p;
 }
 
+/** A spinning circulation arrow: an arc with a head, drawn in screen space. */
+function drawArcArrow(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, start: number, color: string): void {
+  const sweep = Math.PI * 1.5;
+  const a1 = start + sweep;
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3.5;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, start, a1);
+  ctx.stroke();
+  const px = cx + r * Math.cos(a1);
+  const py = cy + r * Math.sin(a1);
+  const angle = Math.atan2(Math.cos(a1), -Math.sin(a1));
+  const size = 10;
+  ctx.beginPath();
+  ctx.moveTo(px, py);
+  ctx.lineTo(px - size * Math.cos(angle - 0.5), py - size * Math.sin(angle - 0.5));
+  ctx.moveTo(px, py);
+  ctx.lineTo(px - size * Math.cos(angle + 0.5), py - size * Math.sin(angle + 0.5));
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** A small puffy cloud of overlapping lobes, drawn in screen space. */
+function drawCloud(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+  const lobes: [number, number, number][] = [
+    [-22, 6, 13],
+    [-6, -6, 18],
+    [14, 0, 14],
+    [30, 7, 11],
+    [2, 9, 13],
+  ];
+  ctx.save();
+  ctx.fillStyle = "rgba(241,245,249,0.95)";
+  for (const [dx, dy, r] of lobes) {
+    ctx.beginPath();
+    ctx.arc(cx + dx, cy + dy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+/** The up-slope wind arrow: a dashed shaft marching toward the ridge, with a head. */
+function drawWindArrow(
+  ctx: CanvasRenderingContext2D,
+  a: [number, number, number],
+  b: [number, number, number],
+  tick: number,
+): void {
+  const [ax, ay] = a;
+  const [bx, by] = b;
+  const dx = bx - ax;
+  const dy = by - ay;
+  const len = Math.hypot(dx, dy);
+  if (len < 36) return;
+  ctx.save();
+  ctx.strokeStyle = "rgba(125,211,252,0.95)";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.setLineDash([14, 10]);
+  ctx.lineDashOffset = -((tick * 1.8) % 24);
+  ctx.beginPath();
+  ctx.moveTo(ax, ay);
+  ctx.lineTo(bx, by);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  const angle = Math.atan2(dy, dx);
+  const size = 15;
+  ctx.beginPath();
+  ctx.moveTo(bx, by);
+  ctx.lineTo(bx - size * Math.cos(angle - 0.45), by - size * Math.sin(angle - 0.45));
+  ctx.moveTo(bx, by);
+  ctx.lineTo(bx - size * Math.cos(angle + 0.45), by - size * Math.sin(angle + 0.45));
+  ctx.stroke();
+  ctx.restore();
+}
+
 type Camera = { yaw: number; pitch: number; zoom: number; tx: number; ty: number; tz: number };
 
 /** Fixed camera poses per phase — tuned so the terrain reads and the track crosses the frame. */
@@ -223,6 +301,10 @@ const PHASE_VIEWS: Record<string, { yaw: number; pitch: number }> = {
   upwind: { yaw: 190, pitch: 36 },
   home: { yaw: 75, pitch: 36 },
 };
+
+/** Which way the frame's bias points (see phaseView) — opposite the story card's
+ * side, so the card never lands on the phase. The transit card sits on the right. */
+const PHASE_BIAS: Record<string, number> = { transit: -1 };
 
 const fmt = new Intl.NumberFormat("en-US");
 
@@ -247,6 +329,8 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
   const [time, setTime] = useState<number | null>(null); // scrub position, unix sec
   const [playing, setPlaying] = useState(false);
   const [noteDismissed, setNoteDismissed] = useState(false);
+  /** Advances while the rotor and ridge annotations animate (~30 fps). */
+  const [spinTick, setSpinTick] = useState(0);
   /** Bumped to cancel an in-flight scroll segment when the phase changes or the reader takes over. */
   const autoTokenRef = useRef(0);
   /** Kept in a ref so an unstable parent callback cannot restart a segment mid-flight. */
@@ -522,6 +606,31 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
     return { tx: mx, ty: my, tz: Math.min(sumZ / n + r95 * 0.18, 8), dist };
   }, [scene, track]);
 
+  // World anchors for the rotor and ridge annotations.
+  const annot = useMemo(() => {
+    if (!scene || !track) return null;
+    const wp = (lon: number, lat: number): [number, number, number] => [
+      scene.worldX(lon),
+      scene.worldY(lat),
+      scene.meshZ(lon, lat) + 0.04,
+    ];
+    const rotor = track.phases.find((p) => p.id === "rotor");
+    let rotorAnchor: [number, number, number] | null = null;
+    if (rotor) {
+      const sel = track.points.filter(([, , , t]) => t >= rotor.from && t < rotor.to);
+      if (sel.length > 0) {
+        const lon = sel.reduce((a, [l]) => a + l, 0) / sel.length;
+        const lat = sel.reduce((a, [, l]) => a + l, 0) / sel.length;
+        rotorAnchor = wp(lon, lat);
+      }
+    }
+    return {
+      rotor: rotorAnchor,
+      // Up the working face: from the valley northwest of the ridge toward its foot.
+      ridge: { tail: wp(-71.205, 44.36), head: wp(-71.185, 44.345) },
+    };
+  }, [scene, track]);
+
   const phaseView = useCallback(
     (id: string): { yaw: number; pitch: number; zoom: number; tx: number; ty: number; tz: number } | null => {
       if (!scene || !track || !wholeView) return null;
@@ -553,7 +662,8 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
       // little up) by a fixed fraction of the view.
       const halfH = Math.tan(FOV / 2) * dist;
       const yawR = (view.yaw * Math.PI) / 180;
-      const shift = halfH * aspect * 0.32;
+      const bias = PHASE_BIAS[id] ?? 1;
+      const shift = halfH * aspect * 0.32 * bias;
       return {
         yaw: view.yaw,
         pitch: view.pitch,
@@ -679,6 +789,26 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
       autoTokenRef.current += 1;
     };
   }, [scroll, phase, track, phaseView, flyTo, seek]);
+
+  // The rotor's arrows spin and the ridge's wind dashes march — a ~30 fps tick
+  // while those phases are on screen, a still frame otherwise.
+  const rotorVisible = selection === "rotor";
+  const ridgeVisible = selection === "ridge";
+  useEffect(() => {
+    if (!rotorVisible && !ridgeVisible) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0;
+    let last = 0;
+    const loop = (now: number) => {
+      if (now - last >= 33) {
+        last = now;
+        setSpinTick((t) => (t + 1) % 100000);
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [rotorVisible, ridgeVisible]);
 
   // Play through the flight.
   useEffect(() => {
@@ -941,6 +1071,23 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
           drawLabel(peak.name, sx, y2, "#e2e8f0");
         }
 
+        // Phase annotations: the rotor's circulation and the ridge's up-slope wind.
+        const spin = spinTick * 0.08;
+        if (rotorVisible && annot?.rotor) {
+          const p = project(annot.rotor[0], annot.rotor[1], annot.rotor[2]);
+          if (p) {
+            const [rx, ry] = p;
+            drawCloud(lctx, rx, ry - 78 + Math.sin(spinTick * 0.05) * 3);
+            drawArcArrow(lctx, rx - 36, ry, 22, spin, "rgba(52,211,153,0.95)");
+            drawArcArrow(lctx, rx + 36, ry, 22, spin, "rgba(52,211,153,0.95)");
+          }
+        }
+        if (ridgeVisible && annot) {
+          const a = project(annot.ridge.tail[0], annot.ridge.tail[1], annot.ridge.tail[2]);
+          const b = project(annot.ridge.head[0], annot.ridge.head[1], annot.ridge.head[2]);
+          if (a && b) drawWindArrow(lctx, a, b, spinTick);
+        }
+
         // The moving marker.
         if (scrubTime !== null) {
           let best: TrackPoint | null = null;
@@ -983,7 +1130,7 @@ export function ConnectWithWave3D({ phase, scroll = false, onPhasePlayed }: Conn
         }
       }
     }
-  }, [scene, track, trackData, labelPoints, camera, selection, scrubTime, sizeTick]);
+  }, [scene, track, trackData, labelPoints, annot, camera, selection, scrubTime, sizeTick, spinTick, rotorVisible, ridgeVisible]);
 
   useEffect(() => {
     const onResize = () => setSizeTick((v) => v + 1);

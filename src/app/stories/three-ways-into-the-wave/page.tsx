@@ -16,19 +16,27 @@ function Step({
   id,
   time,
   heading,
+  side = "left",
   children,
 }: {
   id: string;
   time: string;
   heading: string;
+  side?: "left" | "right";
   children: ReactNode;
 }) {
+  const place =
+    side === "right"
+      ? "sm:ml-auto sm:mr-4 lg:mr-10 xl:mr-16"
+      : "sm:ml-4 lg:ml-10 xl:ml-16";
   return (
     <div
       data-phase={id}
       className="flex min-h-[80svh] items-end px-3 pb-24 sm:min-h-[92svh] sm:items-center sm:px-6 sm:pb-0 lg:px-10"
     >
-      <article className="pointer-events-auto w-full max-w-md rounded-2xl bg-slate-950/85 p-5 shadow-xl ring-1 ring-white/15 backdrop-blur-sm sm:ml-4 lg:ml-10 xl:ml-16">
+      <article
+        className={`pointer-events-auto w-full max-w-md rounded-2xl bg-slate-950/85 p-5 shadow-xl ring-1 ring-white/15 backdrop-blur-sm ${place}`}
+      >
         <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">
           <span
             aria-hidden="true"
@@ -104,7 +112,7 @@ export default function ThreeWaysPage() {
             </p>
           </Step>
 
-          <Step id="transit" time="12:55 – 13:00" heading="Crossing the valley">
+          <Step id="transit" time="12:55 – 13:00" heading="Crossing the valley" side="right">
             <p>
               Then the day began to change, as forecast. By 12:55 the ridge had carried me to 3,900 ft, and I
               left it to cross the valley west, under the rotor, for the lee of the Presidential range. The
