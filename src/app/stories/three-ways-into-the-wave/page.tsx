@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { FlightScrollStory } from "@/components/flights/FlightScrollStory";
 import { Container } from "@/components/ui/Container";
-import { Prose } from "@/components/ui/Prose";
 import { PHASE_COLORS, PHASE_SHORT } from "@/lib/flight-phases";
 
 export const metadata: Metadata = {
@@ -173,112 +171,6 @@ export default function ThreeWaysPage() {
             </figure>
           </Step>
         </FlightScrollStory>
-
-        <div className="bg-white">
-          <Container width="2xl" className="pb-20">
-            <Prose className="pt-16">
-              <p>
-                By the numbers: 84 minutes, most of the first hour below 4,000 ft, and a top-out around
-                8,000 ft.
-                What follows is a closer look at the three routes — how each one works, and what each one
-                costs.
-              </p>
-
-              <h2>1 · The direct tow</h2>
-              <p>
-                The first way up is the simplest: pay for a long tow to the wave. The tow takes you down the
-                valley toward the mountain and releases you in lift, often lower than you would guess; wave
-                can be found well below the summit. The most reliable window anywhere on the mountain is near{" "}
-                <Link href="/flying">The Horn</Link>, the northern shoulder above the Great Gulf. It works,
-                and it is how most of us get our first wave contact here.
-              </p>
-              <p>
-                The drawbacks are practical. Long tows aren&apos;t cheap, and each one keeps the towplane busy
-                while other gliders wait on the grid. The ride out passes through the rotor, which on a rough
-                day is the worst air you will touch all flight. And the glider that arrives on the rope has no
-                picture of the lower air at all: you know where the wave is, but nothing about what the
-                valley is doing. If the wave lets go, you are a long glide from a landing with no plan B.
-              </p>
-
-              <h2>2 · The high road, over the Carters</h2>
-              <p>
-                The second way is to get high first. A 3,000 ft tow puts you on the Moriah–Carter ridge
-                southeast of the field. From there the ridge is a ladder: work it south, climb in ridge lift
-                and whatever scrap of rotor or thermal you find, and at your best height turn west for the lee
-                side of the Presidential range, aiming at the wave line you think is working.
-              </p>
-              <p>
-                The pilot brief describes this as the usual route, and it has an honest logic: you cross the
-                valley with altitude in hand, and the ridge stays behind you as an escape. The spoiler is that
-                the wave can starve the same ridge you are climbing. When its sink settles on the ridge, the
-                lift that was supposed to carry you south simply isn&apos;t there, and every mile south is a
-                mile further from the field over ground with nowhere to land. You also make the jump west
-                with whatever altitude you have managed, which may not be much.
-              </p>
-
-              <h2>3 · The low road, climbing in rotor</h2>
-              <p>
-                The third way starts from underneath. On the lee side of the mountains the air below the wave
-                curls back on itself — the rotor. It is not smooth lift. It comes in broken, punchy pieces
-                with sink on all sides, and on most days it is marked by shredded clouds. When the wave is
-                late, or a tow doesn&apos;t connect, it is the way up that&apos;s left.
-              </p>
-              <p>
-                You climb it in small bites, staying near a place you can retreat to, working downwind as you
-                gain altitude until the air smooths into wave. Then you push upwind into the primary. That
-                last move costs altitude and is easy to get wrong, but it is the one that saves the day.
-              </p>
-
-              <h2>What I took away from it</h2>
-              <p>
-                On paper, this climb cost more than it should have. A long tow on a day when it works would
-                have put me in the wave in fifteen minutes; the low road took an hour and most of my margin.
-                What it bought instead is a picture the tow never gives you: where the rotor actually sits on
-                a northwest day, how the valley feels when the wave is late, and which parts of the ridge to
-                trust. I&apos;ll take that trade.
-              </p>
-              <p>
-                All three ways work; the day decides which one you get. Monday offered the low road, with a
-                marginal ridge and a late wave, and then spent an hour proving it was the one that would
-                connect. When the wave is forecast to build, it usually does. Having the patience to climb to
-                it is most of the game.
-              </p>
-            </Prose>
-
-            <p className="mt-10 text-sm leading-7 text-slate-500">
-              The trace is logged at{" "}
-              <a
-                href="https://weglide.org/flight/1253598"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-sky-700 hover:text-sky-600"
-              >
-                WeGlide ↗
-              </a>
-              . The day also appears in{" "}
-              <Link
-                href="/stories/2026-wave-camp-logbook-glen-kelley"
-                className="font-medium text-sky-700 hover:text-sky-600"
-              >
-                Glen Kelley&apos;s camp logbook
-              </Link>
-              , and every camp flight since 2016 is drawn in{" "}
-              <Link href="/flights/3d" className="font-medium text-sky-700 hover:text-sky-600">
-                the 3D archive
-              </Link>
-              .
-            </p>
-
-            <p className="mt-10">
-              <Link
-                href="/stories"
-                className="text-sm font-medium text-sky-700 transition-colors hover:text-sky-600"
-              >
-                <span aria-hidden="true">←</span> All stories
-              </Link>
-            </p>
-          </Container>
-        </div>
       </div>
     </>
   );
