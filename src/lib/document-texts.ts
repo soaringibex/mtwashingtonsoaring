@@ -85,6 +85,15 @@ export const documentTexts: Record<string, DocumentText> = {
         type: "p",
         text: "Unfortunately, the low ceilings continued to threaten and the wind gusts got exciting enough for our tow pilots to recommend a recall and end of the day. At this point, the wave was really starting to cook, and despite a clear window over the Rt 16 valley, our pilots did the right thing and performed an orderly recovery in sporty landing conditions. Well done!",
       },
+      { type: "h", text: "Tuesday, October 13" },
+      {
+        type: "p",
+        text: "As predicted, today was miserable — overcast and wet. Some of us took the opportunity to catch up with paperwork and housekeeping.",
+      },
+      {
+        type: "p",
+        text: "A large contingent went to the Fairbanks Museum and Planetarium in St. Johnsbury, VT and hit an ice cream parlor on the way back to Gorham. We all ended up at Big Day Brewing for dinner.",
+      },
     ],
   },
   // Hand-authored: the walk-through filmed at the 2026 camp — the words follow the
