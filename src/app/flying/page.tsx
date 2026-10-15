@@ -100,18 +100,41 @@ export default function FlyingPage() {
                     downwind, don&apos;t go up.
                   </p>
                 </div>
-                <figure className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
-                  <Image
-                    src="/images/gallery/2025/undercast-to-the-horizon.jpg"
-                    alt="A sea of undercast stretching to the horizon, seen from the wing of a glider"
-                    width={1600}
-                    height={1205}
-                    className="w-full"
-                  />
-                  <figcaption className="border-t border-slate-100 px-5 py-3.5 text-sm text-slate-600">
-                    Undercast to the horizon from the wave — October 2025.
-                  </figcaption>
-                </figure>
+                <div className="space-y-6">
+                  <figure className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
+                    <Image
+                      src="/images/gallery/2025/undercast-to-the-horizon.jpg"
+                      alt="A sea of undercast stretching to the horizon, seen from the wing of a glider"
+                      width={1600}
+                      height={1205}
+                      className="w-full"
+                    />
+                    <figcaption className="border-t border-slate-100 px-5 py-3.5 text-sm text-slate-600">
+                      Undercast to the horizon from the wave — October 2025.
+                    </figcaption>
+                  </figure>
+
+                  <figure className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
+                    <picture>
+                      <source
+                        media="(prefers-reduced-motion: reduce)"
+                        srcSet="/images/scenic/sky-closing-still.webp"
+                      />
+                      <Image
+                        src="/images/scenic/sky-closing.webp"
+                        alt="A timelapse of the sky closing over the ridge — the blue autumn sky giving way to a solid deck of cloud"
+                        width={800}
+                        height={450}
+                        unoptimized
+                        className="w-full"
+                      />
+                    </picture>
+                    <figcaption className="border-t border-slate-100 px-5 py-3.5 text-sm text-slate-600">
+                      The sky closing over the ridge — Rick Roelke&apos;s timelapse from the 2026
+                      camp.
+                    </figcaption>
+                  </figure>
+                </div>
               </div>
             </section>
 
