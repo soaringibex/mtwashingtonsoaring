@@ -94,6 +94,15 @@ export const documentTexts: Record<string, DocumentText> = {
         type: "p",
         text: "A large contingent went to the Fairbanks Museum and Planetarium in St. Johnsbury, VT and hit an ice cream parlor on the way back to Gorham. We all ended up at Big Day Brewing for dinner.",
       },
+      { type: "h", text: "Wednesday, October 14" },
+      {
+        type: "p",
+        text: "After the washout yesterday, we were hoping for better today. It was, but not quite enough. A number of our intrepid pilots rigged and prepared to fly, but the low ceilings and limited blue sky kept us on the ground.",
+      },
+      {
+        type: "p",
+        text: "Thursday should be a good day and there is plenty of pent-up demand. With bad weather and potential snow showing up Friday and Saturday, Thursday will be our last day for this encampment.",
+      },
     ],
   },
   // Hand-authored: the walk-through filmed at the 2026 camp — the words follow the
