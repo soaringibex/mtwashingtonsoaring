@@ -291,4 +291,8 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 1252731, date: "2026-10-10", pilot: "David Sherrill", aircraft: "ASW 28", minutes: 191, distanceKm: 97.9, maxAltFt: 13400, ssa: [], record: false },
   { id: 1252729, date: "2026-10-10", pilot: "Kari Mettinen", aircraft: "DG 600 18m", minutes: 229, distanceKm: 93.8, maxAltFt: 15000, ssa: [], record: false },
   { id: 1253264, date: "2026-10-10", pilot: "David B Tauber", aircraft: "ASW 20", minutes: 119, distanceKm: 82.5, maxAltFt: 17300, ssa: [], ssaPending: ["SSA Gold badge"], record: false },
+  { id: 1254222, date: "2026-10-15", pilot: "Emilie Phillips", aircraft: "ASW 27", minutes: 216, distanceKm: 105.1, maxAltFt: 13200, ssa: [], record: false },
+  { id: 1254238, date: "2026-10-15", pilot: "Nelson Howe", aircraft: "JS3 TJ 15m", minutes: 204, distanceKm: 161.5, maxAltFt: 14200, ssa: [], record: false },
+  { id: 1254239, date: "2026-10-15", pilot: "John Beckley", aircraft: "ASW 24", minutes: 338, distanceKm: 165.1, maxAltFt: 14800, ssa: [], record: false },
+  { id: 1254250, date: "2026-10-15", pilot: "Glen Kelley", aircraft: "JS3 TJ 18m", minutes: 227, distanceKm: 181.0, maxAltFt: 14100, ssa: [], record: false },
 ];
