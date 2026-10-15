@@ -420,7 +420,7 @@ export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DPr
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/data/flights/three-ways-into-the-wave.json")
+    fetch("/data/flights/stepping-up-to-the-wave.json")
       .then((r) => {
         if (!r.ok) throw new Error(String(r.status));
         return r.json() as Promise<TrackData>;

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Build public/data/flights/three-ways-into-the-wave.json — the track and the
- * phase breakdown behind the /stories/three-ways-into-the-wave page.
+ * Build public/data/flights/stepping-up-to-the-wave.json — the track and the
+ * phase breakdown behind the /stories/stepping-up-to-the-wave page.
  *
  * Source: the pilot's own IGC (1-second fixes), kept in .screenshots/igc/1253598.igc
  * as gitignored scratch. We keep every fourth fix — 4 s is ~120 m at cruise and
@@ -20,7 +20,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const IGC = join(ROOT, ".screenshots", "igc", "1253598.igc");
 const OUT_DIR = join(ROOT, "public", "data", "flights");
-const OUT = join(OUT_DIR, "three-ways-into-the-wave.json");
+const OUT = join(OUT_DIR, "stepping-up-to-the-wave.json");
 
 const FLIGHT_DATE_UTC = Date.UTC(2026, 9, 12) / 1000; // 2026-10-12T00:00Z
 const UTC_OFFSET_HOURS = -4; // America/New_York in October (EDT)

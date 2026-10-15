@@ -2,7 +2,7 @@
  * The colours and short names of the 2026-10-12 flight's phases — shared by the
  * 3D scene (WebGL vertex colours, canvas labels, SVG barogram) and the article's
  * scroll cards, so the two can never drift apart. Keep in step with the phase
- * ids in public/data/flights/three-ways-into-the-wave.json.
+ * ids in public/data/flights/stepping-up-to-the-wave.json.
  */
 
 export const PHASE_COLORS: Record<string, string> = {

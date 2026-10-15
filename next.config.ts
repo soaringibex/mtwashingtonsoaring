@@ -46,6 +46,12 @@ const nextConfig: NextConfig = {
         destination: "/files/2027-2028-loa-revalidation.pdf",
         permanent: true,
       },
+      // The wave story's route now matches its title.
+      {
+        source: "/stories/three-ways-into-the-wave",
+        destination: "/stories/stepping-up-to-the-wave",
+        permanent: true,
+      },
     ];
   },
 };
