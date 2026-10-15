@@ -1,6 +1,4 @@
-export type Video = {
-  /** YouTube video id — the embed and watch URLs are built from it. */
-  id: string;
+type VideoFields = {
   title: string;
   /** Year of the camp or flight, when known. */
   year?: number;
@@ -9,8 +7,36 @@ export type Video = {
   description?: string;
 };
 
+/** A film on YouTube, embedded with the privacy-enhanced player. */
+export type YouTubeVideo = VideoFields & {
+  /** YouTube video id — the embed and watch URLs are built from it. */
+  id: string;
+  src?: never;
+  poster?: never;
+};
+
+/** A film served from this site, played with the native player. */
+export type SiteVideo = VideoFields & {
+  /** Path under public/ — built into a <video> element. */
+  src: string;
+  /** Poster frame, shown before playback. */
+  poster: string;
+  id?: never;
+};
+
+export type Video = YouTubeVideo | SiteVideo;
+
 /** Newest first. */
 export const videos: Video[] = [
+  {
+    src: "/videos/sky-closing-2026.mp4",
+    poster: "/videos/sky-closing-2026-poster.jpg",
+    title: "Sky Closing Timelapse",
+    year: 2026,
+    credit: "Rick Roelke",
+    description:
+      "A timelapse from the 2026 camp — the autumn sky and its cloud deck closing over the ridge.",
+  },
   {
     id: "ZSoiPQ-SPuE",
     title: "Ascent from Crawford Notch",

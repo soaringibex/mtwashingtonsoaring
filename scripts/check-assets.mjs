@@ -1,4 +1,4 @@
-// Fails if any /files/... or /images/... reference in src/ has no matching asset in public/.
+// Fails if any /files/..., /images/... or /videos/... reference in src/ has no matching asset in public/.
 // Usage: node scripts/check-assets.mjs
 
 import { readdir, readFile, stat } from "node:fs/promises";
@@ -31,7 +31,7 @@ const references = new Map();
 
 for (const file of await walk(SRC)) {
   const text = await readFile(file, "utf8");
-  for (const match of text.matchAll(/["'`](\/(?:files|images)\/[^"'`\s]+)["'`]/g)) {
+  for (const match of text.matchAll(/["'`](\/(?:files|images|videos)\/[^"'`\s]+)["'`]/g)) {
     const url = match[1];
     if (!references.has(url)) references.set(url, new Set());
     references.get(url).add(file);

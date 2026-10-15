@@ -113,8 +113,8 @@ const pages: SearchEntry[] = [
     title: "Videos",
     href: "/videos",
     kind: "page",
-    text: "Member videos from the wave camps — climbs in the wave over the Presidential Range, the view from the cockpit and the field at Gorham.",
-    keywords: "videos youtube member films watch wave camp cockpit player",
+    text: "Member videos from the wave camps — climbs in the wave over the Presidential Range, the view from the cockpit, the field at Gorham and a 2026 timelapse of the sky closing over the ridge.",
+    keywords: "videos youtube member films watch wave camp cockpit player timelapse sky",
   },
   {
     title: "More — press & links",
@@ -336,7 +336,7 @@ const photos: SearchEntry[] = albums.map((album) => ({
 
 const videoEntries: SearchEntry[] = memberVideos.map((video) => ({
   title: video.title,
-  href: `https://www.youtube.com/watch?v=${video.id}`,
+  href: video.id ? `https://www.youtube.com/watch?v=${video.id}` : "/videos",
   kind: "video" as const,
   section: video.year ? `${video.year} · ${video.credit}` : video.credit,
   text: video.description,
