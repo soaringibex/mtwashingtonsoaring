@@ -19,6 +19,7 @@ import {
   waveSolveKey,
 } from "@/lib/wave-solve";
 import { fetchRoadLines, type RoadLine } from "@/lib/roads";
+import { MAP_LIGHT, MAP_RELIEF_RAMP, reliefColour } from "@/lib/relief";
 import {
   columnLevelsAt,
   fetchUpwindColumnRaw,
@@ -96,42 +97,6 @@ const PLACES = [
 const CONTOURS = [305, 610, 914, 1219, 1524, 1829].map((levelM) => ({ levelM }));
 
 const WAVE_ALPHA = 0.36;
-
-/** Light from the northwest (map convention), 45° altitude. */
-const LIGHT = { east: -0.5, north: 0.5, up: Math.SQRT1_2 };
-
-const RELIEF_RAMP: [number, [number, number, number]][] = [
-  [150, [52, 76, 60]],
-  [400, [84, 108, 74]],
-  [650, [122, 132, 88]],
-  [900, [160, 148, 108]],
-  [1150, [172, 146, 116]],
-  [1400, [166, 162, 164]],
-  [1650, [210, 210, 212]],
-  [1950, [238, 239, 242]],
-];
-
-function reliefColour(elevationM: number, shade: number): [number, number, number] {
-  const low = RELIEF_RAMP[0];
-  const high = RELIEF_RAMP[RELIEF_RAMP.length - 1];
-  const e = Math.min(Math.max(elevationM, low[0]), high[0]);
-  let lower = low;
-  let upper = high;
-  for (let i = 0; i < RELIEF_RAMP.length - 1; i += 1) {
-    if (e >= RELIEF_RAMP[i][0] && e <= RELIEF_RAMP[i + 1][0]) {
-      lower = RELIEF_RAMP[i];
-      upper = RELIEF_RAMP[i + 1];
-      break;
-    }
-  }
-  const t = (e - lower[0]) / (upper[0] - lower[0] || 1);
-  const factor = Math.min(Math.max(0.42 + 1.15 * shade, 0.3), 1.45);
-  return [
-    Math.round((lower[1][0] + (upper[1][0] - lower[1][0]) * t) * factor),
-    Math.round((lower[1][1] + (upper[1][1] - lower[1][1]) * t) * factor),
-    Math.round((lower[1][2] + (upper[1][2] - lower[1][2]) * t) * factor),
-  ];
-}
 
 const x = (lon: number) => ((lon - MAP_LON_MIN) / MAP_LON_SPAN) * W;
 const y = (lat: number) => H - ((lat - MAP_LAT_MIN) / MAP_LAT_SPAN) * H;
@@ -634,8 +599,8 @@ export function WaveMap({
         const dzdx = (right - left) / (2 * dxM);
         const dzdy = (down - up) / (2 * dyM);
         const norm = Math.sqrt(dzdx * dzdx + dzdy * dzdy + 1);
-        const shade = (-dzdx * LIGHT.east - dzdy * LIGHT.north + LIGHT.up) / norm;
-        let [r, g, b] = reliefColour(e, shade);
+        const shade = (-dzdx * MAP_LIGHT.east - dzdy * MAP_LIGHT.north + MAP_LIGHT.up) / norm;
+        let [r, g, b] = reliefColour(e, shade, MAP_RELIEF_RAMP);
 
         if (nodeValues) {
           const fx = Math.min(Math.max((px / (W - 1)) * (MAP_COLS - 1), 0), MAP_COLS - 1.001);

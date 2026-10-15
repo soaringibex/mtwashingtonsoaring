@@ -88,8 +88,8 @@ const pages: SearchEntry[] = [
     title: "Flights",
     href: "/flights",
     kind: "page",
-    text: "Every WeGlide-logged flight from the October wave camps at Gorham, 2016–2026 — peak GPS altitudes, badges, the state record, and a link to each trace.",
-    keywords: "flights log weglide gps altitude badge medal trophy record wave camp gorham 2016 2026 archive trace",
+    text: "Every WeGlide-logged flight from the October wave camps at Gorham, 2016–2026 — peak GPS altitudes, badges, the state record, and a link to each trace. A live tracker shows what is airborne around the field right now.",
+    keywords: "flights log weglide gps altitude badge medal trophy record wave camp gorham 2016 2026 archive trace live tracker airborne flarm ogn adsb now",
   },
   {
     title: "Flights in 3D",
