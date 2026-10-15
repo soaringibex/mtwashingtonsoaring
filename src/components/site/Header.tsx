@@ -28,7 +28,10 @@ export function Header() {
           />
         </Link>
 
-        <nav className="hidden items-center lg:flex" aria-label="Main">
+        <nav
+          className="hidden items-center lg:flex lg:translate-y-[8px] xl:translate-y-[13px]"
+          aria-label="Main"
+        >
           {site.nav.map((item) => (
             <Link
               key={item.href}
