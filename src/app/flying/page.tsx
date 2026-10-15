@@ -121,7 +121,7 @@ export default function FlyingPage() {
                         srcSet="/images/scenic/sky-closing-still.webp"
                       />
                       <Image
-                        src="/images/scenic/sky-closing.webp"
+                        src="/images/scenic/sky-closing-2026.webp"
                         alt="A timelapse of the sky closing over the ridge — the blue autumn sky giving way to a solid deck of cloud"
                         width={800}
                         height={450}
