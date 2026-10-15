@@ -10,7 +10,7 @@ export const site = {
     town: "Gorham, New Hampshire",
   },
   nav: [
-    { href: "/flying", label: "Flying here", beta: false },
+    { href: "/flying", label: "Pilot info", beta: false },
     { href: "/stories", label: "Stories", beta: false },
     { href: "/history", label: "History", beta: false },
     { href: "/accomplishments", label: "Accomplishments", beta: false },

@@ -28,7 +28,7 @@ export type SearchEntry = {
 
 export const kindLabels: Record<SearchKind, string> = {
   page: "Pages",
-  flying: "Flying here",
+  flying: "Pilot info",
   story: "Stories",
   press: "Press",
   photo: "Photos",

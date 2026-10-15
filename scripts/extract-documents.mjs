@@ -31,7 +31,7 @@ const DOCS = [
   // Logbooks
   { slug: "2021-wave-camp-logbook-glen-kelley", pdf: "public/files/2021-wave-camp-logbook-glen-kelley.pdf", figures: true },
   { slug: "2016-wave-camp-logbook-rick-roelke", pdf: "public/files/2016-wave-camp-logbook-rick-roelke.pdf" },
-  // Flying here
+  // Pilot info
   { slug: "gorham-pattern-procedures-2023", pdf: "public/files/gorham-pattern-procedures-2023.pdf" },
   { slug: "gorham-landing-sites-2013", pdf: "public/files/gorham-landing-sites-2013.pdf" },
   { slug: "2016-wave-camp-information", pdf: "public/files/2016-wave-camp-information.pdf" },
