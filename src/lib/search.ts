@@ -102,8 +102,8 @@ const pages: SearchEntry[] = [
     title: "Photos",
     href: "/gallery",
     kind: "page",
-    text: "Wave camp photo albums — the recent seasons and the archive.",
-    keywords: "gallery pictures images albums wave camp",
+    text: "Wave camp photo albums — every season since 2016 and the archive.",
+    keywords: "gallery pictures images albums wave camp 2016 2018 2023 2024 2025 2026",
   },
   {
     title: "More — press & links",
