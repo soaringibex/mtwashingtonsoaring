@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PHASE_COLORS, PHASE_SHORT, hexToUnitRgb } from "@/lib/flight-phases";
+import { fetchImageryBox, imageryColour, type ImageryBox } from "@/lib/terrain-imagery";
 import { fetchTerrainMosaic, mosaicElevation, type TerrainMosaic } from "@/lib/terrain-tiles";
 
 /**
@@ -15,16 +16,38 @@ import { fetchTerrainMosaic, mosaicElevation, type TerrainMosaic } from "@/lib/t
  *    picks the phase — the camera flies there and the barogram retraces that
  *    segment — while the barogram's play/scrub stay available.
  *
- * Terrain comes from the shared /api/terrain mosaic at zoom 12 (~27 m per
- * pixel); the track is the pilot's own IGC file, decimated to one fix per four
- * seconds (scripts/build-flight-story.mjs).
+ * Terrain comes from the shared /api/terrain mosaic at zoom 12 (~27 m per pixel)
+ * and is coloured by USGS NAIP imagery (/api/imagery, public domain); the track
+ * is the pilot's own IGC file, decimated to one fix per four seconds
+ * (scripts/build-flight-story.mjs).
  */
 
 const BOUNDS = { west: -71.355, south: 44.215, east: -71.095, north: 44.44 };
 const ZOOM = 12;
+/** The relief texture's edge — a power of two for WebGL 1 mipmaps, and the imagery
+ * export's size, which is requested over the same box. */
+const TEX = 2048;
+/**
+ * The imagery grade: the hillshade multiplies into the photograph, and these two
+ * keep it in the scene's dusk register instead of a midday flat map. They are
+ * gentler than the ramp's shade below — the photograph already carries its own
+ * relief and cast shadows, and a full-strength shade doubles the darkest ones
+ * into holes. The elevation ramp (terrainRgb below) is the fallback when the
+ * imagery has not arrived.
+ */
+const IMAGERY_AMBIENT = 0.5;
+const IMAGERY_SHADE = 0.62;
+/**
+ * A mild lift on the photograph's shadows — NAIP flies in the morning, so the
+ * west-facing slopes of this basin are near-black in the source, and with the
+ * hillshade over them they read as holes rather than shaded forest. A 0.85 gamma
+ * LUT lifts the bottom end without touching the summits.
+ */
+const IMAGERY_LIFT = Uint8Array.from({ length: 256 }, (_, value) =>
+  Math.round(255 * (value / 255) ** 0.85),
+);
 const EXAG = 2.3;
 const FOV = (50 * Math.PI) / 180;
-const MAX_TEX = 2048;
 const PLAY_SECONDS = 75; // whole flight in 75 s when playing
 /**
  * One constant playback speed for every phase's track run — calibrated on the tow
@@ -363,6 +386,7 @@ export type ConnectWithWave3DProps = {
 export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DProps = {}) {
   const [track, setTrack] = useState<TrackData | null>(null);
   const [mosaic, setMosaic] = useState<TerrainMosaic | null>(null);
+  const [imagery, setImagery] = useState<ImageryBox | null>(null);
   const [dataError, setDataError] = useState(false);
   const [glError, setGlError] = useState(false);
   const [sizeTick, setSizeTick] = useState(0);
@@ -420,6 +444,23 @@ export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DPr
       })
       .catch(() => {
         if (!cancelled) setDataError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // The colour layer. It arrives a beat after the terrain on a cold cache; until
+  // then — or if the service is down — the elevation ramp colours the relief, so
+  // a failure here never holds the scene back.
+  useEffect(() => {
+    let cancelled = false;
+    fetchImageryBox(BOUNDS, TEX)
+      .then((next) => {
+        if (!cancelled) setImagery(next);
+      })
+      .catch(() => {
+        // Imagery is the photograph under the hillshade; the ramp stands in.
       });
     return () => {
       cancelled = true;
@@ -489,39 +530,59 @@ export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DPr
       }
     }
 
-    const W = mosaic.width;
-    const H = mosaic.height;
-    // A power-of-two square texture so WebGL 1 can build mipmaps for it — without
-    // them the relief aliases into crawling noise at the grazing angles the phase
-    // views use. Sampling stretches the square back over the mosaic's rectangle;
-    // the mesh's 0..1 UVs keep the content aligned either way.
-    const TW = Math.max(2, Math.min(MAX_TEX, 2 ** Math.ceil(Math.log2(Math.max(W, H)))));
-    const TH = TW;
-    const elev = mosaic.elevations;
+    // The texture is built in the box's own frame — texel (tx, ty) sits at the
+    // box's (u, v) that the mesh's UVs ask for — so the hillshade, the imagery
+    // and the geometry all agree geographically. (Sampling the tile mosaic
+    // directly instead would stretch its margin, up to kilometres of it, over
+    // the box; smooth ramp colours hid that, a photograph would not.) Square and
+    // power-of-two so WebGL 1 can build mipmaps for it — without them the relief
+    // aliases into crawling noise at the grazing angles the phase views use.
+    const TW = TEX;
+    const TH = TEX;
     const pxPerDegLon = 1 / mosaic.lonStep;
     const pxPerDegLat = 1 / mosaic.latStep;
+    const cosMid = Math.cos((midLat * Math.PI) / 180);
     const texData = new Uint8Array(TW * TH * 4);
+    const imageryRgb: [number, number, number] = [0, 0, 0];
     const lx = -0.5;
     const ly = 0.5;
     const lz = Math.SQRT1_2;
     for (let ty = 0; ty < TH; ty += 1) {
-      const sy = Math.min(H - 1, Math.round((ty / (TH - 1)) * (H - 1)));
+      const v = ty / (TH - 1);
+      const lat = BOUNDS.north - (BOUNDS.north - BOUNDS.south) * v;
+      const my = (mosaic.north - lat) * pxPerDegLat;
       for (let tx = 0; tx < TW; tx += 1) {
-        const sx = Math.min(W - 1, Math.round((tx / (TW - 1)) * (W - 1)));
-        const i = sy * W + sx;
-        const h = elev[i];
-        const hx = elev[sy * W + Math.min(W - 1, sx + 1)] - elev[sy * W + Math.max(0, sx - 1)];
-        const hy = elev[Math.max(0, sy - 1) * W + sx] - elev[Math.min(H - 1, sy + 1) * W + sx];
-        const dzdx = hx / (2 * (pxPerDegLon > 0 ? 1 / pxPerDegLon : 1) * 111320 * Math.cos((midLat * Math.PI) / 180));
-        const dzdy = hy / (2 * (1 / pxPerDegLat) * 110900);
+        const u = tx / (TW - 1);
+        const lon = BOUNDS.west + (BOUNDS.east - BOUNDS.west) * u;
+        const mx = (lon - mosaic.west) * pxPerDegLon;
+        const h = mosaicElevation(mosaic, mx, my);
+        const hx = mosaicElevation(mosaic, mx + 1, my) - mosaicElevation(mosaic, mx - 1, my);
+        const hy = mosaicElevation(mosaic, mx, my - 1) - mosaicElevation(mosaic, mx, my + 1);
+        const dzdx = hx / (2 * mosaic.lonStep * 111320 * cosMid);
+        const dzdy = hy / (2 * mosaic.latStep * 110900);
         const len = Math.hypot(dzdx, dzdy, 1);
         const light = Math.max(0, (-dzdx / len) * lx + (dzdy / len) * ly + (1 / len) * lz);
-        const base = terrainRgb(h);
-        const lit = 0.56 + 0.72 * light;
+        let r: number;
+        let g: number;
+        let b: number;
+        let lit: number;
+        if (imagery) {
+          imageryColour(imagery, u, v, imageryRgb);
+          r = IMAGERY_LIFT[Math.round(imageryRgb[0])];
+          g = IMAGERY_LIFT[Math.round(imageryRgb[1])];
+          b = IMAGERY_LIFT[Math.round(imageryRgb[2])];
+          lit = IMAGERY_AMBIENT + IMAGERY_SHADE * light;
+        } else {
+          const ramp = terrainRgb(h);
+          r = ramp[0];
+          g = ramp[1];
+          b = ramp[2];
+          lit = 0.56 + 0.72 * light;
+        }
         const o = (ty * TW + tx) * 4;
-        texData[o] = Math.min(255, base[0] * lit);
-        texData[o + 1] = Math.min(255, base[1] * lit);
-        texData[o + 2] = Math.min(255, base[2] * lit);
+        texData[o] = Math.min(255, r * lit);
+        texData[o + 1] = Math.min(255, g * lit);
+        texData[o + 2] = Math.min(255, b * lit);
         texData[o + 3] = 255;
       }
     }
@@ -530,7 +591,7 @@ export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DPr
     const worldY = (lat: number) => (lat - midLat) * kmPerLat;
     const worldZ = (altM: number) => (altM / 1000) * EXAG;
     return { verts, idx, vertCount: GX * GY, indexCount: idx.length, texData, TW, TH, midLat, midLon, kmPerLon, kmPerLat, meshZ, worldX, worldY, worldZ };
-  }, [mosaic]);
+  }, [mosaic, imagery]);
 
   const phaseIndexAt = useCallback(
     (t: number): number => {
