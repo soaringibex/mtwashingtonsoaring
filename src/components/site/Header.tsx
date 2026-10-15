@@ -15,7 +15,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-900/5 bg-white/85 backdrop-blur-md">
-      <Container className="flex h-16 items-center justify-between gap-4 sm:h-18 xl:h-20">
+      <Container className="flex h-16 items-center justify-between gap-3 sm:h-18 xl:h-20 xl:gap-4">
         <Link href="/" aria-label={site.name} className="flex shrink-0 items-center">
           <Image
             src="/images/brand/logo.svg"
@@ -33,7 +33,7 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className={`relative flex items-center rounded-full px-3 py-2 text-sm font-medium transition-colors ${
+              className={`relative flex items-center rounded-full px-2 py-2 text-sm font-medium transition-colors xl:px-3 ${
                 isActive(item.href)
                   ? "bg-sky-50 text-sky-700"
                   : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"

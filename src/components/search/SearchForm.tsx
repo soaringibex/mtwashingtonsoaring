@@ -136,7 +136,7 @@ export function SearchForm() {
       <p role="status" className="mt-4 text-sm text-slate-500">
         {searching
           ? `${results.length} ${results.length === 1 ? "result" : "results"} for “${query.trim()}”`
-          : "Search every page, document, photo album, press clipping and the full accomplishment record book."}
+          : "Search every page, document, photo album, video, press clipping and the full accomplishment record book."}
       </p>
 
       {!searching || results.length === 0 ? (

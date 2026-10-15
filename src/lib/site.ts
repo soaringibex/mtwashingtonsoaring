@@ -16,6 +16,7 @@ export const site = {
     { href: "/accomplishments", label: "Accomplishments", beta: false },
     { href: "/flights", label: "Flights", beta: false },
     { href: "/gallery", label: "Photos", beta: false },
+    { href: "/videos", label: "Videos", beta: false },
     { href: "/more", label: "More", beta: false },
     { href: "/wx", label: "Wavecast", beta: true },
   ],

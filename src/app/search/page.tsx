@@ -6,7 +6,7 @@ import { SearchForm } from "@/components/search/SearchForm";
 export const metadata: Metadata = {
   title: "Search",
   description:
-    "Search the Mount Washington Soaring Association site — documents, important reading, photos, press and the accomplishment record book.",
+    "Search the Mount Washington Soaring Association site — documents, important reading, photos, videos, press and the accomplishment record book.",
   robots: { index: false, follow: true },
 };
 

@@ -45,27 +45,6 @@ export const linkGroups: LinkGroup[] = [
     ],
   },
   {
-    id: "videos",
-    title: "Member videos",
-    links: [
-      {
-        title: "2007 video from Eric Foertsch",
-        href: "https://www.youtube.com/watch?v=8xAl6apxKx4",
-      },
-      {
-        title: "2010 video from Evan Ludeman",
-        href: "http://www.youtube.com/watch?v=AcrREDvTv5w",
-        description: "Mount Washington yields a perfect 11-knot climb on 10/10/10.",
-      },
-      {
-        title: "Ascent from Crawford Notch",
-        href: "https://www.youtube.com/watch?v=ZSoiPQ-SPuE",
-        description:
-          "Evan Ludeman's late-afternoon flight — 40 minutes of raw video that starts at Crawford Notch and ends near 18,000 feet in the wave over Mount Washington.",
-      },
-    ],
-  },
-  {
     id: "education",
     title: "Educational links",
     links: [

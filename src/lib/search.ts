@@ -4,6 +4,7 @@ import { albums } from "@/lib/gallery";
 import { linkGroups } from "@/lib/links";
 import { press } from "@/lib/press";
 import { storyGroups } from "@/lib/stories";
+import { videos as memberVideos } from "@/lib/videos";
 
 export type SearchKind =
   | "page"
@@ -11,6 +12,7 @@ export type SearchKind =
   | "story"
   | "press"
   | "photo"
+  | "video"
   | "history"
   | "achievement"
   | "link";
@@ -30,6 +32,7 @@ export const kindLabels: Record<SearchKind, string> = {
   story: "Stories",
   press: "Press",
   photo: "Photos",
+  video: "Videos",
   history: "History",
   achievement: "Accomplishments",
   link: "Links",
@@ -42,6 +45,7 @@ export const kindOrder: SearchKind[] = [
   "history",
   "press",
   "photo",
+  "video",
   "achievement",
   "link",
 ];
@@ -106,12 +110,19 @@ const pages: SearchEntry[] = [
     keywords: "gallery pictures images albums wave camp 2016 2018 2023 2024 2025 2026",
   },
   {
+    title: "Videos",
+    href: "/videos",
+    kind: "page",
+    text: "Member videos from the wave camps — climbs in the wave over the Presidential Range, the view from the cockpit and the field at Gorham.",
+    keywords: "videos youtube member films watch wave camp cockpit player",
+  },
+  {
     title: "More — press & links",
     href: "/more",
     kind: "page",
-    text: "Pieces published about the wave camps, plus the founding clubs, weather, videos and background reading.",
+    text: "Pieces published about the wave camps, plus the founding clubs, weather and background reading.",
     keywords:
-      "press links media newspaper magazine articles clippings clubs videos weather education external sites",
+      "press links media newspaper magazine articles clippings clubs weather education external sites",
   },
   {
     title: "Stories",
@@ -323,6 +334,15 @@ const photos: SearchEntry[] = albums.map((album) => ({
   keywords: "photos pictures album images",
 }));
 
+const videoEntries: SearchEntry[] = memberVideos.map((video) => ({
+  title: video.title,
+  href: `https://www.youtube.com/watch?v=${video.id}`,
+  kind: "video" as const,
+  section: video.year ? `${video.year} · ${video.credit}` : video.credit,
+  text: video.description,
+  keywords: `video youtube member film watch wave camp${video.year ? ` ${video.year}` : ""}${video.credit ? ` ${video.credit}` : ""}`,
+}));
+
 const achievements: SearchEntry[] = awards.flatMap((award) =>
   award.years.flatMap((year) =>
     year.entries.map((entry) => ({
@@ -342,6 +362,7 @@ export const searchEntries: SearchEntry[] = [
   ...history,
   ...pressEntries,
   ...photos,
+  ...videoEntries,
   ...achievements,
   ...links,
 ];

@@ -8,7 +8,7 @@ import { press } from "@/lib/press";
 export const metadata: Metadata = {
   title: "More",
   description:
-    "Press and links — pieces published about the Mount Washington wave camps, plus the founding clubs, weather, videos and background reading.",
+    "Press and links — pieces published about the Mount Washington wave camps, plus the founding clubs, weather and background reading.",
 };
 
 export default function MorePage() {
@@ -17,7 +17,7 @@ export default function MorePage() {
       <PageHero
         eyebrow="Press & links"
         title="More"
-        lede="Pieces that have been published about the camps, and the links worth having — the founding clubs, weather for a wave day, videos and background reading."
+        lede="Pieces that have been published about the camps, and the links worth having — the founding clubs, weather for a wave day and background reading."
         image="/images/scenic/wingtip-ridges.webp"
         imageAlt="A glider wingtip over ridges stretching into the distance"
         priority
@@ -82,7 +82,7 @@ export default function MorePage() {
               <SectionHeading
                 eyebrow="Elsewhere"
                 title="Links"
-                lede="Planning your wave day in the Mount Washington area? Start with the weather links — then the clubs, videos and background reading that go with the wave."
+                lede="Planning your wave day in the Mount Washington area? Start with the weather links — then the clubs and background reading that go with the wave. The member videos have a page of their own."
               />
 
               <nav aria-label="Link sections" className="mt-8 flex flex-wrap gap-2">

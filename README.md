@@ -29,7 +29,8 @@ npm start            # serve the production build
 | `/gallery` | Photo albums with a lightbox (2016–2026, archive) |
 | `/news`, `/news/when-is-the-gorham-wave-camp-held` | News posts |
 | `/press` | Published articles, rehosted PDFs where archived |
-| `/links` | Founding clubs, weather, videos, educational references |
+| `/videos` | Member videos from the wave camps, as embedded players |
+| `/more` | Press clippings and the link groups — founding clubs, weather, education |
 | `/important-reading` | Required briefing material, charts, navigation files |
 | `/documents` + `/documents/2026 · 2025 · 2024` | Season paperwork and camp archive |
 | `/contact` | Mailing list, location, webmaster |
@@ -45,7 +46,7 @@ Content lives in typed data modules under `src/lib/` — edit these rather than 
 - `news.ts` — news posts (add an object; routes and sitemap update automatically)
 - `documents.ts` — year documents, archive, navigation files
 - `accomplishments.ts` — award records
-- `links.ts` / `press.ts` / `gallery.ts` — everything else
+- `links.ts` / `videos.ts` / `press.ts` / `gallery.ts` — everything else
 
 Assets:
 

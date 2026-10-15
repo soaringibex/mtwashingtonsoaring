@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/wx", priority: 0.7 },
     { path: "/stories", priority: 0.6 },
     { path: "/gallery", priority: 0.7 },
+    { path: "/videos", priority: 0.6 },
     { path: "/accomplishments", priority: 0.6 },
     { path: "/more", priority: 0.5 },
     { path: "/contact", priority: 0.5 },
