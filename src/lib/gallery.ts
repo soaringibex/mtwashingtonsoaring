@@ -75,18 +75,6 @@ export const albums: Album[] = [
               credit: "Jared Granzow",
       },
       {
-        src: "/images/gallery/2026/the-valley-towns-from-the-air.webp",
-        alt: "The Androscoggin valley towns from the air, mountains to the horizon",
-        aspect: "landscape",
-              credit: "Jared Granzow",
-      },
-      {
-        src: "/images/gallery/2026/snow-along-the-summit-shoulder.webp",
-        alt: "Fresh snow along the summit shoulder of Mount Washington",
-        aspect: "landscape",
-              credit: "Jared Granzow",
-      },
-      {
         src: "/images/gallery/2026/summit-cone-and-switchbacks.webp",
         alt: "The snow-covered summit cone and the Auto Road's switchbacks, from the air",
         aspect: "landscape",
@@ -105,12 +93,6 @@ export const albums: Album[] = [
               credit: "Jared Granzow",
       },
       {
-        src: "/images/gallery/2026/the-range-above-the-river-valley.webp",
-        alt: "The snowy range above the river valley, seen past the wing",
-        aspect: "landscape",
-              credit: "Jared Granzow",
-      },
-      {
         src: "/images/gallery/2026/the-range-from-above.webp",
         alt: "The Presidential Range from high above, fresh snow along the crest and the valley beyond",
         aspect: "landscape",
@@ -119,12 +101,6 @@ export const albums: Album[] = [
       {
         src: "/images/gallery/2026/mount-washington-from-the-west.webp",
         alt: "Mount Washington's snow-covered summit cone and the Auto Road, seen from the west",
-        aspect: "landscape",
-              credit: "Jared Granzow",
-      },
-      {
-        src: "/images/gallery/2026/presidential-ridge-and-auto-road.webp",
-        alt: "The snow-dusted Presidential ridge from the northwest, the Auto Road along the crest",
         aspect: "landscape",
               credit: "Jared Granzow",
       },
