@@ -358,13 +358,9 @@ export type ConnectWithWave3DProps = {
   phase?: string;
   /** Scroll-story mode: no built-in buttons or note cards; each phase flies and plays as it is set. */
   scroll?: boolean;
-  /** Scroll-story mode: the reader is resting at the phase's card — the run may start. */
-  runArmed?: boolean;
-  /** Scroll-story mode: a phase's track run finished — or the reader took over the scrubber. */
-  onPhasePlayed?: (phaseId: string) => void;
 };
 
-export function ConnectWithWave3D({ phase, scroll = false, runArmed = true, onPhasePlayed }: ConnectWithWave3DProps = {}) {
+export function ConnectWithWave3D({ phase, scroll = false }: ConnectWithWave3DProps = {}) {
   const [track, setTrack] = useState<TrackData | null>(null);
   const [mosaic, setMosaic] = useState<TerrainMosaic | null>(null);
   const [dataError, setDataError] = useState(false);
@@ -380,11 +376,6 @@ export function ConnectWithWave3D({ phase, scroll = false, runArmed = true, onPh
   const [spinTick, setSpinTick] = useState(0);
   /** Bumped to cancel an in-flight scroll segment when the phase changes or the reader takes over. */
   const autoTokenRef = useRef(0);
-  /** Kept in a ref so an unstable parent callback cannot restart a segment mid-flight. */
-  const onPhasePlayedRef = useRef(onPhasePlayed);
-  useEffect(() => {
-    onPhasePlayedRef.current = onPhasePlayed;
-  }, [onPhasePlayed]);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const labelCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -806,7 +797,6 @@ export function ConnectWithWave3D({ phase, scroll = false, runArmed = true, onPh
 
   // Scroll-story mode: when the reader's scroll picks a phase, fly to it and retrace
   // that segment on the barogram (cancelled if they press play or drag the scrubber).
-  // The run reports back when it finishes so the page's scroll interlock can let go.
   useEffect(() => {
     if (!scroll || !phase) return;
     const view = phaseView(phase);
@@ -816,14 +806,10 @@ export function ConnectWithWave3D({ phase, scroll = false, runArmed = true, onPh
     if (!p) return;
     setPlaying(false);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // No autoplay motion: show the segment's end state and release the page.
+      // No autoplay motion: show the segment's end state.
       seek(p.to);
-      onPhasePlayedRef.current?.(p.id);
       return;
     }
-    // Scroll-story mode: the run is the reward of resting at the card — it waits for
-    // the reader to arrive, rather than playing during the approach.
-    if (scroll && !runArmed) return;
     const token = ++autoTokenRef.current;
     const t0 = performance.now();
     const dur = ((p.to - p.from) / SEGMENT_RATE) * 1000;
@@ -831,17 +817,13 @@ export function ConnectWithWave3D({ phase, scroll = false, runArmed = true, onPh
       if (autoTokenRef.current !== token) return;
       const k = Math.min(1, (now - t0) / dur);
       seek(p.from + (p.to - p.from) * k);
-      if (k < 1) {
-        raf = requestAnimationFrame(step);
-      } else {
-        onPhasePlayedRef.current?.(p.id);
-      }
+      if (k < 1) raf = requestAnimationFrame(step);
     });
     return () => {
       cancelAnimationFrame(raf);
       autoTokenRef.current += 1;
     };
-  }, [scroll, phase, track, phaseView, flyTo, seek, runArmed]);
+  }, [scroll, phase, track, phaseView, flyTo, seek]);
 
   // The rotor's arrows spin and the ridge's wind dashes march — a ~30 fps tick
   // while those phases are on screen, a still frame otherwise.
@@ -1476,7 +1458,6 @@ export function ConnectWithWave3D({ phase, scroll = false, runArmed = true, onPh
             onClick={() => {
               if (!track) return;
               autoTokenRef.current += 1; // the reader takes over from any scroll segment
-              if (scroll && phase) onPhasePlayedRef.current?.(phase);
               if (time === null || time >= track.landing) seek(track.takeoff);
               setPlaying((p) => !p);
             }}
@@ -1503,7 +1484,6 @@ export function ConnectWithWave3D({ phase, scroll = false, runArmed = true, onPh
               onPointerDown={(e) => {
                 if (!track) return;
                 autoTokenRef.current += 1;
-                if (scroll && phase) onPhasePlayedRef.current?.(phase);
                 setPlaying(false);
                 const el = e.currentTarget;
                 const rect = el.getBoundingClientRect();
