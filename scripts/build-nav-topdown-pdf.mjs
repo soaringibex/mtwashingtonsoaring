@@ -117,7 +117,7 @@ const INSET_LABELS = [
   { name: "Wildcat Mtn", kind: "summit", lat: 44.2592, lon: -71.20161, tx: 19, ty: -21.5, align: "left" },
   { name: "Carter Dome", kind: "summit", lat: 44.2674, lon: -71.17912, tx: 27, ty: -12, align: "left" },
   { name: "Gorham 2G8", kind: "field", lat: 44.39472, lon: -71.19805, tx: 16, ty: 63, align: "left" },
-  { name: "The Glen House", kind: "place", lat: 44.29093, lon: -71.22559, tx: 3, ty: -2.5, align: "left" },
+  { name: "Glen House", kind: "place", lat: 44.29093, lon: -71.22559, tx: 3, ty: -2.5, align: "left" },
   { name: "Mt Jefferson", kind: "summit", lat: 44.30423, lon: -71.31675, tx: -42, ty: 6, align: "right" },
   { name: "Mt Adams", kind: "summit", lat: 44.32058, lon: -71.29164, tx: -31, ty: 19, align: "right" },
   { name: "Mt Moriah", kind: "summit", lat: 44.34053, lon: -71.13172, tx: 44, ty: 30.5, align: "left" },
