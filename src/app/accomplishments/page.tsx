@@ -271,9 +271,8 @@ export default function AccomplishmentsPage() {
               </h2>
               <div className="mt-6 max-w-3xl space-y-5 text-[1.0625rem] leading-8 text-slate-600">
                 <p>
-                  Every flight in this book starts the same way — a tow off the field at Gorham,
-                  New Hampshire, roughly 835 feet above sea level, under the ridge line of the
-                  Presidential Range. What the record book measures is everything gained above it:
+                  Every flight in this book starts the same way — a tow off the field at Gorham, NH,
+                  roughly 835 feet above sea level, under the ridge line of the Presidential Range. What the record book measures is everything gained above it:
                   gold climbs, diamond climbs, and the Lennie Pins past 25,000 feet.
                 </p>
                 <p>
