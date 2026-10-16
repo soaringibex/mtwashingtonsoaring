@@ -877,19 +877,19 @@ async function main() {
       el("path", { d: "M" + sx + " " + (sy - 10) + " L" + (sx - 9) + " " + (sy + 6.5) + " L" + (sx + 9) + " " + (sy + 6.5) + " Z",
                    fill: "#1e293b", stroke: "rgba(255,255,255,0.95)", "stroke-width": 3.5 }, io);
       lead(label.align === "right" ? tx + 2 * PX_PER_MM : tx - 2 * PX_PER_MM, ty);
-      text(label.name, tx, ty, { anchor: label.align, size: 36, weight: 600 }, io);
+      text(label.name, tx, ty, { anchor: label.align, size: 26, weight: 600 }, io);
     } else if (label.kind === "area") {
       lead(label.align === "right" ? tx + 2 * PX_PER_MM : tx - 2 * PX_PER_MM, ty, label.arrow);
-      text(label.name, tx, ty, { anchor: label.align, size: 34, weight: 600, italic: true, fill: "rgba(15,23,42,0.9)", haloWidth: 8 }, io);
+      text(label.name, tx, ty, { anchor: label.align, size: 26, weight: 600, italic: true, fill: "rgba(15,23,42,0.9)", haloWidth: 6 }, io);
     } else if (label.kind === "range") {
       if (label.align !== "center") lead(label.align === "right" ? tx + 2 * PX_PER_MM : tx - 2 * PX_PER_MM, ty);
-      text(label.name, tx, ty, { anchor: label.align, size: 34, weight: 600, italic: true, fill: "#334155", spacing: "0.05em", haloWidth: 8 }, io);
+      text(label.name, tx, ty, { anchor: label.align, size: 26, weight: 600, italic: true, fill: "#334155", spacing: "0.05em", haloWidth: 6 }, io);
     } else if (label.kind === "field") {
       planeIcon(sx, sy, 44, "#0ea5e9", io);
-      text(label.name, tx, ty, { anchor: label.align, size: 38, weight: 700 }, io);
+      text(label.name, tx, ty, { anchor: label.align, size: 26, weight: 700 }, io);
     } else {
       el("circle", { cx: sx, cy: sy, r: 8, fill: "#475569", stroke: "rgba(255,255,255,0.95)", "stroke-width": 3.5 }, io);
-      text(label.name, tx, ty, { anchor: label.align, size: 34, weight: 600, fill: "#334155" }, io);
+      text(label.name, tx, ty, { anchor: label.align, size: 26, weight: 600, fill: "#334155" }, io);
     }
   }
   // A small scale bar for the inset, tucked inside the disc's lower-left.
