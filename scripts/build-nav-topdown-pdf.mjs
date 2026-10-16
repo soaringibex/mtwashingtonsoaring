@@ -683,8 +683,8 @@ async function main() {
   const [cx, cy] = pxOf(CENTER.lat, CENTER.lon);
   for (const nm of RINGS_NM) {
     const r = (nm * M_PER_NM) * pxPerM;
-    el("circle", { cx, cy, r, fill: "none", stroke: "rgba(255,255,255,0.62)", "stroke-width": 4.5 });
-    el("circle", { cx, cy, r, fill: "none", stroke: "#6b7280", "stroke-width": 1.8, "stroke-opacity": 0.9, "stroke-dasharray": "2 7" });
+    el("circle", { cx, cy, r, fill: "none", stroke: "rgba(255,255,255,0.85)", "stroke-width": 6, "stroke-dasharray": "3 7" });
+    el("circle", { cx, cy, r, fill: "none", stroke: "#6b7280", "stroke-width": 2.4, "stroke-dasharray": "3 7" });
     // Labels just inside each ring: the 5–20 NM pairs stack due south of the
     // field, the 25 NM pair west — the top-right corner belongs to the inset.
     // Two lines each: the distance, and the 25:1 glide altitude it demands.
@@ -704,8 +704,8 @@ async function main() {
   // enlarged as.
   const [gax, gay] = pxOf(INSET.lat, INSET.lon);
   const loaMainR = INSET.radiusNm * M_PER_NM * pxPerM;
-  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "rgba(255,255,255,0.6)", "stroke-width": 5.5, "stroke-dasharray": "2 7" });
-  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "#dc2626", "stroke-width": 2.4, "stroke-dasharray": "2 7", "stroke-opacity": 0.9 });
+  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "rgba(255,255,255,0.9)", "stroke-width": 7.5, "stroke-dasharray": "5 6" });
+  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "#dc2626", "stroke-width": 4, "stroke-dasharray": "5 6" });
   text("Glider area", gax, gay - loaMainR + 30, { anchor: "middle", size: 30, weight: 600, italic: true, fill: "#334155", haloWidth: 8 });
   {
     // Rim-to-rim pointer: the disc's drawn footprint, in sheet pixels.
@@ -817,8 +817,8 @@ async function main() {
   }
   // The LOA cylinder — red dotted, matching the main map's.
   const loaR = INSET.radiusNm * M_PER_NM * ippm;
-  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "rgba(255,255,255,0.7)", "stroke-width": 6, "stroke-dasharray": "2 7" }, io);
-  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "#dc2626", "stroke-width": 2.6, "stroke-dasharray": "2 7", "stroke-opacity": 0.95 }, io);
+  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "rgba(255,255,255,0.9)", "stroke-width": 7.5, "stroke-dasharray": "5 6" }, io);
+  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "#dc2626", "stroke-width": 4, "stroke-dasharray": "5 6" }, io);
   text("Glider area", icx, icy + 55 * iScale * PX_PER_MM, { anchor: "middle", size: 32, weight: 700, fill: "#1e293b", haloWidth: 8 }, io);
   text("10 NM \u00b7 18\u201324,000 ft", icx, icy + 64.5 * iScale * PX_PER_MM, { anchor: "middle", size: 30, weight: 600, fill: "#334155", haloWidth: 8 }, io);
 
