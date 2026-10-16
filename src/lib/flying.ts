@@ -161,51 +161,6 @@ export const campDocs: DocLink[] = [
   },
 ];
 
-/** Files for the moving map and flight computer. */
-export const navFiles: DocLink[] = [
-  {
-    title: "45-Minute Diamond",
-    href: "/files/45-minute-diamond.igc",
-    description: "IGC file showing the Mt Hays to primary transition.",
-    meta: "IGC",
-  },
-  {
-    title: "Landing places — Gorham 100-mile area",
-    href: "/files/gorham-landing-places.kmz",
-    description:
-      "Open in Google Earth. Shows landing places within about 100 miles of Gorham. There is no guarantee any field will be landable when you need it — use your own judgment.",
-    meta: "KMZ",
-  },
-  {
-    title: "Gorham area waypoints",
-    href: "/files/gorham-waypoints.cup",
-    description: "Waypoint file appropriate for the wave camp.",
-    meta: "CUP",
-  },
-  {
-    title: "Glider area only — Newport-Peace (TopHat, XCSoar)",
-    href: "/files/mwsa-glider-area.sua",
-    meta: "SUA",
-  },
-  {
-    title: "All USA airspace with the glider area — Newport-Peace",
-    href: "/files/allusa-with-mwsa-glider-area.sua",
-    description:
-      "Courtesy of Dave Sherrill — depicts the 10-mile wave airspace on your moving map.",
-    meta: "SUA",
-  },
-  {
-    title: "Glider area only — OpenAir (SeeYou Navigator)",
-    href: "/files/mwsa-glider-area.txt",
-    meta: "TXT",
-  },
-  {
-    title: "All USA airspace with the glider area — OpenAir",
-    href: "/files/allusa-with-mwsa-glider-area.txt",
-    meta: "TXT",
-  },
-];
-
 /** Every flying-here document, for the reading routes and the sitemap. */
 export const flyingDocs: DocLink[] = [
   ...required,
@@ -213,5 +168,4 @@ export const flyingDocs: DocLink[] = [
   ...legal,
   ...gorham,
   ...campDocs,
-  ...navFiles,
 ];

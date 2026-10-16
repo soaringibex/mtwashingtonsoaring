@@ -88,11 +88,6 @@ const FILES = [
   // Electronic files
   ["web_content_1205.txt", "files/45-minute-diamond.igc"],
   ["web_content_1221.bin", "files/gorham-landing-places.kmz"],
-  ["web_content_1197.bin", "files/gorham-waypoints.cup"],
-  ["web_content_1198.txt", "files/mwsa-glider-area.sua"],
-  ["web_content_1199.txt", "files/allusa-with-mwsa-glider-area.sua"],
-  ["web_content_1200.txt", "files/mwsa-glider-area.txt"],
-  ["web_content_1258.txt", "files/allusa-with-mwsa-glider-area.txt"],
 
   // Press reprints
   ["web_content_1211.pdf", "files/press/glimpse-of-a-timeless-sky-windswept-2005.pdf"],

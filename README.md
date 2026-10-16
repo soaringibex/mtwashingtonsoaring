@@ -51,7 +51,8 @@ Content lives in typed data modules under `src/lib/` — edit these rather than 
 Assets:
 
 - `public/images/…` — scenic, gallery, reading charts, brand
-- `public/files/…` — PDFs, IGC/KMZ/CUP/SUA downloads
+- `public/files/…` — PDFs and the IGC/KMZ downloads (the waypoints and airspace files are
+  built live from the Soaring Turnpoint Exchange — see `src/lib/nav-files.ts`)
 
 ## Legacy site tooling
 

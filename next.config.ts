@@ -22,6 +22,35 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // The moving-map files are built at request time now — waypoints straight from
+      // the Soaring Turnpoint Exchange, airspace from its current NASR issue with the
+      // club's glider area merged in. Old links (camp emails, bookmarks) land on the
+      // live downloads.
+      {
+        source: "/files/gorham-waypoints.cup",
+        destination: "/api/nav/download?file=waypoints-cup",
+        permanent: true,
+      },
+      {
+        source: "/files/allusa-with-mwsa-glider-area.sua",
+        destination: "/api/nav/download?file=airspace-allusa-sua",
+        permanent: true,
+      },
+      {
+        source: "/files/allusa-with-mwsa-glider-area.txt",
+        destination: "/api/nav/download?file=airspace-allusa-openair",
+        permanent: true,
+      },
+      {
+        source: "/files/mwsa-glider-area.sua",
+        destination: "/api/nav/download?file=airspace-glider-sua",
+        permanent: true,
+      },
+      {
+        source: "/files/mwsa-glider-area.txt",
+        destination: "/api/nav/download?file=airspace-glider-openair",
+        permanent: true,
+      },
       // Legacy Wild Apricot URLs → new locations
       { source: "/blog", destination: "/", permanent: true },
       { source: "/blog/2", destination: "/", permanent: true },

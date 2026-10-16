@@ -11,9 +11,9 @@
  * the screenshot is encoded to webp/png with sharp.
  *
  * Feature coordinates: summits from OpenStreetMap/USGS, "The Horn" from the club's
- * own Gorham turnpoint set (soaringweb.org, via public/files/gorham-waypoints.cup),
- * the Crescent Range point from the club's Gorham Google Earth placemarks, and the
- * field itself from the site's flights globe.
+ * own Gorham turnpoint set (soaringweb.org/TP/Gorham), the Crescent Range point from
+ * the club's Gorham Google Earth placemarks, and the field itself from the site's
+ * flights globe.
  *
  * Run from the repo root:  node scripts/build-nav-3d-map.mjs
  */

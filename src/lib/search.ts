@@ -1,5 +1,5 @@
 import { awards } from "@/lib/accomplishments";
-import { campDocs, gorham, legal, navFiles, oxygen, required } from "@/lib/flying";
+import { campDocs, gorham, legal, oxygen, required } from "@/lib/flying";
 import { albums } from "@/lib/gallery";
 import { linkGroups } from "@/lib/links";
 import { press } from "@/lib/press";
@@ -268,14 +268,32 @@ const flying: SearchEntry[] = [
     text: doc.description,
     keywords: "signup paperwork camp documents season",
   })),
-  ...navFiles.filter((doc) => !doc.hidden).map((doc) => ({
-    title: doc.title,
-    href: doc.page ?? doc.href ?? "/flying",
-    kind: "flying" as const,
+  {
+    title: "Electronic files — waypoints and airspace for the moving map",
+    href: "/flying#electronic-files",
+    kind: "flying",
     section: "Electronic files",
-    text: doc.description,
-    keywords: "waypoints airspace cup igc kmz sua moving map",
-  })),
+    text: "The exchange's current Gorham waypoint set and the LOA's Glider Area drawn on one map, with downloads built on the spot — never a stale copy.",
+    keywords:
+      "waypoints airspace cup gpx sua txt openair moving map gorham glider area nasr download exchange soaringweb kmz igc",
+  },
+  {
+    title: "Gorham area waypoints — the exchange's current CUP file",
+    href: "/flying#electronic-files",
+    kind: "flying",
+    section: "Electronic files",
+    text: "The Worldwide Soaring Turnpoint Exchange's 250-point package for the wave country, in CUP and GPX, served straight from the exchange's own current file.",
+    keywords: "waypoints turnpoints cup gpx seeyou xcsoar tophat lk8000 garmin foreflight gorham exchange",
+  },
+  {
+    title: "Glider area airspace — SUA and OpenAir, with the all-USA file merged",
+    href: "/flying#electronic-files",
+    kind: "flying",
+    section: "Electronic files",
+    text: "The LOA's 10 NM cylinder (18,000–24,000 ft) on its own, or merged automatically into the exchange's current all-USA NASR airspace file.",
+    keywords:
+      "airspace sua txt openair newport-peace glider area loa wave nasr all usa xcsoar seeyou navigator top hat",
+  },
   {
     title: "Mind the window — weather judgment",
     href: "/flying",

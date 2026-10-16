@@ -4,7 +4,8 @@ import { PageHero } from "@/components/ui/PageHero";
 import { Container } from "@/components/ui/Container";
 import { DocCard } from "@/components/ui/DocCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { campDocs, gorham, legal, navFiles, oxygen, required } from "@/lib/flying";
+import { NavFilesMap } from "@/components/flying/NavFilesMap";
+import { campDocs, gorham, legal, oxygen, required } from "@/lib/flying";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -77,7 +78,7 @@ export default function FlyingPage() {
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
                 {required.filter((doc) => !doc.hidden).map((doc) => (
-                  <DocCard key={doc.href} doc={doc} />
+                  <DocCard key={doc.href ?? doc.page} doc={doc} />
                 ))}
               </div>
             </section>
@@ -146,7 +147,7 @@ export default function FlyingPage() {
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
                 {oxygen.filter((doc) => !doc.hidden).map((doc) => (
-                  <DocCard key={doc.href} doc={doc} />
+                  <DocCard key={doc.href ?? doc.page} doc={doc} />
                 ))}
               </div>
             </section>
@@ -159,7 +160,7 @@ export default function FlyingPage() {
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
                 {legal.filter((doc) => !doc.hidden).map((doc) => (
-                  <DocCard key={doc.href} doc={doc} />
+                  <DocCard key={doc.href ?? doc.page} doc={doc} />
                 ))}
               </div>
             </section>
@@ -173,7 +174,7 @@ export default function FlyingPage() {
               <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:items-start">
                 <div className="grid gap-4">
                   {gorham.filter((doc) => !doc.hidden).map((doc) => (
-                    <DocCard key={doc.href} doc={doc} />
+                    <DocCard key={doc.href ?? doc.page} doc={doc} />
                   ))}
                 </div>
                 <figure className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
@@ -321,25 +322,11 @@ export default function FlyingPage() {
               <SectionHeading
                 eyebrow="For your moving map"
                 title="Electronic files"
-                lede="Waypoints, airspace and task files for the Gorham area. Airspace files depict the 10-mile wave airspace (courtesy of Dave Sherrill)."
+                lede="The exchange's current Gorham waypoints and the LOA's Glider Area on one map — with every file in the viewer, built when it is asked for."
               />
-              <div className="mt-8 grid gap-4 md:grid-cols-2">
-                {navFiles.filter((doc) => !doc.hidden).map((doc) => (
-                  <DocCard key={doc.href} doc={doc} />
-                ))}
+              <div className="mt-8">
+                <NavFilesMap />
               </div>
-              <p className="mt-6 text-sm leading-7 text-slate-600">
-                The Gorham, NH waypoint database is also maintained at{" "}
-                <a
-                  href="https://soaringweb.org/TP/Gorham"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"
-                >
-                  soaringweb.org/TP/Gorham
-                </a>
-                .
-              </p>
             </section>
 
             <section>
@@ -350,7 +337,7 @@ export default function FlyingPage() {
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
                 {campDocs.filter((doc) => !doc.hidden).map((doc) => (
-                  <DocCard key={doc.href} doc={doc} />
+                  <DocCard key={doc.href ?? doc.page} doc={doc} />
                 ))}
               </div>
               <p className="mt-6 text-sm leading-7 text-slate-600">
