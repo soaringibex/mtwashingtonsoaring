@@ -4,14 +4,15 @@
  * a 1:450,000 full-bleed tabloid (17 x 11 in) sheet of the wave country, north up.
  * The west edge lands on the exchange's Black Mountain (Benton), the bottom edge
  * just below Fryeburg; Sugarloaf AP and Moosilauke stay in frame. The main map
- * carries only the exchange's turnpoints (airfields ringed, as CUP styles 2/5
- * read in src/lib/nav-files.ts), the rivers and lakes, a dotted set of glide
- * rings every 5 NM around Gorham (2G8) — each labelled with the altitude a 25:1
- * glide in still air needs at that distance to arrive with 1,000 ft to spare
- * (required MSL = field elevation 837 ft + 1,000 ft + the ring's distance / 25)
- * — and the LOA's glider area, dashed and pointed at. The briefing's detailed
- * landmarks live on the disc that enlarges that area at 1:230,000 — its raster
- * twice the sheet's 300 dpi, over a one-zoom-finer terrain mosaic.
+ * carries only the exchange's turnpoints (CUP styles 2/5 fly the airplane icon,
+ * as read in src/lib/nav-files.ts), the rivers and lakes, a grey dotted set of
+ * glide rings every 5 NM around Gorham (2G8) — each labelled with the altitude
+ * a 25:1 glide in still air needs at that distance to arrive with 1,000 ft to
+ * spare (required MSL = field elevation 837 ft + 1,000 ft + the ring's
+ * distance / 25) — and the LOA's glider area, red dotted and pointed at. The
+ * briefing's detailed landmarks live on the disc that enlarges that area at
+ * 1:186,000 — its raster twice the sheet's 300 dpi, over a one-zoom-finer
+ * terrain mosaic.
  *
  * Same machinery as scripts/build-nav-3d-map.mjs: AWS Terrain Tiles (Terrarium,
  * cache shared in .screenshots/nav3d/tiles), a harneess page rendered in headless
@@ -71,9 +72,9 @@ const ROUTE = {
 const RINGS_NM = [5, 10, 15, 20, 25];
 
 /**
- * The corner inset: the LOA's glider area at 1.5× the sheet's scale, pinned to
- * the top-left. Its centre is the glider area's own centre (src/lib/wx-grid.ts);
- * the dashed circle is its 10 NM radius.
+ * The corner inset: the LOA's glider area at 2.4× the sheet's scale, flush in
+ * the bottom-right. Its centre is the glider area's own centre (src/lib/wx-grid.ts);
+ * the red dotted circle is its 10 NM radius.
  */
 const INSET = {
   lat: 44.290556,
@@ -109,10 +110,10 @@ const INSET_LABELS = [
   { name: "Mount Madison", kind: "summit", lat: 44.32879, lon: -71.27667, tx: -16, ty: 24, align: "left" },
   { name: "Pine Mountain", kind: "summit", lat: 44.36588, lon: -71.21519, tx: 9, ty: 45.5, align: "left" },
   { name: "Mount Hayes", kind: "summit", lat: 44.41566, lon: -71.15986, tx: 32, ty: 75.5, align: "left" },
-  { name: "The Great Gulf", kind: "area", lat: 44.2975, lon: -71.3095, tx: -30, ty: 6, align: "left" },
-  { name: "The Horn", kind: "summit", lat: 44.29483, lon: -71.279, tx: -13, ty: 0, align: "left" },
-  { name: "Huntington Ravine", kind: "area", lat: 44.2745, lon: -71.2805, tx: -18, ty: -8, align: "left" },
-  { name: "Tuckerman's Ravine", kind: "area", lat: 44.2605, lon: -71.292, tx: -31, ty: -22, align: "right" },
+  { name: "The Great Gulf", kind: "area", lat: 44.2975, lon: -71.3095, tx: -14, ty: 13, align: "left", arrow: true },
+  { name: "The Horn", kind: "summit", lat: 44.29483, lon: -71.279, tx: -17, ty: 2, align: "left" },
+  { name: "Huntington Ravine", kind: "area", lat: 44.2745, lon: -71.2805, tx: -15, ty: -8, align: "left", arrow: true },
+  { name: "Tuckerman Ravine", kind: "area", lat: 44.2605, lon: -71.292, tx: -25, ty: -22.5, align: "left", arrow: true },
   { name: "Wildcat Mountain", kind: "summit", lat: 44.2592, lon: -71.20161, tx: 15, ty: -19.5, align: "left" },
   { name: "Carter Dome", kind: "summit", lat: 44.2674, lon: -71.17912, tx: 27, ty: -12, align: "left" },
   { name: "Gorham 2G8", kind: "field", lat: 44.39472, lon: -71.19805, tx: 16, ty: 63, align: "left" },
@@ -677,12 +678,13 @@ async function main() {
     }
   }
 
-  // Range rings: centred on the field, every 5 NM, cased so they read over terrain.
+  // Range rings: centred on the field, every 5 NM — grey dotted, cased so the
+  // dots read over the terrain.
   const [cx, cy] = pxOf(CENTER.lat, CENTER.lon);
   for (const nm of RINGS_NM) {
     const r = (nm * M_PER_NM) * pxPerM;
-    el("circle", { cx, cy, r, fill: "none", stroke: "rgba(255,255,255,0.6)", "stroke-width": 4.5 });
-    el("circle", { cx, cy, r, fill: "none", stroke: "#334155", "stroke-width": 1.7, "stroke-opacity": 0.8, "stroke-dasharray": "2 7" });
+    el("circle", { cx, cy, r, fill: "none", stroke: "rgba(255,255,255,0.62)", "stroke-width": 4.5 });
+    el("circle", { cx, cy, r, fill: "none", stroke: "#6b7280", "stroke-width": 1.8, "stroke-opacity": 0.9, "stroke-dasharray": "2 7" });
     // Labels just inside each ring: the 5–20 NM pairs stack due south of the
     // field, the 25 NM pair west — the top-right corner belongs to the inset.
     // Two lines each: the distance, and the 25:1 glide altitude it demands.
@@ -697,12 +699,13 @@ async function main() {
     }
   }
 
-  // The LOA's glider-area cylinder on the main map — dashed like the disc's own,
-  // labelled, with a pointer across to the disc it is enlarged as.
+  // The LOA's glider-area cylinder on the main map — red dotted on both the
+  // sheet and the disc, labelled, with a pointer across to the disc it is
+  // enlarged as.
   const [gax, gay] = pxOf(INSET.lat, INSET.lon);
   const loaMainR = INSET.radiusNm * M_PER_NM * pxPerM;
-  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "rgba(255,255,255,0.55)", "stroke-width": 5.5, "stroke-dasharray": "12 9" });
-  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "#1e293b", "stroke-width": 2.4, "stroke-dasharray": "12 9", "stroke-opacity": 0.85 });
+  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "rgba(255,255,255,0.6)", "stroke-width": 5.5, "stroke-dasharray": "2 7" });
+  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "#dc2626", "stroke-width": 2.4, "stroke-dasharray": "2 7", "stroke-opacity": 0.9 });
   text("Glider area", gax, gay - loaMainR + 30, { anchor: "middle", size: 30, weight: 600, italic: true, fill: "#334155", haloWidth: 8 });
   {
     // Rim-to-rim pointer: the disc's drawn footprint, in sheet pixels.
@@ -713,15 +716,25 @@ async function main() {
     const ux = dx / len, uy = dy / len;
     const p1 = [gax + ux * (loaMainR + 6), gay + uy * (loaMainR + 6)];
     const p2 = [dcx - ux * (dR + 6), dcy - uy * (dR + 6)];
-    line(p1[0], p1[1], p2[0], p2[1], { stroke: "#334155", width: 1.6, opacity: 0.7 });
+    line(p1[0], p1[1], p2[0], p2[1], { stroke: "#dc2626", width: 1.8, opacity: 0.8 });
     const px = -uy, py = ux; // perpendicular
     el("path", {
       d: "M" + p1[0] + " " + p1[1] +
          " L" + (p1[0] + ux * 22 + px * 8) + " " + (p1[1] + uy * 22 + py * 8) +
          " L" + (p1[0] + ux * 22 - px * 8) + " " + (p1[1] + uy * 22 - py * 8) + " Z",
-      fill: "#334155", "fill-opacity": 0.8,
+      fill: "#dc2626", "fill-opacity": 0.85,
     });
   }
+
+  // A top-down airplane for every airport — nose north, on this north-up sheet.
+  const planeIcon = (x, y, len, fill, parent) => {
+    const s = len / 21;
+    el("path", {
+      d: "M21 16v-2l-8-5V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z",
+      transform: "translate(" + x + " " + y + ") scale(" + s + ") translate(-11.5 -12)",
+      fill: fill, stroke: "rgba(255,255,255,0.95)", "stroke-width": 2.6 / s, "stroke-linejoin": "round",
+    }, parent);
+  };
 
   // The exchange's turnpoints: a small diamond and a quiet name each, drawn over
   // the rings so their casings do not cut the type.
@@ -729,9 +742,8 @@ async function main() {
     const [sx, sy] = pxOf(wp.lat, wp.lon);
     if (sx < 16 || sx > CANVAS_W - 16 || sy < 16 || sy > CANVAS_H - 16) continue;
     if (wp.airport) {
-      // Airfields get the chart's own icon: a ringed circle with a centre dot.
-      el("circle", { cx: sx, cy: sy, r: 11, fill: "rgba(255,255,255,0.94)", stroke: "#3f4c5f", "stroke-width": 3.4 });
-      el("circle", { cx: sx, cy: sy, r: 3.6, fill: "#3f4c5f" });
+      // Airfields fly the chart's airplane icon.
+      planeIcon(sx, sy, 30, "#3f4c5f");
     } else {
       el("path", {
         d: "M" + sx + " " + (sy - 7) + " L" + (sx + 7) + " " + sy + " L" + sx + " " + (sy + 7) + " L" + (sx - 7) + " " + sy + " Z",
@@ -740,19 +752,19 @@ async function main() {
     }
     const pos = WAYPOINT_POS[wp.name] ?? {};
     const left = pos.side === "left" || (!pos.side && sx > CANVAS_W - 430);
-    text(wp.name, sx + (left ? (wp.airport ? -16 : -12) : wp.airport ? 16 : 12), sy + 3 + (pos.dy ?? 0) * PX_PER_MM * 0.25,
+    text(wp.name, sx + (left ? (wp.airport ? -22 : -12) : wp.airport ? 22 : 12), sy + 3 + (pos.dy ?? 0) * PX_PER_MM * 0.25,
          { anchor: left ? "end" : "start", size: 26, weight: wp.airport ? 600 : 500, fill: wp.airport ? "#334155" : "#3f4c5f", haloWidth: 6, spacing: "0.01em" });
   }
 
   // Scale bar (bottom left, in the map) and north arrow (top right).
-  const bar10 = 10000 * pxPerM;
+  const bar5nm = 5 * M_PER_NM * pxPerM;
   const bx = 40, by = CANVAS_H - 46;
-  line(bx, by, bx + bar10 * 2, by, { stroke: "rgba(255,255,255,0.9)", width: 12 });
-  line(bx, by, bx + bar10 * 2, by, { stroke: "#1e293b", width: 4 });
-  for (const xx of [bx, bx + bar10, bx + bar10 * 2]) line(xx, by - 10, xx, by + 10, { stroke: "#1e293b", width: 4 });
+  line(bx, by, bx + bar5nm * 2, by, { stroke: "rgba(255,255,255,0.9)", width: 12 });
+  line(bx, by, bx + bar5nm * 2, by, { stroke: "#1e293b", width: 4 });
+  for (const xx of [bx, bx + bar5nm, bx + bar5nm * 2]) line(xx, by - 10, xx, by + 10, { stroke: "#1e293b", width: 4 });
   text("0", bx, by - 28, { anchor: "middle", size: 34, weight: 600, haloWidth: 8 });
-  text("10", bx + bar10, by - 28, { anchor: "middle", size: 34, weight: 600, haloWidth: 8 });
-  text("20 km", bx + bar10 * 2, by - 28, { anchor: "middle", size: 34, weight: 600, haloWidth: 8 });
+  text("5", bx + bar5nm, by - 28, { anchor: "middle", size: 34, weight: 600, haloWidth: 8 });
+  text("10 NM", bx + bar5nm * 2, by - 28, { anchor: "middle", size: 34, weight: 600, haloWidth: 8 });
   // The one line of print the data licences ask for.
   text("Terrain: AWS Terrain Tiles  ·  Water: © OpenStreetMap contributors (ODbL)  ·  25:1, 1,000 ft arrival",
        bx, by - 70, { size: 29, weight: 500, fill: "#334155", haloWidth: 8 });
@@ -803,10 +815,10 @@ async function main() {
     el("path", { d: ipath(river, false), fill: "none", stroke: WATER_INK, "stroke-width": 4.5,
                  "stroke-opacity": 0.85, "stroke-linecap": "round" }, io);
   }
-  // The LOA cylinder, dashed, at its own radius.
+  // The LOA cylinder — red dotted, matching the main map's.
   const loaR = INSET.radiusNm * M_PER_NM * ippm;
-  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "rgba(255,255,255,0.65)", "stroke-width": 6, "stroke-dasharray": "12 9" }, io);
-  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "#1e293b", "stroke-width": 2.4, "stroke-dasharray": "12 9", "stroke-opacity": 0.9 }, io);
+  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "rgba(255,255,255,0.7)", "stroke-width": 6, "stroke-dasharray": "2 7" }, io);
+  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "#dc2626", "stroke-width": 2.6, "stroke-dasharray": "2 7", "stroke-opacity": 0.95 }, io);
   text("Glider area", icx, icy + 55 * iScale * PX_PER_MM, { anchor: "middle", size: 32, weight: 700, fill: "#1e293b", haloWidth: 8 }, io);
   text("10 NM \u00b7 18\u201324,000 ft", icx, icy + 64.5 * iScale * PX_PER_MM, { anchor: "middle", size: 30, weight: 600, fill: "#334155", haloWidth: 8 }, io);
 
@@ -814,8 +826,26 @@ async function main() {
   for (const label of INSET_LABELS) {
     const [sx, sy] = ipx(label.lat, label.lon);
     const tx = icx + label.tx * iScale * PX_PER_MM, ty = icy - label.ty * iScale * PX_PER_MM;
-    const lead = (px, py) => {
+    const lead = (px, py, arrow) => {
       const len = Math.hypot(px - sx, py - sy);
+      if (arrow) {
+        // A pointing arrow: the head lands on the feature, the shaft runs to the text.
+        if (len < 3 * PX_PER_MM) return;
+        const ux = (sx - px) / len, uy = (sy - py) / len;
+        const head = 3.2 * PX_PER_MM, half = 1.25 * PX_PER_MM;
+        const tipX = sx - ux * 0.6 * PX_PER_MM, tipY = sy - uy * 0.6 * PX_PER_MM;
+        const backX = tipX - ux * head, backY = tipY - uy * head;
+        const nx = -uy, ny = ux;
+        el("path", {
+          d: "M" + tipX.toFixed(1) + " " + tipY.toFixed(1) +
+             " L" + (backX + nx * half).toFixed(1) + " " + (backY + ny * half).toFixed(1) +
+             " L" + (backX - nx * half).toFixed(1) + " " + (backY - ny * half).toFixed(1) + " Z",
+          fill: "#475569", "fill-opacity": 0.9, stroke: "rgba(255,255,255,0.9)", "stroke-width": 2.5,
+        }, io);
+        line(px, py, backX + ux * 1.2 * PX_PER_MM, backY + uy * 1.2 * PX_PER_MM,
+             { stroke: "#475569", width: 2.4, opacity: 0.85 }, io);
+        return;
+      }
       if (len < 8 * PX_PER_MM) return;
       const t = (2.5 * PX_PER_MM) / len;
       line(sx + (px - sx) * t, sy + (py - sy) * t, px, py, { stroke: "#475569", width: 1.8, opacity: 0.5 }, io);
@@ -826,13 +856,13 @@ async function main() {
       lead(label.align === "right" ? tx + 2 * PX_PER_MM : tx - 2 * PX_PER_MM, ty);
       text(label.name, tx, ty, { anchor: label.align, size: 36, weight: 600 }, io);
     } else if (label.kind === "area") {
-      lead(label.align === "right" ? tx + 2 * PX_PER_MM : tx - 2 * PX_PER_MM, ty);
+      lead(label.align === "right" ? tx + 2 * PX_PER_MM : tx - 2 * PX_PER_MM, ty, label.arrow);
       text(label.name, tx, ty, { anchor: label.align, size: 34, weight: 600, italic: true, fill: "rgba(15,23,42,0.9)", haloWidth: 8 }, io);
     } else if (label.kind === "range") {
       if (label.align !== "center") lead(label.align === "right" ? tx + 2 * PX_PER_MM : tx - 2 * PX_PER_MM, ty);
       text(label.name, tx, ty, { anchor: label.align, size: 34, weight: 600, italic: true, fill: "#334155", spacing: "0.05em", haloWidth: 8 }, io);
     } else if (label.kind === "field") {
-      el("circle", { cx: sx, cy: sy, r: 15, fill: "#0ea5e9", stroke: "rgba(255,255,255,0.95)", "stroke-width": 5 }, io);
+      planeIcon(sx, sy, 44, "#0ea5e9", io);
       text(label.name, tx, ty, { anchor: label.align, size: 38, weight: 700 }, io);
     } else {
       el("circle", { cx: sx, cy: sy, r: 8, fill: "#475569", stroke: "rgba(255,255,255,0.95)", "stroke-width": 3.5 }, io);
@@ -841,13 +871,14 @@ async function main() {
   }
 
   // A small scale bar for the inset, tucked inside the disc's lower-left.
-  const ibar = 5000 * ippm;
+  const ibar = 2 * M_PER_NM * ippm;
   const ibx = icx - 52 * PX_PER_MM, iby = icy + 74 * PX_PER_MM;
-  line(ibx, iby, ibx + ibar, iby, { stroke: "rgba(255,255,255,0.9)", width: 11 }, io);
-  line(ibx, iby, ibx + ibar, iby, { stroke: "#1e293b", width: 4 }, io);
-  line(ibx, iby - 9, ibx, iby + 9, { stroke: "#1e293b", width: 4 }, io);
-  line(ibx + ibar, iby - 9, ibx + ibar, iby + 9, { stroke: "#1e293b", width: 4 }, io);
-  text("5 km", ibx + ibar / 2, iby - 26, { anchor: "middle", size: 32, weight: 600, haloWidth: 7 }, io);
+  line(ibx, iby, ibx + ibar * 2, iby, { stroke: "rgba(255,255,255,0.9)", width: 11 }, io);
+  line(ibx, iby, ibx + ibar * 2, iby, { stroke: "#1e293b", width: 4 }, io);
+  for (const xx of [ibx, ibx + ibar, ibx + ibar * 2]) line(xx, iby - 9, xx, iby + 9, { stroke: "#1e293b", width: 4 }, io);
+  text("0", ibx, iby - 26, { anchor: "middle", size: 30, weight: 600, haloWidth: 7 }, io);
+  text("2", ibx + ibar, iby - 26, { anchor: "middle", size: 30, weight: 600, haloWidth: 7 }, io);
+  text("4 NM", ibx + ibar * 2, iby - 26, { anchor: "middle", size: 30, weight: 600, haloWidth: 7 }, io);
 
   if (DEBUG) {
     for (let lat = Math.floor(BOUNDS.south * 20) / 20; lat <= BOUNDS.north; lat += 0.05) {
