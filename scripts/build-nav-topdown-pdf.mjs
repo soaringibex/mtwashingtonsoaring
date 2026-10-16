@@ -101,26 +101,27 @@ const RAMP = [[150,[52,76,60]],[400,[84,108,74]],[650,[122,132,88]],[900,[160,14
  */
 /**
  * The inset's labels — text anchors in millimetres east/north of the inset's
- * centre (the glider area), tuned against the render.
+ * centre (the glider area), authored at 1:186,000 and kept a few millimetres from
+ * each anchor so every name sits by its feature with a short leader.
  */
 const INSET_LABELS = [
-  { name: "Mount Washington", kind: "summit", lat: 44.27049, lon: -71.3033, tx: -23.5, ty: 11.5, align: "right" },
-  { name: "Mount Madison", kind: "summit", lat: 44.32879, lon: -71.27667, tx: -2, ty: 23.5, align: "right" },
-  { name: "Pine Mountain", kind: "summit", lat: 44.36588, lon: -71.21519, tx: 21.5, ty: 2, align: "center" },
-  { name: "Mount Hayes", kind: "summit", lat: 44.41566, lon: -71.15986, tx: 46, ty: 21, align: "left" },
-  { name: "The Great Gulf", kind: "area", lat: 44.2975, lon: -71.3095, tx: -11, ty: 19, align: "left" },
-  { name: "The Horn", kind: "summit", lat: 44.29483, lon: -71.279, tx: -5, ty: 13.5, align: "left" },
-  { name: "Huntington Ravine", kind: "area", lat: 44.2745, lon: -71.2805, tx: -10, ty: 7.5, align: "left" },
-  { name: "Tuckerman's Ravine", kind: "area", lat: 44.2605, lon: -71.292, tx: -24, ty: 2.5, align: "right" },
-  { name: "Wildcat Mountain", kind: "summit", lat: 44.2592, lon: -71.20161, tx: -6, ty: -17, align: "right" },
-  { name: "Carter Dome", kind: "summit", lat: 44.2674, lon: -71.17912, tx: 6.5, ty: -18, align: "left" },
-  { name: "Gorham 2G8", kind: "field", lat: 44.39472, lon: -71.19805, tx: 33, ty: 14, align: "left" },
-  { name: "The Glen House", kind: "place", lat: 44.29093, lon: -71.22559, tx: -2.5, ty: 3, align: "right" },
-  { name: "Mount Jefferson", kind: "summit", lat: 44.30423, lon: -71.31675, tx: -34, ty: 7, align: "right" },
-  { name: "Mount Adams", kind: "summit", lat: 44.32058, lon: -71.29164, tx: -36, ty: 16, align: "right" },
-  { name: "Mount Moriah", kind: "summit", lat: 44.34053, lon: -71.13172, tx: 36, ty: 28, align: "left" },
-  { name: "Crescent Range", kind: "range", lat: 44.438, lon: -71.302, tx: -25.5, ty: 67, align: "center" },
-  { name: "Carter-Moriah Range", kind: "range", lat: 44.245, lon: -71.155, tx: 27, ty: -24, align: "left" },
+  { name: "Mount Washington", kind: "summit", lat: 44.27049, lon: -71.3033, tx: -36, ty: -11, align: "right" },
+  { name: "Mount Madison", kind: "summit", lat: 44.32879, lon: -71.27667, tx: -16, ty: 24, align: "left" },
+  { name: "Pine Mountain", kind: "summit", lat: 44.36588, lon: -71.21519, tx: 9, ty: 45.5, align: "left" },
+  { name: "Mount Hayes", kind: "summit", lat: 44.41566, lon: -71.15986, tx: 32, ty: 75.5, align: "left" },
+  { name: "The Great Gulf", kind: "area", lat: 44.2975, lon: -71.3095, tx: -30, ty: 6, align: "left" },
+  { name: "The Horn", kind: "summit", lat: 44.29483, lon: -71.279, tx: -13, ty: 0, align: "left" },
+  { name: "Huntington Ravine", kind: "area", lat: 44.2745, lon: -71.2805, tx: -18, ty: -8, align: "left" },
+  { name: "Tuckerman's Ravine", kind: "area", lat: 44.2605, lon: -71.292, tx: -31, ty: -22, align: "right" },
+  { name: "Wildcat Mountain", kind: "summit", lat: 44.2592, lon: -71.20161, tx: 15, ty: -19.5, align: "left" },
+  { name: "Carter Dome", kind: "summit", lat: 44.2674, lon: -71.17912, tx: 27, ty: -12, align: "left" },
+  { name: "Gorham 2G8", kind: "field", lat: 44.39472, lon: -71.19805, tx: 16, ty: 63, align: "left" },
+  { name: "The Glen House", kind: "place", lat: 44.29093, lon: -71.22559, tx: 3, ty: -2.5, align: "left" },
+  { name: "Mount Jefferson", kind: "summit", lat: 44.30423, lon: -71.31675, tx: -42, ty: 6, align: "right" },
+  { name: "Mount Adams", kind: "summit", lat: 44.32058, lon: -71.29164, tx: -31, ty: 19, align: "right" },
+  { name: "Mount Moriah", kind: "summit", lat: 44.34053, lon: -71.13172, tx: 44, ty: 30.5, align: "left" },
+  { name: "Crescent Range", kind: "range", lat: 44.438, lon: -71.302, tx: -31, ty: 84, align: "center" },
+  { name: "Carter-Moriah Range", kind: "range", lat: 44.245, lon: -71.155, tx: 34, ty: -28.5, align: "left" },
 ];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -783,10 +784,9 @@ async function main() {
   const io = document.getElementById("oi");
   io.setAttribute("viewBox", "0 0 " + IW + " " + IH);
   const icx = IW / 2, icy = IH / 2;
-  // The inset's label offsets were authored at 1:300,000 for a rectangular frame and
-  // tuned to 0.9 against a disc at 1:230,000; scaling by that ratio keeps the layout
-  // self-similar at any disc zoom.
-  const iScale = 0.9 * (230 / INSET.mPerMm);
+  // The inset's offsets are authored at 1:186,000, hugging their anchors; scale
+  // them with the zoom so a future change keeps the layout self-similar.
+  const iScale = 186 / INSET.mPerMm;
   const ipx = (lat, lon) => {
     const [u, v] = project(lat, lon);
     return [icx + (u - igaU) * ippm, icy - (v - igaV) * ippm];
