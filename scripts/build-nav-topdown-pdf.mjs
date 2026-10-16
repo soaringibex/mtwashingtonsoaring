@@ -9,7 +9,7 @@
  * glide rings every 5 NM around Gorham (2G8) — each labelled with the altitude
  * a 25:1 glide in still air needs at that distance to arrive with 1,000 ft to
  * spare (required MSL = field elevation 837 ft + 1,000 ft + the ring's
- * distance / 25) — and the LOA's glider area, red dotted and pointed at. The
+ * distance / 25) — and the LOA's glider area, solid red and pointed at. The
  * briefing's detailed landmarks live on the disc that enlarges that area at
  * 1:186,000 — its raster twice the sheet's 300 dpi, over a one-zoom-finer
  * terrain mosaic.
@@ -74,7 +74,7 @@ const RINGS_NM = [5, 10, 15, 20, 25];
 /**
  * The corner inset: the LOA's glider area at 2.4× the sheet's scale, flush in
  * the bottom-right. Its centre is the glider area's own centre (src/lib/wx-grid.ts);
- * the red dotted circle is its 10 NM radius.
+ * the solid red circle is its 10 NM radius.
  */
 const INSET = {
   lat: 44.290556,
@@ -699,13 +699,13 @@ async function main() {
     }
   }
 
-  // The LOA's glider-area cylinder on the main map — red dotted on both the
+  // The LOA's glider-area cylinder on the main map — solid red on both the
   // sheet and the disc, labelled, with a pointer across to the disc it is
   // enlarged as.
   const [gax, gay] = pxOf(INSET.lat, INSET.lon);
   const loaMainR = INSET.radiusNm * M_PER_NM * pxPerM;
-  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "rgba(255,255,255,0.9)", "stroke-width": 7.5, "stroke-dasharray": "5 6" });
-  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "#dc2626", "stroke-width": 4, "stroke-dasharray": "5 6" });
+  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "rgba(255,255,255,0.9)", "stroke-width": 7.5 });
+  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "#dc2626", "stroke-width": 4 });
   text("Glider area", gax, gay - loaMainR + 30, { anchor: "middle", size: 30, weight: 600, italic: true, fill: "#334155", haloWidth: 8 });
   {
     // Rim-to-rim pointer: the disc's drawn footprint, in sheet pixels.
@@ -815,10 +815,10 @@ async function main() {
     el("path", { d: ipath(river, false), fill: "none", stroke: WATER_INK, "stroke-width": 4.5,
                  "stroke-opacity": 0.85, "stroke-linecap": "round" }, io);
   }
-  // The LOA cylinder — red dotted, matching the main map's.
+  // The LOA cylinder — solid red, matching the main map's.
   const loaR = INSET.radiusNm * M_PER_NM * ippm;
-  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "rgba(255,255,255,0.9)", "stroke-width": 7.5, "stroke-dasharray": "5 6" }, io);
-  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "#dc2626", "stroke-width": 4, "stroke-dasharray": "5 6" }, io);
+  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "rgba(255,255,255,0.9)", "stroke-width": 7.5 }, io);
+  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "#dc2626", "stroke-width": 4 }, io);
   text("Glider area", icx, icy + 55 * iScale * PX_PER_MM, { anchor: "middle", size: 32, weight: 700, fill: "#1e293b", haloWidth: 8 }, io);
   text("10 NM \u00b7 18\u201324,000 ft", icx, icy + 64.5 * iScale * PX_PER_MM, { anchor: "middle", size: 30, weight: 600, fill: "#334155", haloWidth: 8 }, io);
 
