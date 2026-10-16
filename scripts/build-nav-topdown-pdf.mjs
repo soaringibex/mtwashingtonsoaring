@@ -3,14 +3,15 @@
  * Build the printable top-down chart — public/files/gorham-range-rings.pdf —
  * a 1:450,000 full-bleed tabloid (17 x 11 in) sheet of the wave country, north up.
  * The west edge lands on the exchange's Black Mountain (Benton), the bottom edge
- * just below Fryeburg; Sugarloaf AP and Moosilauke stay in frame. Range rings
- * every 5 NM around Gorham (2G8), a graticule, the rivers and lakes, the
- * exchange's turnpoints (airfields ringed, as CUP styles 2/5 read in
- * src/lib/nav-files.ts) and the landmark labels; the LOA's glider area is drawn
- * again at 1:230,000 in a corner disc. Each ring is labelled with the altitude a
- * 25:1 glide in still air needs at that distance to arrive at the field with
- * 1,000 ft to spare: required MSL = field elevation (837 ft) + 1,000 ft + the
- * ring's distance / 25.
+ * just below Fryeburg; Sugarloaf AP and Moosilauke stay in frame. The main map
+ * carries only the exchange's turnpoints (airfields ringed, as CUP styles 2/5
+ * read in src/lib/nav-files.ts), the rivers and lakes, a dotted set of glide
+ * rings every 5 NM around Gorham (2G8) — each labelled with the altitude a 25:1
+ * glide in still air needs at that distance to arrive with 1,000 ft to spare
+ * (required MSL = field elevation 837 ft + 1,000 ft + the ring's distance / 25)
+ * — and the LOA's glider area, dashed and pointed at. The briefing's detailed
+ * landmarks live on the disc that enlarges that area at 1:230,000 — its raster
+ * twice the sheet's 300 dpi, over a one-zoom-finer terrain mosaic.
  *
  * Same machinery as scripts/build-nav-3d-map.mjs: AWS Terrain Tiles (Terrarium,
  * cache shared in .screenshots/nav3d/tiles), a harneess page rendered in headless
@@ -79,10 +80,13 @@ const INSET = {
   lon: -71.227778,
   radiusNm: 10,
   mPerMm: 230,
-  // A square box clipped to a disc: the glider area is the inset. 166 mm across
-  // leaves the drawn 10 NM rim 2 mm inside the clip.
-  widthMm: 166,
-  heightMm: 166,
+  // A square box clipped to a disc, flush in the bottom-right corner. 204 mm
+  // across sizes the rim to just reach the Webb Lake mark on the main sheet
+  // (~5 mm shy); the drawn 10 NM cylinder sits well inside it.
+  widthMm: 204,
+  heightMm: 204,
+  /** The disc's raster runs at twice the sheet's 300 dpi. */
+  supersample: 2,
 };
 const GRATICULE_DEG = 0.25;
 const M_PER_NM = 1852;
@@ -96,65 +100,28 @@ const RAMP = [[150,[52,76,60]],[400,[84,108,74]],[650,[122,132,88]],[900,[160,14
  * against the render; `kind` picks the glyph and type style.
  */
 /**
- * Labels for the sheet. `tx`/`ty` are the text anchor in millimetres east/north of
- * the map centre — placed against the render, with leaders fanning into the crowded
- * Presidential cluster.
- */
-const LABELS = [
-  { name: "Mount Washington", kind: "summit", lat: 44.27049, lon: -71.3033, tx: -50, ty: -30, align: "right" },
-  { name: "Mount Jefferson", kind: "summit", lat: 44.30423, lon: -71.31675, tx: -42, ty: -23, align: "right" },
-  { name: "Mount Adams", kind: "summit", lat: 44.32058, lon: -71.29164, tx: -34, ty: -16.5, align: "right" },
-  { name: "Mount Madison", kind: "summit", lat: 44.32879, lon: -71.27667, tx: -22, ty: -9, align: "right" },
-  { name: "Tuckerman's Ravine", kind: "area", lat: 44.2605, lon: -71.292, tx: -42, ty: -42, align: "right" },
-  { name: "Wildcat Mountain", kind: "summit", lat: 44.2592, lon: -71.20161, tx: -20, ty: -38, align: "right" },
-  { name: "The Glen House", kind: "place", lat: 44.29093, lon: -71.22559, tx: -12, ty: -33, align: "right" },
-  { name: "Huntington Ravine", kind: "area", lat: 44.2745, lon: -71.2805, tx: 2, ty: -33, align: "left" },
-  { name: "Carter Dome", kind: "summit", lat: 44.2674, lon: -71.17912, tx: 14, ty: -27, align: "left" },
-  { name: "The Horn", kind: "summit", lat: 44.29483, lon: -71.279, tx: 16, ty: -19, align: "left" },
-  { name: "The Great Gulf", kind: "area", lat: 44.2975, lon: -71.3095, tx: -14, ty: -27.5, align: "right", alpha: 0.9 },
-  { name: "Mount Moriah", kind: "summit", lat: 44.34053, lon: -71.13172, tx: 16, ty: -12, align: "left" },
-  { name: "Pine Mountain", kind: "summit", lat: 44.36588, lon: -71.21519, tx: 3, ty: -7, align: "left" },
-  { name: "Gorham 2G8", kind: "field", lat: 44.39472, lon: -71.19805, tx: -3, ty: 2.5, align: "right" },
-  { name: "Mount Hayes", kind: "summit", lat: 44.41566, lon: -71.15986, tx: 12, ty: 6, align: "left" },
-  { name: "Crescent Range", kind: "range", lat: 44.438, lon: -71.302, tx: -32, ty: 12, align: "center" },
-  { name: "Pilot Range", kind: "range", lat: 44.5285, lon: -71.4185, tx: -35, ty: 26.5, align: "center" },
-  { name: "Carter-Moriah Range", kind: "range", lat: 44.245, lon: -71.155, tx: 20, ty: -38, align: "left" },
-  { name: "Old Speck Mountain", kind: "summit", lat: 44.57083, lon: -70.95445, tx: 52, ty: 47, align: "left" },
-  { name: "Bald Pate Mountain", kind: "summit", lat: 44.60833, lon: -70.89445, tx: 63, ty: 61, align: "left" },
-  { name: "Moosilauke", kind: "summit", lat: 44.02388, lon: -71.83055, tx: -110, ty: -94, align: "left" },
-  { name: "Sugarloaf AP", kind: "place", lat: 45.08528, lon: -70.21638, tx: 168, ty: 167, align: "right" },
-];
-
-/**
  * The inset's labels — text anchors in millimetres east/north of the inset's
  * centre (the glider area), tuned against the render.
  */
 const INSET_LABELS = [
-  { name: "Mount Washington", kind: "summit", lat: 44.27049, lon: -71.3033, tx: -23.5, ty: 10.5, align: "right" },
+  { name: "Mount Washington", kind: "summit", lat: 44.27049, lon: -71.3033, tx: -23.5, ty: 11.5, align: "right" },
   { name: "Mount Madison", kind: "summit", lat: 44.32879, lon: -71.27667, tx: -2, ty: 23.5, align: "right" },
-  { name: "Pine Mountain", kind: "summit", lat: 44.36588, lon: -71.21519, tx: 21.5, ty: 10.5, align: "center" },
-  { name: "Mount Hayes", kind: "summit", lat: 44.41566, lon: -71.15986, tx: 48, ty: 22, align: "left" },
+  { name: "Pine Mountain", kind: "summit", lat: 44.36588, lon: -71.21519, tx: 21.5, ty: 2, align: "center" },
+  { name: "Mount Hayes", kind: "summit", lat: 44.41566, lon: -71.15986, tx: 46, ty: 21, align: "left" },
   { name: "The Great Gulf", kind: "area", lat: 44.2975, lon: -71.3095, tx: -11, ty: 19, align: "left" },
   { name: "The Horn", kind: "summit", lat: 44.29483, lon: -71.279, tx: -5, ty: 13.5, align: "left" },
   { name: "Huntington Ravine", kind: "area", lat: 44.2745, lon: -71.2805, tx: -10, ty: 7.5, align: "left" },
-  { name: "Tuckerman's Ravine", kind: "area", lat: 44.2605, lon: -71.292, tx: -24, ty: -1.5, align: "right" },
+  { name: "Tuckerman's Ravine", kind: "area", lat: 44.2605, lon: -71.292, tx: -24, ty: 2.5, align: "right" },
   { name: "Wildcat Mountain", kind: "summit", lat: 44.2592, lon: -71.20161, tx: -6, ty: -17, align: "right" },
   { name: "Carter Dome", kind: "summit", lat: 44.2674, lon: -71.17912, tx: 6.5, ty: -18, align: "left" },
   { name: "Berlin", kind: "town", lat: 44.4687, lon: -71.1851, tx: 56, ty: 41, align: "left" },
-  { name: "Gorham 2G8", kind: "field", lat: 44.39472, lon: -71.19805, tx: 35, ty: 19, align: "left" },
+  { name: "Gorham 2G8", kind: "field", lat: 44.39472, lon: -71.19805, tx: 33, ty: 14, align: "left" },
   { name: "The Glen House", kind: "place", lat: 44.29093, lon: -71.22559, tx: -2.5, ty: 3, align: "right" },
-];
-
-const TOWNS = [
-  { name: "Gorham", lat: 44.3878, lon: -71.1729, dx: 2.2, dy: 2.2, align: "left" },
-  { name: "Berlin", lat: 44.4687, lon: -71.1851, dx: 2.2, dy: 2.2, align: "left" },
-  { name: "Lancaster", lat: 44.4889, lon: -71.5692, dx: 2.2, dy: 2.2, align: "left" },
-  { name: "Whitefield", lat: 44.3675, lon: -71.55, dx: 2.2, dy: 2.2, align: "left" },
-  { name: "Twin Mountain", lat: 44.2642, lon: -71.5467, dx: -2.6, dy: 2.6, align: "right" },
-  { name: "Jackson", lat: 44.1567, lon: -71.1817, dx: 3.4, dy: 7, align: "left" },
-  { name: "Glen", lat: 44.1058, lon: -71.1861, dx: 2.2, dy: 2.2, align: "left" },
-  { name: "North Conway", lat: 44.0537, lon: -71.1284, dx: 2.2, dy: 2.2, align: "left" },
-  { name: "Fryeburg", lat: 44.0164, lon: -70.9753, dx: 2.2, dy: 2.2, align: "left" },
+  { name: "Mount Jefferson", kind: "summit", lat: 44.30423, lon: -71.31675, tx: -34, ty: 7, align: "right" },
+  { name: "Mount Adams", kind: "summit", lat: 44.32058, lon: -71.29164, tx: -36, ty: 16, align: "right" },
+  { name: "Mount Moriah", kind: "summit", lat: 44.34053, lon: -71.13172, tx: 36, ty: 28, align: "left" },
+  { name: "Crescent Range", kind: "range", lat: 44.438, lon: -71.302, tx: -25.5, ty: 67, align: "center" },
+  { name: "Carter-Moriah Range", kind: "range", lat: 44.245, lon: -71.155, tx: 27, ty: -24, align: "left" },
 ];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -231,22 +198,22 @@ async function fetchTile(z, x, y) {
   return file;
 }
 
-async function buildDem() {
-  const x0 = Math.floor(lonToTileX(BOUNDS.west, ZOOM));
-  const x1 = Math.floor(lonToTileX(BOUNDS.east, ZOOM));
-  const y0 = Math.floor(latToTileY(BOUNDS.north, ZOOM));
-  const y1 = Math.floor(latToTileY(BOUNDS.south, ZOOM));
+async function buildMosaic(label, bounds, zoom, binName, metaName) {
+  const x0 = Math.floor(lonToTileX(bounds.west, zoom));
+  const x1 = Math.floor(lonToTileX(bounds.east, zoom));
+  const y0 = Math.floor(latToTileY(bounds.north, zoom));
+  const y1 = Math.floor(latToTileY(bounds.south, zoom));
   const cols = x1 - x0 + 1;
   const rows = y1 - y0 + 1;
   const width = cols * TILE_SIZE;
   const height = rows * TILE_SIZE;
   const elevations = new Float32Array(width * height);
 
-  process.stdout.write(`tiles: z${ZOOM} ${cols}x${rows} (${cols * rows}) … `);
+  process.stdout.write(`${label} tiles: z${zoom} ${cols}x${rows} (${cols * rows}) … `);
   let done = 0;
   for (let ty = 0; ty < rows; ty += 1) {
     const row = await Promise.all(
-      Array.from({ length: cols }, (_, tx) => fetchTile(ZOOM, x0 + tx, y0 + ty)),
+      Array.from({ length: cols }, (_, tx) => fetchTile(zoom, x0 + tx, y0 + ty)),
     );
     for (let tx = 0; tx < cols; tx += 1) {
       const { data, info } = await sharp(row[tx]).removeAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -264,20 +231,31 @@ async function buildDem() {
   }
   process.stdout.write("\n");
 
-  const north = tileYToLat(y0, ZOOM);
+  const north = tileYToLat(y0, zoom);
   const meta = {
     width,
     height,
-    west: tileXToLon(x0, ZOOM),
+    west: tileXToLon(x0, zoom),
     north,
-    lonStep: 360 / 2 ** ZOOM / TILE_SIZE,
-    latStep: (north - tileYToLat(y0 + 1, ZOOM)) / TILE_SIZE,
+    lonStep: 360 / 2 ** zoom / TILE_SIZE,
+    latStep: (north - tileYToLat(y0 + 1, zoom)) / TILE_SIZE,
   };
   mkdirSync(SCRATCH, { recursive: true });
-  writeFileSync(join(SCRATCH, "dem.bin"), Buffer.from(elevations.buffer));
-  writeFileSync(join(SCRATCH, "dem.json"), JSON.stringify(meta));
-  console.log(`dem: ${width}x${height}px, ${(meta.lonStep * M_PER_LON).toFixed(1)}m/px`);
+  writeFileSync(join(SCRATCH, binName), Buffer.from(elevations.buffer));
+  writeFileSync(join(SCRATCH, metaName), JSON.stringify(meta));
+  console.log(`${label}: ${width}x${height}px, ${(meta.lonStep * M_PER_LON).toFixed(1)}m/px`);
   return meta;
+}
+
+/** The disc's own mosaic: one zoom finer than the sheet's, for its 600 dpi raster. */
+function discBounds() {
+  const half = (INSET.widthMm / 2) * INSET.mPerMm + 1000; // metres, plus a km of margin
+  return {
+    west: INSET.lon - half / M_PER_LON,
+    east: INSET.lon + half / M_PER_LON,
+    south: INSET.lat - half / M_PER_LAT,
+    north: INSET.lat + half / M_PER_LAT,
+  };
 }
 
 /* ---------------------------------- water ---------------------------------- */
@@ -399,14 +377,6 @@ async function buildWater() {
  * falls inside its edges as a small diamond, names suppressed where the chart's own
  * labels already stand on the spot.
  */
-const WAYPOINT_SKIP = new Set([
-  "Pine Mountain", "The Horn", "Wildcat Mountain", "Bald Pate Mountain",
-  "Old Speck Mountain", "Glen", "Jackson", "North Conway", "North Conway 1",
-  "North Conway 2", "Twin Mountain", "Whitefield", "Fryeburg", "Gorham",
-  "Moosilauke", "Sugarloaf AP", "Mount Washington GA",
-  // The summit cannot hold three names — Washington's is curated.
-  "Mount Washington Observatory",
-]);
 const WAYPOINT_RENAME = { Berlin: "Berlin (BML)" };
 /** Where the default "name to the right of the dot" crowds a neighbour. */
 const WAYPOINT_POS = {
@@ -454,7 +424,6 @@ async function buildWaypoints() {
       elevation: elevation ?? "",
       // CUP styles 2 and 5 are the airfields, as src/lib/nav-files.ts reads them.
       airport: style === 2 || style === 5,
-      skip: WAYPOINT_SKIP.has(name),
       ...(() => {
         const [u, v] = project(lat, lon);
         return {
@@ -494,8 +463,6 @@ const META = ${JSON.stringify(meta)};
 const WATER = ${JSON.stringify(water)};
 const RINGS_NM = ${JSON.stringify(RINGS_NM)};
 const GRATICULE_DEG = ${JSON.stringify(GRATICULE_DEG)};
-const LABELS = ${JSON.stringify(LABELS)};
-const TOWNS = ${JSON.stringify(TOWNS)};
 const WAYPOINTS = ${JSON.stringify(waypoints)};
 const WAYPOINT_POS = ${JSON.stringify(WAYPOINT_POS)};
 const INSET = ${JSON.stringify(INSET)};
@@ -533,7 +500,26 @@ function reliefColour(elevationM, shade) {
 
 async function main() {
   const dem = new Float32Array(await (await fetch("dem.bin")).arrayBuffer());
-  const { width: W, height: H, west, north: demNorth, lonStep, latStep } = META;
+  const discDem = new Float32Array(await (await fetch("disc-dem.bin")).arrayBuffer());
+  const DISC_META = await (await fetch("disc-dem.json")).json();
+  /** One DEM mosaic plus the sampling maths its raster needs. */
+  const makeSampler = (meta, data) => {
+    const { width: W, height: H, west, north, lonStep, latStep } = meta;
+    const hAt = (mx, my) => {
+      const fx = Math.min(Math.max(mx, 0), W - 1.001), fy = Math.min(Math.max(my, 0), H - 1.001);
+      const ix = Math.floor(fx), iy = Math.floor(fy), tx = fx - ix, ty = fy - iy;
+      const i = iy * W + ix;
+      return data[i] * (1 - tx) * (1 - ty) + data[i + 1] * tx * (1 - ty) +
+             data[i + W] * (1 - tx) * ty + data[i + W + 1] * tx * ty;
+    };
+    return {
+      hAt, west, north, lonStep, latStep,
+      perPxX: M_PER_LON * lonStep, // metres to the DEM pixel, each axis
+      perPxY: M_PER_LAT * latStep,
+    };
+  };
+  const sheetDem = makeSampler(META, dem);
+  const fineDem = makeSampler(DISC_META, discDem);
   const pxPerM = PX_PER_MM / M_PER_MM;
   const project = (lat, lon) => {
     const east = (lon - CENTER.lon) * M_PER_LON;
@@ -544,18 +530,9 @@ async function main() {
     const [u, v] = project(lat, lon);
     return [CANVAS_W / 2 + (u - SHEET_C.u) * pxPerM, CANVAS_H / 2 - (v - SHEET_C.v) * pxPerM];
   };
-  const hAt = (mx, my) => {
-    const fx = Math.min(Math.max(mx, 0), W - 1.001), fy = Math.min(Math.max(my, 0), H - 1.001);
-    const ix = Math.floor(fx), iy = Math.floor(fy), tx = fx - ix, ty = fy - iy;
-    const i = iy * W + ix;
-    return dem[i] * (1 - tx) * (1 - ty) + dem[i + 1] * tx * (1 - ty) +
-           dem[i + W] * (1 - tx) * ty + dem[i + W + 1] * tx * ty;
-  };
 
   // Terrain raster: each canvas pixel is one ground sample, hillshaded north-west.
-  const demPerPxX = M_PER_LON * lonStep; // metres to the DEM pixel, each axis
-  const demPerPxY = M_PER_LAT * latStep;
-  const paintTerrain = (target, w, h, ppm, cu, cv) => {
+  const paintTerrain = (target, w, h, ppm, cu, cv, S) => {
     target.width = w; target.height = h;
     const tctx = target.getContext("2d");
     const img = tctx.createImageData(w, h);
@@ -567,11 +544,11 @@ async function main() {
         const v = -(y - h / 2) / ppm + cv;
         const east = u * ER.east + v * UP.east;
         const nn = u * ER.north + v * UP.north;
-        const my = (demNorth - (CENTER.lat + nn / M_PER_LAT)) / latStep;
-        const mx = (CENTER.lon + east / M_PER_LON - west) / lonStep;
-        const hgt = hAt(mx, my);
-        const hx = (hAt(mx + 0.75, my) - hAt(mx - 0.75, my)) / (1.5 * demPerPxX);
-        const hy = (hAt(mx, my + 0.75) - hAt(mx, my - 0.75)) / (1.5 * demPerPxY);
+        const my = (S.north - (CENTER.lat + nn / M_PER_LAT)) / S.latStep;
+        const mx = (CENTER.lon + east / M_PER_LON - S.west) / S.lonStep;
+        const hgt = S.hAt(mx, my);
+        const hx = (S.hAt(mx + 0.75, my) - S.hAt(mx - 0.75, my)) / (1.5 * S.perPxX);
+        const hy = (S.hAt(mx, my + 0.75) - S.hAt(mx, my - 0.75)) / (1.5 * S.perPxY);
         let nx = -hx, ny = hy, nz = 1;
         const nl = Math.hypot(nx, ny, nz);
         nx /= nl; ny /= nl; nz /= nl;
@@ -601,7 +578,7 @@ async function main() {
     };
     jpeg.src = target.toDataURL("image/jpeg", quality);
   });
-  paintTerrain(document.getElementById("c"), CANVAS_W, CANVAS_H, pxPerM, SHEET_C.u, SHEET_C.v);
+  paintTerrain(document.getElementById("c"), CANVAS_W, CANVAS_H, pxPerM, SHEET_C.u, SHEET_C.v, sheetDem);
   await swapToJpeg(document.getElementById("c"), 0.84);
 
   // --------------------------------- vector ----------------------------------
@@ -704,8 +681,8 @@ async function main() {
   const [cx, cy] = pxOf(CENTER.lat, CENTER.lon);
   for (const nm of RINGS_NM) {
     const r = (nm * M_PER_NM) * pxPerM;
-    el("circle", { cx, cy, r, fill: "none", stroke: "rgba(255,255,255,0.85)", "stroke-width": 7 });
-    el("circle", { cx, cy, r, fill: "none", stroke: "#1e293b", "stroke-width": 2.4, "stroke-opacity": 0.85 });
+    el("circle", { cx, cy, r, fill: "none", stroke: "rgba(255,255,255,0.6)", "stroke-width": 4.5 });
+    el("circle", { cx, cy, r, fill: "none", stroke: "#334155", "stroke-width": 1.7, "stroke-opacity": 0.8, "stroke-dasharray": "2 7" });
     // Labels just inside each ring: the 5–20 NM pairs stack due south of the
     // field, the 25 NM pair west — the top-right corner belongs to the inset.
     // Two lines each: the distance, and the 25:1 glide altitude it demands.
@@ -720,10 +697,35 @@ async function main() {
     }
   }
 
+  // The LOA's glider-area cylinder on the main map — dashed like the disc's own,
+  // labelled, with a pointer across to the disc it is enlarged as.
+  const [gax, gay] = pxOf(INSET.lat, INSET.lon);
+  const loaMainR = INSET.radiusNm * M_PER_NM * pxPerM;
+  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "rgba(255,255,255,0.55)", "stroke-width": 5.5, "stroke-dasharray": "12 9" });
+  el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "#1e293b", "stroke-width": 2.4, "stroke-dasharray": "12 9", "stroke-opacity": 0.85 });
+  text("Glider area", gax, gay - loaMainR + 30, { anchor: "middle", size: 30, weight: 600, italic: true, fill: "#334155", haloWidth: 8 });
+  {
+    // Rim-to-rim pointer: the disc's drawn footprint, in sheet pixels.
+    const discBox = INSET.widthMm * PX_PER_MM;
+    const dcx = CANVAS_W - discBox / 2, dcy = CANVAS_H - discBox / 2, dR = discBox / 2;
+    const dx = dcx - gax, dy = dcy - gay;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len, uy = dy / len;
+    const p1 = [gax + ux * (loaMainR + 6), gay + uy * (loaMainR + 6)];
+    const p2 = [dcx - ux * (dR + 6), dcy - uy * (dR + 6)];
+    line(p1[0], p1[1], p2[0], p2[1], { stroke: "#334155", width: 1.6, opacity: 0.7 });
+    const px = -uy, py = ux; // perpendicular
+    el("path", {
+      d: "M" + p1[0] + " " + p1[1] +
+         " L" + (p1[0] + ux * 22 + px * 8) + " " + (p1[1] + uy * 22 + py * 8) +
+         " L" + (p1[0] + ux * 22 - px * 8) + " " + (p1[1] + uy * 22 - py * 8) + " Z",
+      fill: "#334155", "fill-opacity": 0.8,
+    });
+  }
+
   // The exchange's turnpoints: a small diamond and a quiet name each, drawn over
   // the rings so their casings do not cut the type.
   for (const wp of WAYPOINTS) {
-    if (wp.skip) continue;
     const [sx, sy] = pxOf(wp.lat, wp.lon);
     if (sx < 16 || sx > CANVAS_W - 16 || sy < 16 || sy > CANVAS_H - 16) continue;
     if (wp.airport) {
@@ -740,50 +742,6 @@ async function main() {
     const left = pos.side === "left" || (!pos.side && sx > CANVAS_W - 430);
     text(wp.name, sx + (left ? (wp.airport ? -16 : -12) : wp.airport ? 16 : 12), sy + 3 + (pos.dy ?? 0) * PX_PER_MM * 0.25,
          { anchor: left ? "end" : "start", size: 26, weight: wp.airport ? 600 : 500, fill: wp.airport ? "#334155" : "#3f4c5f", haloWidth: 6, spacing: "0.01em" });
-  }
-
-  // Landmark labels: summit triangles, italic ranges and areas, towns, the field.
-  const anchors = {};
-  const place = (label) => {
-    const p = pxOf(label.lat, label.lon);
-    anchors[label.name] = [Math.round(p[0]), Math.round(p[1])];
-    return p;
-  };
-  const mm = PX_PER_MM;
-  const leader = (sx, sy, px, py) => {
-    const len = Math.hypot(px - sx, py - sy);
-    if (len < 8 * mm) return;
-    const t = (2.5 * mm) / len;
-    line(sx + (px - sx) * t, sy + (py - sy) * t, px, py, { stroke: "#475569", width: 1.8, opacity: 0.5 });
-  };
-  const textPos = (label) => [cx + label.tx * mm, cy - label.ty * mm];
-  for (const label of LABELS) {
-    const [sx, sy] = place(label);
-    const [tx, ty] = textPos(label);
-    if (label.kind === "summit") {
-      el("path", { d: "M" + sx + " " + (sy - 13) + " L" + (sx - 11) + " " + (sy + 7) + " L" + (sx + 11) + " " + (sy + 7) + " Z",
-                   fill: "#1e293b", stroke: "rgba(255,255,255,0.95)", "stroke-width": 4 });
-      if (label.align !== "center") leader(sx, sy, label.align === "right" ? tx + 2 * mm : tx - 2 * mm, ty);
-      text(label.name, tx, ty, { anchor: label.align, size: 42, weight: 600 });
-    } else if (label.kind === "field") {
-      el("circle", { cx: sx, cy: sy, r: 16, fill: "#0ea5e9", stroke: "rgba(255,255,255,0.95)", "stroke-width": 5 });
-      if (label.align !== "center") leader(sx, sy, label.align === "right" ? tx + 2 * mm : tx - 2 * mm, ty);
-      text(label.name, tx, ty, { anchor: label.align, size: 44, weight: 700 });
-    } else if (label.kind === "place") {
-      el("circle", { cx: sx, cy: sy, r: 8, fill: "#475569", stroke: "rgba(255,255,255,0.95)", "stroke-width": 3.5 });
-      if (label.align !== "center") leader(sx, sy, label.align === "right" ? tx + 2 * mm : tx - 2 * mm, ty);
-      text(label.name, tx, ty, { anchor: label.align, size: 38, weight: 600, fill: "#334155" });
-    } else if (label.kind === "area") {
-      if (label.align !== "center") leader(sx, sy, label.align === "right" ? tx + 2 * mm : tx - 2 * mm, ty);
-      text(label.name, tx, ty, { anchor: label.align, size: 40, weight: 600, italic: true, fill: "rgba(15,23,42," + (label.alpha ?? 0.85) + ")", haloWidth: 9 });
-    } else {
-      text(label.name, tx, ty, { anchor: label.align, size: 40, weight: 600, italic: true, fill: "#334155", spacing: "0.05em", haloWidth: 9 });
-    }
-  }
-  for (const town of TOWNS) {
-    const [sx, sy] = place(town);
-    el("circle", { cx: sx, cy: sy, r: 7, fill: "#334155", stroke: "rgba(255,255,255,0.95)", "stroke-width": 3 });
-    text(town.name, sx + town.dx * mm, sy + town.dy * mm, { anchor: town.align, size: 37, weight: 600, fill: "#334155", haloWidth: 8 });
   }
 
   // Scale bar (bottom left, in the map) and north arrow (top right).
@@ -819,7 +777,9 @@ async function main() {
   const IH = Math.round(INSET.heightMm * PX_PER_MM);
   const ippm = PX_PER_MM / INSET.mPerMm;
   const [igaU, igaV] = project(INSET.lat, INSET.lon);
-  paintTerrain(document.getElementById("ci"), IW, IH, ippm, igaU, igaV);
+  // The disc's raster runs at INSET.supersample × the sheet's dpi, over its finer mosaic.
+  const IS = INSET.supersample ?? 1;
+  paintTerrain(document.getElementById("ci"), IW * IS, IH * IS, ippm * IS, igaU, igaV, fineDem);
   await swapToJpeg(document.getElementById("ci"), 0.84);
   const io = document.getElementById("oi");
   io.setAttribute("viewBox", "0 0 " + IW + " " + IH);
@@ -845,8 +805,8 @@ async function main() {
   }
   // The LOA cylinder, dashed, at its own radius.
   const loaR = INSET.radiusNm * M_PER_NM * ippm;
-  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "rgba(255,255,255,0.85)", "stroke-width": 7, "stroke-dasharray": "18 13" }, io);
-  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "#1e293b", "stroke-width": 2.4, "stroke-dasharray": "18 13", "stroke-opacity": 0.9 }, io);
+  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "rgba(255,255,255,0.65)", "stroke-width": 6, "stroke-dasharray": "12 9" }, io);
+  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "#1e293b", "stroke-width": 2.4, "stroke-dasharray": "12 9", "stroke-opacity": 0.9 }, io);
   text("Glider area", icx, icy + 55 * iScale * PX_PER_MM, { anchor: "middle", size: 32, weight: 700, fill: "#1e293b", haloWidth: 8 }, io);
   text("10 NM \u00b7 18\u201324,000 ft", icx, icy + 64.5 * iScale * PX_PER_MM, { anchor: "middle", size: 30, weight: 600, fill: "#334155", haloWidth: 8 }, io);
 
@@ -868,6 +828,9 @@ async function main() {
     } else if (label.kind === "area") {
       lead(label.align === "right" ? tx + 2 * PX_PER_MM : tx - 2 * PX_PER_MM, ty);
       text(label.name, tx, ty, { anchor: label.align, size: 34, weight: 600, italic: true, fill: "rgba(15,23,42,0.9)", haloWidth: 8 }, io);
+    } else if (label.kind === "range") {
+      if (label.align !== "center") lead(label.align === "right" ? tx + 2 * PX_PER_MM : tx - 2 * PX_PER_MM, ty);
+      text(label.name, tx, ty, { anchor: label.align, size: 34, weight: 600, italic: true, fill: "#334155", spacing: "0.05em", haloWidth: 8 }, io);
     } else if (label.kind === "field") {
       el("circle", { cx: sx, cy: sy, r: 15, fill: "#0ea5e9", stroke: "rgba(255,255,255,0.95)", "stroke-width": 5 }, io);
       text(label.name, tx, ty, { anchor: label.align, size: 38, weight: 700 }, io);
@@ -894,14 +857,8 @@ async function main() {
       const first = samples.find((p) => p && p[0] > 60 && inSheet(p[0], p[1]));
       if (first) text(lat.toFixed(2), 60, first[1] - 10, { size: 24, fill: "#dc2626", haloWidth: 4 });
     }
-    for (const label of LABELS) {
-      const [sx, sy] = pxOf(label.lat, label.lon);
-      el("circle", { cx: sx, cy: sy, r: 5, fill: "#dc2626" });
-      text(label.name.slice(0, 10), sx + 10, sy - 16, { size: 22, fill: "#dc2626", haloWidth: 4 });
-    }
   }
 
-  window.__anchors = anchors;
   window.__done = true;
 }
 main().catch((e) => { window.__error = String(e && e.stack || e); });
@@ -998,8 +955,8 @@ async function render(port) {
 
 async function main() {
   mkdirSync(SCRATCH, { recursive: true });
-  await buildDem();
-  const meta = JSON.parse(readFileSync(join(SCRATCH, "dem.json"), "utf8"));
+  const meta = await buildMosaic("sheet", BOUNDS, ZOOM, "dem.bin", "dem.json");
+  await buildMosaic("disc", discBounds(), ZOOM + 1, "disc-dem.bin", "disc-dem.json");
   const water = await buildWater();
   const waypoints = await buildWaypoints();
   writeFileSync(join(SCRATCH, "index.html"), harnessHtml(meta, water, waypoints));

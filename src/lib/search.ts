@@ -308,7 +308,7 @@ const flying: SearchEntry[] = [
     href: "/files/gorham-range-rings.pdf",
     kind: "flying",
     section: "Electronic files",
-    text: "The wave country from above at 1:450,000 on a full tabloid sheet turned to run Moosilauke–Sugarloaf — 5 NM glide rings labelled with the 25:1 altitude home, the exchange's turnpoints with airfields ringed, and the glider area in a corner inset.",
+    text: "The wave country from above at 1:450,000 on a full tabloid sheet — dotted 5 NM glide rings labelled with the 25:1 altitude home, the exchange's turnpoints with airfields ringed, and the LOA's glider area enlarged as the corner disc.",
     keywords: "print chart top-down range rings glide distance gorham 2g8 terrain map pdf paper tabloid",
   },
 ];
