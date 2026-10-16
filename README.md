@@ -26,7 +26,7 @@ npm start            # serve the production build
 | `/` | Home — hero, countdown to the next wave camp, club intro, gallery preview, founding clubs |
 | `/history` | Full history essay, 1938 → today |
 | `/accomplishments` | Lennie Pin / Diamond / Gold records by year |
-| `/gallery` | Photo albums with a lightbox (2008–2026, plus the pre-2008 years, the 2005 Landmark Party and the archive) |
+| `/gallery` | Photo albums with a lightbox (2008–2026, archive) |
 | `/news`, `/news/when-is-the-gorham-wave-camp-held` | News posts |
 | `/press` | Published articles, rehosted PDFs where archived |
 | `/videos` | Member videos from the wave camps, as embedded players |

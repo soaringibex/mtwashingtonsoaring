@@ -10,7 +10,6 @@ type FlatPhoto = {
   album: string;
   albumId: string;
   credit?: string;
-  fit?: "cover" | "contain";
 };
 
 export function PhotoGrid({ albums }: { albums: Album[] }) {
@@ -25,7 +24,6 @@ export function PhotoGrid({ albums }: { albums: Album[] }) {
           album: album.title,
           albumId: album.id,
           credit: photo.credit,
-          fit: photo.fit,
         })),
       ),
     [albums],
@@ -88,9 +86,7 @@ export function PhotoGrid({ albums }: { albums: Album[] }) {
                       alt={photo.alt}
                       fill
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className={`transition duration-500 ease-out group-hover:scale-[1.04] ${
-                        photo.fit === "contain" ? "object-contain" : "object-cover"
-                      }`}
+                      className="object-cover transition duration-500 ease-out group-hover:scale-[1.04]"
                     />
                   </button>
                 ))}
