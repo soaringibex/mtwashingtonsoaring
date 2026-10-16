@@ -72,6 +72,7 @@ const VIEW = {
 const LABELS = [
   { name: "Mount Washington", kind: "summit", lat: 44.27049, lon: -71.3033, offset: [-24, 72], align: "right" },
   { name: "Mount Jefferson", kind: "summit", lat: 44.30423, lon: -71.31675, offset: [-46, 18], align: "right" },
+  { name: "Mount Adams", kind: "summit", lat: 44.32058, lon: -71.29164, offset: [34, -40], align: "left" },
   { name: "Mount Madison", kind: "summit", lat: 44.32879, lon: -71.27667, offset: [40, 34], align: "left" },
   { name: "The Horn", kind: "summit", lat: 44.29483, lon: -71.279, offset: [36, 30], align: "left" },
   { name: "Tuckerman's Ravine", kind: "area", lat: 44.2605, lon: -71.292, offset: [-60, 90], align: "right" },
@@ -84,6 +85,7 @@ const LABELS = [
   { name: "Pine Mountain", kind: "summit", lat: 44.36588, lon: -71.21519, offset: [-10, 96], align: "center" },
   { name: "Crescent Range", kind: "range", lat: 44.438, lon: -71.302, offset: [0, -24], align: "center" },
   { name: "Pilot Range", kind: "range", lat: 44.5285, lon: -71.4185, offset: [0, -24], align: "center" },
+  { name: "The Glen House", kind: "place", lat: 44.29093, lon: -71.22559, offset: [26, 34], align: "left" },
   { name: "Gorham 2G8", kind: "field", lat: 44.39472, lon: -71.19805, offset: [22, 44], align: "left" },
 ];
 
@@ -385,6 +387,13 @@ async function main() {
       ctx.fillStyle = "#0ea5e9"; ctx.strokeStyle = "rgba(255,255,255,0.95)"; ctx.lineWidth = 4.5 * S;
       ctx.stroke(); ctx.fill();
       drawText(label.name, tx, ty, "700 " + 43 * S + "px " + FONT, "#0f172a", align, 7 * S);
+    } else if (label.kind === "place") {
+      // A landmark building: a small dark dot and upright text, lighter than the summits.
+      ctx.beginPath();
+      ctx.arc(sx, sy, 7 * S, 0, Math.PI * 2);
+      ctx.fillStyle = "#475569"; ctx.strokeStyle = "rgba(255,255,255,0.95)"; ctx.lineWidth = 3 * S;
+      ctx.stroke(); ctx.fill();
+      drawText(label.name, tx, ty, "600 " + 36 * S + "px " + FONT, "rgba(30,41,59,0.98)", align, 6.5 * S);
     } else if (label.kind === "area") {
       // A fine leader ties each named area to its point on the ground.
       const endX = align === "right" ? tx + 10 * S : align === "left" ? tx - 10 * S : tx;

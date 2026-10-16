@@ -233,7 +233,7 @@ export default function FlyingPage() {
                 </a>
                 <figcaption className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-6 py-4">
                   <span className="text-sm text-slate-600">
-                    The wave country in three dimensions — every landmark the brief names, from
+                    The wave country in three dimensions — the landmarks around the camp, from
                     Pine Mountain and Mount Hayes to the Pilot Range, drawn from the terrain data
                     of the region.
                   </span>
