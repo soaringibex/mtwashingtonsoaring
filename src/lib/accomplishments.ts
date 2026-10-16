@@ -29,7 +29,6 @@ export const awards: Award[] = [
         year: "2011",
         entries: [
           "Roy Bourgeois, Worcester, MA, #1894",
-          "Mark Hermann, Glastonbury, CT, #pending",
           "Evan Ludeman, New Boston, NH, #1897",
           "Steve Waitekaitis, Norwell, MA, #1893",
           "Tim Chow, Norwich, VT, #1895",
@@ -177,7 +176,7 @@ export const awards: Award[] = [
       {
         year: "2015",
         entries: [
-          "Robert Janney, Hackettstown, NJ, pending",
+          "Robert Janney, Hackettstown, NJ",
           "Robert Dunning, Bangor, PA",
           "Greg Delp, Woodbury, CT",
           "Dan MacMonagle, Stoneham, MA",
