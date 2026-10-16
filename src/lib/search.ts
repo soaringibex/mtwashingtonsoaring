@@ -307,7 +307,7 @@ const flying: SearchEntry[] = [
     href: "/files/gorham-range-rings.pdf",
     kind: "flying",
     section: "Electronic files",
-    text: "The wave country from above at 1:400,000 on a full tabloid sheet — rings every 5 NM around the field, each labelled with the 25:1 glide altitude home to 1,000 ft.",
+    text: "The wave country from above at 1:400,000 on a full tabloid sheet — rings every 5 NM around the field, each labelled with the 25:1 glide altitude home to 1,000 ft, over the exchange's turnpoints.",
     keywords: "print chart top-down range rings glide distance gorham 2g8 terrain map pdf paper tabloid",
   },
 ];

@@ -98,7 +98,7 @@ const TOWNS = [
   { name: "Berlin", lat: 44.4687, lon: -71.1851, dx: 2.2, dy: 2.2, align: "left" },
   { name: "Lancaster", lat: 44.4889, lon: -71.5692, dx: 2.2, dy: 2.2, align: "left" },
   { name: "Whitefield", lat: 44.3675, lon: -71.55, dx: 2.2, dy: 2.2, align: "left" },
-  { name: "Twin Mountain", lat: 44.2642, lon: -71.5467, dx: 2.2, dy: 2.2, align: "left" },
+  { name: "Twin Mountain", lat: 44.2642, lon: -71.5467, dx: -2.4, dy: -2.4, align: "right" },
   { name: "Jackson", lat: 44.1567, lon: -71.1817, dx: 2.2, dy: 2.2, align: "left" },
   { name: "Glen", lat: 44.1058, lon: -71.1861, dx: 2.2, dy: 2.2, align: "left" },
   { name: "North Conway", lat: 44.0537, lon: -71.1284, dx: 2.2, dy: 2.2, align: "left" },
@@ -274,9 +274,73 @@ async function buildWater() {
   return { rivers, lakes };
 }
 
+/* -------------------------------- waypoints --------------------------------- */
+
+/**
+ * The turnpoints the exchange publishes for Gorham (soaringweb.org/TP/Gorham) —
+ * discovered from its files page and cached whole; the sheet draws every one that
+ * falls inside its edges as a small diamond, names suppressed where the chart's own
+ * labels already stand on the spot.
+ */
+const WAYPOINT_SKIP = new Set([
+  "Pine Mountain", "The Horn", "Wildcat Mountain", "Bald Pate Mountain",
+  "Old Speck Mountain", "Glen", "Jackson", "North Conway", "North Conway 1",
+  "North Conway 2", "Twin Mountain", "Whitefield", "Fryeburg", "Gorham",
+]);
+const WAYPOINT_RENAME = { Berlin: "Berlin (BML)" };
+/** Where the default "name to the right of the dot" crowds a neighbour. */
+const WAYPOINT_POS = {
+  "Mount Washington Observatory": { side: "left", dy: 0.4 },
+  "Mount Washington Hotel": { side: "right", dy: 6.5 },
+};
+
+async function buildWaypoints() {
+  const cache = join(SCRATCH, "gorham.cup");
+  if (!existsSync(cache)) {
+    console.log("fetching the exchange's turnpoints …");
+    const headers = {
+      "User-Agent": "mtwashingtonsoaring-site/1.0 (gorham chart)",
+      Referer: "https://soaringweb.org/TP/Gorham/files.html",
+    };
+    const files = await fetch("https://soaringweb.org/TP/Gorham/files.html", { headers });
+    if (!files.ok) throw new Error(`exchange files page: ${files.status}`);
+    const links = [...(await files.text()).matchAll(/href="([^"]+\.cup)"/gi)].map((m) => m[1]);
+    if (!links.length) throw new Error("no .cup link on the exchange page");
+    const cup = await fetch(new URL(links[0], "https://soaringweb.org/TP/Gorham/"), { headers });
+    if (!cup.ok) throw new Error(`turnpoint file: ${cup.status}`);
+    writeFileSync(cache, Buffer.from(await cup.arrayBuffer()));
+  }
+
+  const parseLat = (value) => Number(value.slice(0, 2)) + Number(value.slice(2, -1)) / 60;
+  const parseLon = (value) => {
+    const v = Number(value.slice(0, 3)) + Number(value.slice(3, -1)) / 60;
+    return /[WS]$/i.test(value) ? -v : v;
+  };
+  const waypoints = [];
+  for (const line of readFileSync(cache, "latin1").split(/\r?\n/).slice(1)) {
+    const columns = line.match(/("([^"]*)"|[^,]*)(,|$)/g)?.map((c) => c.replace(/,$/, "").replace(/^"|"$/g, ""));
+    if (!columns || columns.length < 5) continue;
+    const [name, code, , rawLat, rawLon, elevation] = columns;
+    if (!rawLat || !rawLon) continue;
+    const lat = parseLat(rawLat);
+    const lon = parseLon(rawLon);
+    waypoints.push({
+      name: WAYPOINT_RENAME[name] ?? name,
+      code,
+      lat,
+      lon,
+      elevation: elevation ?? "",
+      skip: WAYPOINT_SKIP.has(name),
+      chart: lat >= 43.85 && lat <= 44.94 && lon >= -72.33 && lon <= -70.06,
+    });
+  }
+  console.log(`waypoints: ${waypoints.length} in the file, ${waypoints.filter((w) => w.chart).length} on the sheet`);
+  return waypoints.filter((w) => w.chart);
+}
+
 /* --------------------------------- harness ---------------------------------- */
 
-function harnessHtml(meta, water) {
+function harnessHtml(meta, water, waypoints) {
   return `<!doctype html>
 <html><head><meta charset="utf-8"><title>Gorham (2G8) range rings — Mount Washington wave camp</title>
 <style>
@@ -296,6 +360,8 @@ const RINGS_NM = ${JSON.stringify(RINGS_NM)};
 const GRATICULE_DEG = ${JSON.stringify(GRATICULE_DEG)};
 const LABELS = ${JSON.stringify(LABELS)};
 const TOWNS = ${JSON.stringify(TOWNS)};
+const WAYPOINTS = ${JSON.stringify(waypoints)};
+const WAYPOINT_POS = ${JSON.stringify(WAYPOINT_POS)};
 const CENTER = ${JSON.stringify(CENTER)};
 const CANVAS_W = ${CANVAS_W};
 const CANVAS_H = ${CANVAS_H};
@@ -474,6 +540,22 @@ async function main() {
     }
   }
 
+  // The exchange's turnpoints: a small diamond and a quiet name each, drawn over
+  // the rings so their casings do not cut the type.
+  for (const wp of WAYPOINTS) {
+    if (wp.skip) continue;
+    const [sx, sy] = pxOf(wp.lat, wp.lon);
+    if (sx < 16 || sx > CANVAS_W - 16 || sy < 16 || sy > CANVAS_H - 16) continue;
+    el("path", {
+      d: "M" + sx + " " + (sy - 7) + " L" + (sx + 7) + " " + sy + " L" + sx + " " + (sy + 7) + " L" + (sx - 7) + " " + sy + " Z",
+      fill: "#3f4c5f", stroke: "rgba(255,255,255,0.9)", "stroke-width": 2.5,
+    });
+    const pos = WAYPOINT_POS[wp.name] ?? {};
+    const left = pos.side === "left" || (!pos.side && sx > CANVAS_W - 430);
+    text(wp.name, sx + (left ? -12 : 12), sy + 3 + (pos.dy ?? 0) * PX_PER_MM * 0.25,
+         { anchor: left ? "end" : "start", size: 26, weight: 500, fill: "#3f4c5f", haloWidth: 6, spacing: "0.01em" });
+  }
+
   // Landmark labels: summit triangles, italic ranges and areas, towns, the field.
   const anchors = {};
   const place = (label) => {
@@ -649,7 +731,8 @@ async function main() {
   await buildDem();
   const meta = JSON.parse(readFileSync(join(SCRATCH, "dem.json"), "utf8"));
   const water = await buildWater();
-  writeFileSync(join(SCRATCH, "index.html"), harnessHtml(meta, water));
+  const waypoints = await buildWaypoints();
+  writeFileSync(join(SCRATCH, "index.html"), harnessHtml(meta, water, waypoints));
 
   const { server, port } = await serve();
   let out;
