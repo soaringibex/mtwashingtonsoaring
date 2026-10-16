@@ -110,7 +110,7 @@ const INSET_LABELS = [
   { name: "Mount Madison", kind: "summit", lat: 44.32879, lon: -71.27667, tx: -16, ty: 24, align: "left" },
   { name: "Pine Mountain", kind: "summit", lat: 44.36588, lon: -71.21519, tx: 9, ty: 45.5, align: "left" },
   { name: "Mount Hayes", kind: "summit", lat: 44.41566, lon: -71.15986, tx: 32, ty: 75.5, align: "left" },
-  { name: "The Great Gulf", kind: "area", lat: 44.2975, lon: -71.3095, tx: -14, ty: 13, align: "left", arrow: true },
+  { name: "The Great Gulf", kind: "area", lat: 44.302, lon: -71.2835, tx: -14, ty: 13, align: "left", arrow: true },
   { name: "The Horn", kind: "summit", lat: 44.29483, lon: -71.279, tx: -17, ty: 2, align: "left" },
   { name: "Huntington Ravine", kind: "area", lat: 44.2745, lon: -71.2805, tx: -15, ty: -8, align: "left", arrow: true },
   { name: "Tuckerman Ravine", kind: "area", lat: 44.2605, lon: -71.292, tx: -25, ty: -22.5, align: "left", arrow: true },
