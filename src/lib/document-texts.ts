@@ -103,6 +103,21 @@ export const documentTexts: Record<string, DocumentText> = {
         type: "p",
         text: "Thursday should be a good day and there is plenty of pent-up demand. With bad weather and potential snow showing up Friday and Saturday, Thursday will be our last day for this encampment.",
       },
+      { type: "h", text: "Thursday, October 15" },
+      { type: "p", text: "We finished Wave Camp 2026 on a nice note today." },
+      {
+        type: "p",
+        text: "We started a little earlier because we were concerned the wave wouldn't be as good later in the day.",
+      },
+      {
+        type: "p",
+        text: "As it turned out, conditions remained excellent all day. Everyone who flew was able to connect with wave that took them to between 13K MSL and 15K MSL. Several people were able to fly cross country along the White Mountains, the Mahoosuc Mountains, or both.",
+      },
+      {
+        type: "p",
+        text: "While conditions didn't support more badge awards, we all enjoyed the beautiful conditions and visibility.",
+      },
+      { type: "p", text: "Thanks to all for a successful and safe Wave Camp." },
     ],
   },
   // Hand-authored: the walk-through filmed at the 2026 camp — the words follow the
