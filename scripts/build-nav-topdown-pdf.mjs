@@ -382,7 +382,7 @@ const WAYPOINT_RENAME = { Berlin: "Berlin (BML)" };
 /** Where the default "name to the right of the dot" crowds a neighbour. */
 const WAYPOINT_POS = {
   "Mount Washington Hotel": { side: "left", dy: 0 },
-  "Berlin (BML)": { side: "left", dy: 0 },
+  "Berlin (BML)": { side: "right", dy: 0 },
   Durand: { side: "left", dy: 0 },
 };
 
@@ -685,18 +685,13 @@ async function main() {
     const r = (nm * M_PER_NM) * pxPerM;
     el("circle", { cx, cy, r, fill: "none", stroke: "rgba(255,255,255,0.85)", "stroke-width": 6, "stroke-dasharray": "3 7" });
     el("circle", { cx, cy, r, fill: "none", stroke: "#6b7280", "stroke-width": 2.4, "stroke-dasharray": "3 7" });
-    // Labels just inside each ring: the 5–20 NM pairs stack due south of the
-    // field, the 25 NM pair west — the top-right corner belongs to the inset.
-    // Two lines each: the distance, and the 25:1 glide altitude it demands.
+    // Each ring's pair sits at its top — the distance just outside the line, the
+    // 25:1 arrival altitude just inside — as a column nudged left of due north,
+    // clear of Berlin's airport marker on the 10 NM ring.
     const needFt = Math.round((1837 + (nm * 6076.12) / 25) / 50) * 50;
     const needLabel = needFt.toLocaleString("en-US") + " ft";
-    if (nm === 25) {
-      text(nm + " NM", cx - r + 16, cy - 26, { size: 35, weight: 600, fill: "#334155", haloWidth: 9 });
-      text(needLabel, cx - r + 16, cy + 30, { size: 40, weight: 700, fill: "#0f172a", haloWidth: 9 });
-    } else {
-      text(nm + " NM", cx, cy + r - 26, { anchor: "middle", size: 35, weight: 600, fill: "#334155", haloWidth: 9 });
-      text(needLabel, cx, cy + r + 30, { anchor: "middle", size: 40, weight: 700, fill: "#0f172a", haloWidth: 9 });
-    }
+    text(nm + " NM", cx - 75, cy - r - 30, { anchor: "middle", size: 35, weight: 600, fill: "#334155", haloWidth: 9 });
+    text(needLabel, cx - 75, cy - r + 34, { anchor: "middle", size: 40, weight: 700, fill: "#0f172a", haloWidth: 9 });
   }
 
   // The LOA's glider-area cylinder on the main map — solid red on both the
@@ -706,7 +701,7 @@ async function main() {
   const loaMainR = INSET.radiusNm * M_PER_NM * pxPerM;
   el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "rgba(255,255,255,0.9)", "stroke-width": 7.5 });
   el("circle", { cx: gax, cy: gay, r: loaMainR, fill: "none", stroke: "#dc2626", "stroke-width": 4 });
-  text("Glider area", gax, gay - loaMainR + 30, { anchor: "middle", size: 30, weight: 600, italic: true, fill: "#334155", haloWidth: 8 });
+  text("Glider area", gax, gay - loaMainR + 70, { anchor: "middle", size: 30, weight: 600, italic: true, fill: "#334155", haloWidth: 8 });
   {
     // Rim-to-rim pointer: the disc's drawn footprint, in sheet pixels.
     const discBox = INSET.widthMm * PX_PER_MM;
@@ -782,6 +777,9 @@ async function main() {
   });
   const nLab = at(92, 0);
   text("N", nLab[0], nLab[1], { anchor: "middle", size: 40, weight: 700, haloWidth: 8 });
+
+  // The sheet's title, top-left, aligned with the credit line below.
+  text("Mt Washington Glider Area", 40, 122, { size: 92, weight: 700, fill: "#1e293b", haloWidth: 14, spacing: "0.01em" });
 
   // ------------------------- the glider-area inset ---------------------------
   // The LOA's 10 NM cylinder at 1.5x the sheet's scale, pinned to the top-left.
