@@ -137,7 +137,7 @@ export function FlightMarks({
   const diamond = ssa.filter((badge) => badge.includes("Diamond"));
   const pendingGold = ssaPending.filter((badge) => badge.includes("Gold"));
   const pendingDiamond = ssaPending.filter((badge) => badge.includes("Diamond"));
-  const note = "earned on this flight — verified in the SSA badge database";
+  const note = "earned on this flight";
   return (
     <span className="inline-flex items-center gap-2">
       {record ? (
