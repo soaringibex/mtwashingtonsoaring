@@ -178,7 +178,7 @@ export const awards: Award[] = [
         year: "2015",
         entries: [
           "Robert Janney, Hackettstown, NJ, pending",
-          "Robert Dunning, Bangor, PA, pending",
+          "Robert Dunning, Bangor, PA",
           "Greg Delp, Woodbury, CT",
           "Dan MacMonagle, Stoneham, MA",
         ],
