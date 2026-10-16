@@ -139,13 +139,6 @@ const pages: SearchEntry[] = [
     text: "Everything for pilots who come to fly — required reading, safety, airspace and the LOA, the airport, and the moving-map files.",
     keywords: "required reading brief oxygen loa waiver documents paperwork airport gorham charts signup files",
   },
-  {
-    title: "Contact",
-    href: "/contact",
-    kind: "page",
-    text: "The field at Gorham (2G8), the wave camp, and the webmaster.",
-    keywords: "address location gorham map airport 2g8",
-  },
 ];
 
 const history: SearchEntry[] = [

@@ -33,7 +33,6 @@ npm start            # serve the production build
 | `/more` | Press clippings and the link groups — founding clubs, weather, education |
 | `/important-reading` | Required briefing material, charts, navigation files |
 | `/documents` + `/documents/2026 · 2025 · 2024` | Season paperwork and camp archive |
-| `/contact` | Location, the field, the webmaster |
 
 Legacy Wild Apricot URLs (`/blog/2`, `/contactus`, `/year-2024-documents`, …) redirect in
 `next.config.ts`.
@@ -82,5 +81,6 @@ the deployment once DNS is moved.
 
 - The association has no officers and no dues; the site is intentionally a static brochure with no
   member login. The old Wild Apricot sign-in area is not reproduced.
-- The site publishes no contact address: the club's mailing list is deliberately left off it, so
-  it cannot collect drive-by signups. There is no contact form either, so no backend is needed.
+- There is no contact page and no contact address anywhere on the site: the club's mailing list
+  is deliberately left off it, so it cannot collect drive-by signups — and with no contact form,
+  no backend is needed.

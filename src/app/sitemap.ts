@@ -15,7 +15,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/videos", priority: 0.6 },
     { path: "/accomplishments", priority: 0.6 },
     { path: "/more", priority: 0.5 },
-    { path: "/contact", priority: 0.5 },
   ];
   const readingPage = [...stories, ...flyingDocs].filter((doc) => doc.page);
 

@@ -38,11 +38,6 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link href="/contact" className="text-slate-400 transition-colors hover:text-white">
-                  Contact
-                </Link>
-              </li>
             </ul>
 
             <p className="mt-8 font-display text-xs font-semibold uppercase tracking-[0.28em] text-sky-400">
