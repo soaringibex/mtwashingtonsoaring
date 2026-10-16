@@ -106,8 +106,9 @@ const pages: SearchEntry[] = [
     title: "Photos",
     href: "/gallery",
     kind: "page",
-    text: "Wave camp photo albums — every season since 2016 and the archive.",
-    keywords: "gallery pictures images albums wave camp 2016 2018 2023 2024 2025 2026",
+    text: "Wave camp photo albums — seasons from 2008 to 2026, the years before 2008, the 2005 Landmark Party and the archive.",
+    keywords:
+      "gallery pictures images albums wave camp 2008 2009 2010 2011 2016 2018 2023 2024 2025 2026 landmark party before 2008 archive",
   },
   {
     title: "Videos",

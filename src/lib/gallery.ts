@@ -4,6 +4,12 @@ export type Photo = {
   aspect: "landscape" | "portrait";
   /** The photographer, shown under the image in the lightbox. */
   credit?: string;
+  /**
+   * How the tile frames the photo. Defaults to "cover"; the wide strips
+   * recovered from the old website's albums need "contain" so the whole
+   * picture stays visible.
+   */
+  fit?: "cover" | "contain";
 };
 
 export type Album = {
@@ -567,6 +573,141 @@ export const albums: Album[] = [
         alt: "The sun bursting over the canopy — the panel in silhouette, the climb ahead",
         aspect: "landscape",
         credit: "Steve Waitekaitis",
+      },
+    ],
+  },
+  {
+    id: "2011",
+    title: "Wave Camp 2011",
+    blurb:
+      "The two covers that survive from the 2011 album, recovered from the old website's archive.",
+    photos: [
+      {
+        src: "/images/gallery/2011/the-field-under-a-low-sky.jpg",
+        alt: "The Gorham field under a low fall sky, gliders and vehicles along the grass",
+        aspect: "landscape",
+        fit: "contain",
+      },
+      {
+        src: "/images/gallery/2011/sailplanes-on-the-grass.jpg",
+        alt: "Sailplanes parked in a line along the grass under a heavy sky",
+        aspect: "landscape",
+        fit: "contain",
+      },
+    ],
+  },
+  {
+    id: "2010",
+    title: "Wave Camp 2010",
+    blurb:
+      "The grid, the summit from the air and slides from the 2010 camp — recovered from the old website's archive.",
+    photos: [
+      {
+        src: "/images/gallery/2010/the-grid-at-gorham.jpg",
+        alt: "Gliders lined up on the grass at Gorham, the ridge in fall color behind",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2010/the-glider-above-the-summit.jpg",
+        alt: "A glider in a deep blue sky above the snow-dusted summit and its antennas",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2010/the-glider-in-the-blue.jpg",
+        alt: "A glider in the wave above the summit cone and observatory, seen from below",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2010/the-wing-over-the-valley.jpg",
+        alt: "The wing over a hazy blue valley, the ridges fading to the horizon",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2010/a-glider-in-the-sunburst.jpg",
+        alt: "A glider silhouetted in a sunburst above fall color and cloud",
+        aspect: "landscape",
+      },
+    ],
+  },
+  {
+    id: "2009",
+    title: "Wave Camp 2009",
+    blurb:
+      "The snowy summit from the air and the tow ahead — pictures from the 2009 camp, recovered from the old website's archive.",
+    photos: [
+      {
+        src: "/images/gallery/2009/sun-over-the-cloud-sea.jpg",
+        alt: "The sun breaking over a sea of cloud in the wave",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2009/the-ridge-through-the-canopy.jpg",
+        alt: "The snowy ridge through the canopy, cloud streaming beyond",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2009/the-summit-from-the-air.jpg",
+        alt: "The snow-covered observatory and towers on the summit, seen from the air above the Auto Road",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2009/the-towplane-through-the-canopy.jpg",
+        alt: "The towplane ahead in the climb, the tow rope visible through the canopy",
+        aspect: "landscape",
+      },
+    ],
+  },
+  {
+    id: "2008",
+    title: "Wave Camp 2008",
+    blurb:
+      "A yellow sailplane over the slope, and the covers that survive from the 2008 album.",
+    photos: [
+      {
+        src: "/images/gallery/2008/the-wing-over-the-ridge.jpg",
+        alt: "The wingtip over the dark wooded ridge, the range hazy beyond",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2008/the-yellow-sailplane-over-the-slope.jpg",
+        alt: "A yellow sailplane banked over the wooded slope in fall color",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/2008/the-glider-over-the-haze.jpg",
+        alt: "A glider against the blue haze of the ridges",
+        aspect: "landscape",
+      },
+    ],
+  },
+  {
+    id: "before-2008",
+    title: "Before 2008",
+    blurb:
+      "The two covers that survive from the years before 2008 — the rest of the album is still missing.",
+    photos: [
+      {
+        src: "/images/gallery/before-2008/the-glider-over-the-forest.jpg",
+        alt: "A distant glider over the dark forest and blue ridges",
+        aspect: "landscape",
+      },
+      {
+        src: "/images/gallery/before-2008/the-glider-above-the-undercast.jpg",
+        alt: "A glider far below the wing, the cloud deck beyond",
+        aspect: "landscape",
+      },
+    ],
+  },
+  {
+    id: "landmark-party",
+    title: "Landmark Party",
+    blurb:
+      "The recovered cover of the Landmark Party — the gathering that marked Mount Washington's dedication as the 14th National Landmark of Soaring in October 2005.",
+    photos: [
+      {
+        src: "/images/gallery/landmark-party/the-landmark-banquet.jpg",
+        alt: "Long tables and a crowd beneath the hotel's timber ceiling at the Landmark Party",
+        aspect: "landscape",
       },
     ],
   },

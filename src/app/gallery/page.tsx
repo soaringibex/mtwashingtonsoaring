@@ -7,7 +7,7 @@ import { albums } from "@/lib/gallery";
 export const metadata: Metadata = {
   title: "Photos",
   description:
-    "Photos from the Mount Washington wave camps — 2026, 2025, 2024, 2023, 2018, 2016 and the archive — plus gliders, lenticular clouds and the summit seen from the air.",
+    "Photos from the Mount Washington wave camps — 2016 to 2026, plus the 2008–2011 albums recovered from the old website, the years before 2008, the Landmark Party and the archive — gliders, lenticular clouds and the summit seen from the air.",
 };
 
 export default function GalleryPage() {
