@@ -130,7 +130,7 @@ const INSET_LABELS = [
   { name: "Cog Railway base station", kind: "place", lat: 44.2867, lon: -71.3366, tx: -50, ty: -2.5, align: "right" },
   { name: "Mt Eisenhower", kind: "summit", lat: 44.2403434, lon: -71.3503537, tx: -56, ty: -31, align: "right" },
   { name: "Mt Crescent", kind: "summit", lat: 44.404348, lon: -71.294115, tx: -24, ty: 69, align: "left" },
-  { name: "Pinkham Notch", kind: "area", lat: 44.2575, lon: -71.2531, tx: 2, ty: -17, align: "left", arrow: true },
+  { name: "Pinkham Notch", kind: "area", lat: 44.2575, lon: -71.2531, tx: -8, ty: -16.5, align: "left", arrow: true },
   { name: "Pliny Mtn", kind: "summit", lat: 44.4143, lon: -71.3882, tx: -62, ty: 70, align: "left" },
 ];
 
@@ -398,8 +398,6 @@ const WAYPOINT_POS = {
 const WAYPOINT_SKIP = new Set(["Mount Washington Hotel", "Mount Washington Observatory", "Mount Washington GA"]);
 /** The one summit the main sheet marks, in the disc's triangle. */
 const MAIN_SUMMITS = [{ name: "Mt Washington", lat: 44.27049, lon: -71.3033 }];
-/** The notch's ski area, marked with crossed skis. */
-const SKI_AREAS = [{ lat: 44.26347029, lon: -71.24103761 }];
 
 async function buildWaypoints() {
   const cache = join(SCRATCH, "gorham.cup");
@@ -483,7 +481,6 @@ const WAYPOINTS = ${JSON.stringify(waypoints)};
 const WAYPOINT_POS = ${JSON.stringify(WAYPOINT_POS)};
 const WAYPOINT_SKIP = new Set(${JSON.stringify([...WAYPOINT_SKIP])});
 const MAIN_SUMMITS = ${JSON.stringify(MAIN_SUMMITS)};
-const SKI_AREAS = ${JSON.stringify(SKI_AREAS)};
 const INSET = ${JSON.stringify(INSET)};
 const INSET_LABELS = ${JSON.stringify(INSET_LABELS)};
 const CENTER = ${JSON.stringify(CENTER)};
@@ -749,15 +746,6 @@ async function main() {
     }, parent);
   };
 
-  // Crossed skis for the ski areas — white casing first, then both blades.
-  const skiIcon = (x, y, len, fill, parent) => {
-    const s = len / 20;
-    const tf = "translate(" + x + " " + y + ") scale(" + s + ") translate(-10 -11)";
-    const skis = ["M4.2 17.5 L13.8 6.2 Q15.2 4.8 17.2 5.6", "M15.8 17.5 L6.2 6.2 Q4.8 4.8 2.8 5.6"];
-    for (const d of skis) el("path", { d, transform: tf, fill: "none", stroke: "rgba(255,255,255,0.95)", "stroke-width": 4.4, "stroke-linecap": "round" }, parent);
-    for (const d of skis) el("path", { d, transform: tf, fill: "none", stroke: fill, "stroke-width": 2 / s, "stroke-linecap": "round" }, parent);
-  };
-
   // The exchange's turnpoints: a small diamond and a quiet name each, drawn over
   // the rings so their casings do not cut the type.
   for (const wp of WAYPOINTS) {
@@ -904,11 +892,6 @@ async function main() {
       text(label.name, tx, ty, { anchor: label.align, size: 34, weight: 600, fill: "#334155" }, io);
     }
   }
-  for (const area of SKI_AREAS) {
-    const [kx, ky] = ipx(area.lat, area.lon);
-    skiIcon(kx, ky, 36, "#0ea5e9", io);
-  }
-
   // A small scale bar for the inset, tucked inside the disc's lower-left.
   const ibar = 2 * M_PER_NM * ippm;
   const ibx = icx - 52 * PX_PER_MM, iby = icy + 74 * PX_PER_MM;
