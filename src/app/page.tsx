@@ -143,38 +143,8 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* Current conditions */}
-      <section id="conditions" className="bg-slate-50 py-20 sm:py-24">
-        <Container>
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_520px] lg:items-center">
-            <Reveal>
-              <Eyebrow>Current conditions</Eyebrow>
-              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-900 text-balance sm:text-4xl">
-                See what the wind is doing right now.
-              </h2>
-              <div className="mt-6 space-y-5 text-[1.0625rem] leading-8 text-slate-700">
-                <p>
-                  Wave days are written in the vertical wind profile — a steady cross-ridge flow at
-                  altitude, with stable air through the layer. This is the live column of wind over
-                  Mount Washington from the latest model run: the same first look pilots take
-                  before heading to the field.
-                </p>
-              </div>
-              <div className="mt-8">
-                <ButtonLink href="/more#weather" variant="secondary">
-                  Weather links
-                </ButtonLink>
-              </div>
-            </Reveal>
-            <Reveal delay={120}>
-              <WindProfile />
-            </Reveal>
-          </div>
-        </Container>
-      </section>
-
       {/* The club */}
-      <section className="py-20 sm:py-28">
+      <section className="bg-slate-50 py-20 sm:py-28">
         <Container>
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <Reveal>
@@ -189,21 +159,11 @@ export default function HomePage() {
                   October wave camp at Gorham, and everything about it is voluntary.
                 </p>
                 <p>
-                  During the weeks leading up to each encampment, information — including the
-                  signup sheet — is distributed on the email list:{" "}
-                  <a
-                    href={`mailto:${site.email}`}
-                    className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"
-                  >
-                    {site.email}
-                  </a>
-                  .
+                  The annual wave camp is a private, invitation-only event for members of the four
+                  founding clubs: Franconia Soaring Association, Greater Boston Soaring Club,
+                  New England Soaring Association and Post Mills Soaring Club. It is not open to
+                  the general public.
                 </p>
-              </div>
-              <div className="mt-8">
-                <ButtonLink href={`mailto:${site.email}`} variant="dark">
-                  {site.email}
-                </ButtonLink>
               </div>
             </Reveal>
             <Reveal delay={120}>
@@ -243,7 +203,7 @@ export default function HomePage() {
           <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat, index) => (
               <Reveal key={stat.value} delay={index * 80}>
-                <div className="h-full rounded-3xl bg-slate-50 p-6 ring-1 ring-slate-900/5">
+                <div className="h-full rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5">
                   <p className="font-display text-3xl font-bold tracking-tight text-sky-700">
                     {stat.value}
                   </p>
@@ -251,6 +211,36 @@ export default function HomePage() {
                 </div>
               </Reveal>
             ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Current conditions */}
+      <section id="conditions" className="py-20 sm:py-24">
+        <Container>
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_520px] lg:items-center">
+            <Reveal>
+              <Eyebrow>Current conditions</Eyebrow>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-900 text-balance sm:text-4xl">
+                See what the wind is doing right now.
+              </h2>
+              <div className="mt-6 space-y-5 text-[1.0625rem] leading-8 text-slate-700">
+                <p>
+                  Wave days are written in the vertical wind profile — a steady cross-ridge flow at
+                  altitude, with stable air through the layer. This is the live column of wind over
+                  Mount Washington from the latest model run: the same first look pilots take
+                  before heading to the field.
+                </p>
+              </div>
+              <div className="mt-8">
+                <ButtonLink href="/more#weather" variant="secondary">
+                  Weather links
+                </ButtonLink>
+              </div>
+            </Reveal>
+            <Reveal delay={120}>
+              <WindProfile />
+            </Reveal>
           </div>
         </Container>
       </section>
@@ -401,17 +391,14 @@ export default function HomePage() {
                   Camp information
                 </p>
                 <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-balance">
-                  Camp information and signups go out by email.
+                  Camp paperwork and documents.
                 </h3>
                 <p className="mt-4 max-w-3xl text-[1.0625rem] leading-8 text-sky-100">
-                  A few weeks before each encampment, the mailing list gets the signup sheet,
-                  schedule and logistics.
+                  The information package, the current LOA, the airfield procedures and the
+                  moving-map files are all on the pilot information pages.
                 </p>
               </div>
               <div className="mt-8 flex flex-wrap gap-3">
-                <ButtonLink href={`mailto:${site.email}`} variant="light">
-                  {site.email}
-                </ButtonLink>
                 <ButtonLink href="/flying" variant="light">
                   For pilots
                 </ButtonLink>

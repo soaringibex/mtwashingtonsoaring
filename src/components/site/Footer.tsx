@@ -24,12 +24,6 @@ export function Footer() {
               Mount Washington and the surrounding peaks. Every October, pilots gather at Gorham
               to fly them.
             </p>
-            <a
-              href={`mailto:${site.email}`}
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/20 transition-colors hover:bg-white/20"
-            >
-              {site.email}
-            </a>
           </div>
 
           <div className="lg:col-span-3">
@@ -99,14 +93,6 @@ export function Footer() {
                 >
                   Required reading before you fly →
                 </Link>
-              </li>
-              <li className="pt-1 text-xs leading-6 text-slate-500">
-                Camp information and signup sheets go out on the email list each season — write
-                to{" "}
-                <a href={`mailto:${site.email}`} className="text-slate-400 underline underline-offset-4 hover:text-white">
-                  {site.email}
-                </a>
-                .
               </li>
             </ul>
           </div>

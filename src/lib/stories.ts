@@ -24,7 +24,7 @@ export const storyGroups: StoryGroup[] = [
         title: "NH Speed Record in the Wave",
         page: "/stories/nh-speed-record-in-the-wave",
         description:
-          "Evan Ludeman's account of his 300 km out-and-return New Hampshire speed record in the wave — 89 mph. First published on the club mailing list, September 2026.",
+          "Evan Ludeman's account of his 300 km out-and-return New Hampshire speed record in the wave — 89 mph, September 2026.",
         meta: "Story",
       },
       {

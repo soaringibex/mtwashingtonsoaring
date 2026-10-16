@@ -33,7 +33,7 @@ npm start            # serve the production build
 | `/more` | Press clippings and the link groups — founding clubs, weather, education |
 | `/important-reading` | Required briefing material, charts, navigation files |
 | `/documents` + `/documents/2026 · 2025 · 2024` | Season paperwork and camp archive |
-| `/contact` | Mailing list, location, webmaster |
+| `/contact` | Location, the field, the webmaster |
 
 Legacy Wild Apricot URLs (`/blog/2`, `/contactus`, `/year-2024-documents`, …) redirect in
 `next.config.ts`.
@@ -42,7 +42,7 @@ Legacy Wild Apricot URLs (`/blog/2`, `/contactus`, `/year-2024-documents`, …) 
 
 Content lives in typed data modules under `src/lib/` — edit these rather than page markup:
 
-- `site.ts` — site metadata, nav, mailing list address, wave-camp date logic (Columbus Day weekend)
+- `site.ts` — site metadata, nav, wave-camp date logic (Columbus Day weekend)
 - `news.ts` — news posts (add an object; routes and sitemap update automatically)
 - `documents.ts` — year documents, archive, navigation files
 - `accomplishments.ts` — award records
@@ -82,5 +82,5 @@ the deployment once DNS is moved.
 
 - The association has no officers and no dues; the site is intentionally a static brochure with no
   member login. The old Wild Apricot sign-in area is not reproduced.
-- Contact flows use the public mailing list address (`mwsoaring@googlegroups.com`) rather than a
-  form, so no backend is needed.
+- The site publishes no contact address: the club's mailing list is deliberately left off it, so
+  it cannot collect drive-by signups. There is no contact form either, so no backend is needed.

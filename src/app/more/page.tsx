@@ -35,12 +35,7 @@ export default function MorePage() {
               <p className="mt-8 max-w-3xl rounded-3xl bg-slate-50 p-6 text-sm leading-7 text-slate-600 ring-1 ring-slate-900/5">
                 All articles that appear here are republished with permission from the original
                 publisher. All rights other than appearing on this website are reserved by the
-                original publisher. If you wish to contact us about information you would like to
-                publish, please reach out through the{" "}
-                <a href="/contact" className="font-medium text-sky-700 underline underline-offset-4">
-                  contact page
-                </a>
-                .
+                original publisher.
               </p>
               <div className="mt-10 space-y-4">
                 {press.map((item) => (

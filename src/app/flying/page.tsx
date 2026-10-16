@@ -7,7 +7,6 @@ import { DocCard } from "@/components/ui/DocCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { NavFilesMap } from "@/components/flying/NavFilesMap";
 import { campDocs, gorham, legal, oxygen, required } from "@/lib/flying";
-import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Flying here",
@@ -19,7 +18,7 @@ export default function FlyingPage() {
   return (
     <>
       <PageHero
-        eyebrow="For visiting pilots"
+        eyebrow="For attending pilots"
         title="Flying here"
         lede="Everything needed before and during the wave camp — required reading, airspace and paperwork, the airport, and the files for your moving map."
         image="/images/scenic/lenticular-wing.webp"
@@ -200,11 +199,11 @@ export default function FlyingPage() {
                     The printable chart — range rings on paper
                   </p>
                   <p className="mt-2 text-sm leading-7 text-slate-600">
-                    The wave country from above at 1:450,000 on a full tabloid sheet: dotted
-                    5 NM glide rings around Gorham (2G8), each labelled with the altitude home
-                    to 1,000 ft; the exchange&apos;s turnpoints with the airfields ringed; the
-                    rivers and lakes — and the LOA&apos;s glider area ringed on the map and
-                    enlarged as the corner disc.
+                    The wave country from above at 1:450,000 on a full tabloid sheet: grey
+                    dotted 5 NM glide rings around Gorham (2G8), each labelled with the
+                    altitude home to 1,000 ft; the exchange&apos;s turnpoints, airports marked
+                    with airplane icons; the rivers and lakes — and the LOA&apos;s glider area
+                    ringed in red on the map and enlarged as the corner disc.
                   </p>
                 </div>
                 <ButtonLink href="/files/gorham-range-rings.pdf" variant="secondary">
@@ -216,24 +215,14 @@ export default function FlyingPage() {
             <section>
               <SectionHeading
                 eyebrow="Camp paperwork"
-                title="Signups and camp documents"
-                lede="The current-season signup sheet, schedule and logistics go out over the email list each fall."
+                title="Camp documents"
+                lede="The camp information package and paperwork from past encampments."
               />
               <div className="mt-8 grid gap-4 md:grid-cols-2">
                 {campDocs.filter((doc) => !doc.hidden).map((doc) => (
                   <DocCard key={doc.href ?? doc.page} doc={doc} />
                 ))}
               </div>
-              <p className="mt-6 text-sm leading-7 text-slate-600">
-                The list address is{" "}
-                <a
-                  href={`mailto:${site.email}`}
-                  className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"
-                >
-                  {site.email}
-                </a>
-                .
-              </p>
             </section>
 
             <section>
@@ -246,15 +235,7 @@ export default function FlyingPage() {
                 The original “Mt. Washington Area Wave Cross-Country Glider Flights” document
                 describes some possible routes. Not only the condition, but even the existence of
                 some of the reported landing areas must be confirmed before attempting these
-                routes. The original file has not been recovered — if you have a copy, please write
-                to{" "}
-                <a
-                  href={`mailto:${site.email}`}
-                  className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"
-                >
-                  {site.email}
-                </a>
-                .
+                routes. The original file has not been recovered.
               </p>
             </section>
           </div>

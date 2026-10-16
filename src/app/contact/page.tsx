@@ -7,34 +7,21 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Get in touch with the Mount Washington Soaring Association — the camp email list, the field at Gorham (2G8), and the webmaster.",
+    "Where the Mount Washington Soaring Association flies — the field at Gorham (2G8) — and who keeps the site.",
 };
 
 export default function ContactPage() {
   return (
     <>
       <PageHero
-        eyebrow="Get in touch"
+        eyebrow="The association"
         title="Contact"
-        lede="The association has no officers and no dues. Camp information and signup sheets go out on the email list each fall."
+        lede="The association has no officers and no dues — its whole undertaking is the annual October wave camp at Gorham."
       />
 
       <section className="py-16 sm:py-20">
         <Container width="5xl">
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="flex flex-col rounded-3xl bg-white p-7 shadow-sm ring-1 ring-slate-900/5">
-              <h2 className="font-display text-lg font-semibold text-slate-900">
-                Camp email list
-              </h2>
-              <p className="mt-3 flex-1 text-sm leading-7 text-slate-600">
-                Camp information — including the signup sheet — goes out by email during the
-                weeks leading up to each encampment.
-              </p>
-              <div className="mt-5">
-                <ButtonLink href={`mailto:${site.email}`}>{site.email}</ButtonLink>
-              </div>
-            </div>
-
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="flex flex-col rounded-3xl bg-white p-7 shadow-sm ring-1 ring-slate-900/5">
               <h2 className="font-display text-lg font-semibold text-slate-900">Where we fly</h2>
               <p className="mt-3 flex-1 text-sm leading-7 text-slate-600">
@@ -57,14 +44,9 @@ export default function ContactPage() {
             <div className="flex flex-col rounded-3xl bg-white p-7 shadow-sm ring-1 ring-slate-900/5">
               <h2 className="font-display text-lg font-semibold text-slate-900">Webmaster</h2>
               <p className="mt-3 flex-1 text-sm leading-7 text-slate-600">
-                Corrections, documents, and photos from past camps are always welcome — several
-                pictures from the old website are still missing.
+                The site is kept by volunteers from the club&apos;s own documents, photographs and
+                recollections — several pictures from the old website are still missing.
               </p>
-              <div className="mt-5">
-                <ButtonLink href={`mailto:${site.email}?subject=Website`} variant="secondary">
-                  Write to us
-                </ButtonLink>
-              </div>
             </div>
           </div>
 
@@ -74,15 +56,15 @@ export default function ContactPage() {
             </h2>
             <p className="mt-4 max-w-3xl text-[1.0625rem] leading-8 text-sky-100">
               Flying the Mount Washington wave is not a first cross-country — the rotor, the
-              terrain and the altitude all demand experience and preparation. Start with the
-              required reading, fly with a club that attends, and come to a daily briefing before
-              you launch.
+              terrain and the altitude all demand experience and preparation. The wave camp is
+              invitation-only for members of the four founding clubs — the way in is through one
+              of them. Start with the required reading.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <ButtonLink href="/flying" variant="light">
                 Required reading
               </ButtonLink>
-              <ButtonLink href="/more" variant="light">
+              <ButtonLink href="/more#clubs" variant="light">
                 Founding clubs
               </ButtonLink>
             </div>

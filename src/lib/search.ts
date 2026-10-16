@@ -143,8 +143,8 @@ const pages: SearchEntry[] = [
     title: "Contact",
     href: "/contact",
     kind: "page",
-    text: "The camp email list, the field at Gorham (2G8), and the webmaster.",
-    keywords: "email mailing list address location gorham map airport 2g8",
+    text: "The field at Gorham (2G8), the wave camp, and the webmaster.",
+    keywords: "address location gorham map airport 2g8",
   },
 ];
 
@@ -308,7 +308,7 @@ const flying: SearchEntry[] = [
     href: "/files/gorham-range-rings.pdf",
     kind: "flying",
     section: "Electronic files",
-    text: "The wave country from above at 1:450,000 on a full tabloid sheet — dotted 5 NM glide rings labelled with the 25:1 altitude home, the exchange's turnpoints with airfields ringed, and the LOA's glider area enlarged as the corner disc.",
+    text: "The wave country from above at 1:450,000 on a full tabloid sheet — grey dotted 5 NM glide rings labelled with the 25:1 altitude home, the exchange's turnpoints with an airplane icon for each airport, and the LOA's glider area ringed in red and enlarged as the corner disc.",
     keywords: "print chart top-down range rings glide distance gorham 2g8 terrain map pdf paper tabloid",
   },
 ];

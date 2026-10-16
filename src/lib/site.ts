@@ -4,7 +4,6 @@ export const site = {
   url: "https://www.mtwashingtonsoaring.org",
   description:
     "The Mount Washington Soaring Association explores the atmospheric wave of the White Mountains of New Hampshire in gliders. Every October, pilots gather at Gorham for the annual wave camp.",
-  email: "mwsoaring@googlegroups.com",
   location: {
     airport: "Gorham Municipal Airport (2G8)",
     town: "Gorham, New Hampshire",
