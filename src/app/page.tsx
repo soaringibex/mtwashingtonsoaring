@@ -143,21 +143,16 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* The club */}
+      {/* Wave camp */}
       <section className="bg-slate-50 py-20 sm:py-28">
         <Container>
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <Reveal>
-              <Eyebrow>The club</Eyebrow>
+              <Eyebrow>Wave camp</Eyebrow>
               <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-900 text-balance sm:text-4xl">
-                A soaring club with only members.
+                A New England Private Club Event
               </h2>
               <div className="mt-6 space-y-5 text-[1.0625rem] leading-8 text-slate-700">
-                <p>
-                  The Mount Washington Soaring Association is unique amongst soaring clubs: it has
-                  only members — no dues, and no officers. Its whole undertaking is the annual
-                  October wave camp at Gorham, and everything about it is voluntary.
-                </p>
                 <p>
                   The annual wave camp is a private, invitation-only event for members of the four
                   founding clubs: Franconia Soaring Association, Greater Boston Soaring Club,
