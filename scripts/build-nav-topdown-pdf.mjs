@@ -3,11 +3,14 @@
  * Build the printable top-down chart — public/files/gorham-range-rings.pdf —
  * a 1:450,000 full-bleed tabloid (17 x 11 in) sheet of the wave country, turned
  * so the exchange's Moosilauke–Sugarloaf AP line runs straight across it as it
- * is flown (Moosilauke left, Sugarloaf right). Range rings every 5 NM around Gorham (2G8), a
- * graticule, the rivers and lakes, the exchange's turnpoints and the landmark
- * labels. Each ring is labelled with the altitude a 25:1 glide in still air
- * needs at that distance to arrive at the field with 1,000 ft to spare:
- * required MSL = field elevation (837 ft) + 1,000 ft + the ring's distance / 25.
+ * is flown (Moosilauke left, Sugarloaf right), with Fryeburg closing the bottom
+ * edge. Range rings every 5 NM around Gorham (2G8), a graticule, the rivers and
+ * lakes, the exchange's turnpoints (airfields ringed, as CUP styles 2/5 read in
+ * src/lib/nav-files.ts) and the landmark labels; the LOA's glider area is drawn
+ * again at 1.5x in a corner inset. Each ring is labelled with the altitude a
+ * 25:1 glide in still air needs at that distance to arrive at the field with
+ * 1,000 ft to spare: required MSL = field elevation (837 ft) + 1,000 ft + the
+ * ring's distance / 25.
  *
  * Same machinery as scripts/build-nav-3d-map.mjs: AWS Terrain Tiles (Terrarium,
  * cache shared in .screenshots/nav3d/tiles), a harneess page rendered in headless
@@ -65,6 +68,21 @@ const ROUTE = {
 };
 
 const RINGS_NM = [5, 10, 15, 20, 25];
+
+/**
+ * The corner inset: the LOA's glider area at 1.5× the sheet's scale, pinned to
+ * the top-left. Its centre is the glider area's own centre (src/lib/wx-grid.ts);
+ * the dashed circle is its 10 NM radius.
+ */
+const INSET = {
+  lat: 44.290556,
+  lon: -71.227778,
+  radiusNm: 10,
+  mPerMm: 300,
+  widthMm: 170,
+  heightMm: 128,
+  marginMm: 12,
+};
 const GRATICULE_DEG = 0.25;
 const M_PER_NM = 1852;
 
@@ -104,6 +122,26 @@ const LABELS = [
   { name: "Bald Pate Mountain", kind: "summit", lat: 44.60833, lon: -70.89445, tx: 63, ty: 61, align: "left" },
   { name: "Moosilauke", kind: "summit", lat: 44.02388, lon: -71.83055, tx: -141, ty: -8, align: "left" },
   { name: "Sugarloaf AP", kind: "place", lat: 45.08528, lon: -70.21638, tx: 240, ty: -8, align: "right" },
+];
+
+/**
+ * The inset's labels — text anchors in millimetres east/north of the inset's
+ * centre (the glider area), tuned against the render.
+ */
+const INSET_LABELS = [
+  { name: "Mount Washington", kind: "summit", lat: 44.27049, lon: -71.3033, tx: -23.5, ty: 10.5, align: "right" },
+  { name: "Mount Madison", kind: "summit", lat: 44.32879, lon: -71.27667, tx: -2, ty: 23.5, align: "right" },
+  { name: "Pine Mountain", kind: "summit", lat: 44.36588, lon: -71.21519, tx: 21.5, ty: 10.5, align: "center" },
+  { name: "Mount Hayes", kind: "summit", lat: 44.41566, lon: -71.15986, tx: 48, ty: 22, align: "left" },
+  { name: "The Great Gulf", kind: "area", lat: 44.2975, lon: -71.3095, tx: -11, ty: 19, align: "left" },
+  { name: "The Horn", kind: "summit", lat: 44.29483, lon: -71.279, tx: -5, ty: 13.5, align: "left" },
+  { name: "Huntington Ravine", kind: "area", lat: 44.2745, lon: -71.2805, tx: -10, ty: 7.5, align: "left" },
+  { name: "Tuckerman's Ravine", kind: "area", lat: 44.2605, lon: -71.292, tx: -24, ty: -1.5, align: "right" },
+  { name: "Wildcat Mountain", kind: "summit", lat: 44.2592, lon: -71.20161, tx: -6, ty: -17, align: "right" },
+  { name: "Carter Dome", kind: "summit", lat: 44.2674, lon: -71.17912, tx: 6.5, ty: -18, align: "left" },
+  { name: "Berlin", kind: "town", lat: 44.4687, lon: -71.1851, tx: 56, ty: 41, align: "left" },
+  { name: "Gorham 2G8", kind: "field", lat: 44.39472, lon: -71.19805, tx: 35, ty: 19, align: "left" },
+  { name: "The Glen House", kind: "place", lat: 44.29093, lon: -71.22559, tx: -2.5, ty: 3, align: "right" },
 ];
 
 const TOWNS = [
@@ -156,10 +194,13 @@ const project = (lat, lon) => {
   const north = (lat - CENTER.lat) * M_PER_LAT;
   return [east * ER.east + north * ER.north, east * UP.east + north * UP.north];
 };
-/** The sheet centre, in field-relative (along, across) metres: the route's midpoint. */
+/** The sheet's frame: centred on the route's midpoint along the corridor, and
+ * pushed across it so Fryeburg (the town label) sits just above the bottom edge. */
+const FRYEBURG = { lat: 44.0164, lon: -70.9753 };
 const SHEET_C = (() => {
-  const [u, v] = project((ROUTE.from.lat + ROUTE.to.lat) / 2, (ROUTE.from.lon + ROUTE.to.lon) / 2);
-  return { u, v };
+  const [u] = project((ROUTE.from.lat + ROUTE.to.lat) / 2, (ROUTE.from.lon + ROUTE.to.lon) / 2);
+  const [, vFryeburg] = project(FRYEBURG.lat, FRYEBURG.lon);
+  return { u, v: vFryeburg - 3800 + HALF_H_M };
 })();
 const routeKm = Math.hypot(
   (ROUTE.to.lon - ROUTE.from.lon) * M_PER_LON,
@@ -256,12 +297,30 @@ async function buildWater() {
        way["natural"="water"]["name"](${BOUNDS.south},${BOUNDS.west},${BOUNDS.north},${BOUNDS.east});
        relation["natural"="water"]["name"](${BOUNDS.south},${BOUNDS.west},${BOUNDS.north},${BOUNDS.east}););
       out geom;`;
-    const response = await fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      body: query,
-      headers: { "User-Agent": "mtwashingtonsoaring-site/1.0 (gorham chart)" },
-    });
-    if (!response.ok) throw new Error(`overpass ${response.status}`);
+    // Overpass rate-limits per IP and 502s when it is unhappy; walk the mirrors.
+    let response = null;
+    let lastError = "";
+    const endpoints = [
+      "https://overpass-api.de/api/interpreter",
+      "https://overpass.kumi.systems/api/interpreter",
+      "https://overpass.private.coffee/api/interpreter",
+    ];
+    for (let attempt = 0; attempt < 6 && !response; attempt += 1) {
+      const endpoint = endpoints[attempt % endpoints.length];
+      try {
+        const candidate = await fetch(endpoint, {
+          method: "POST",
+          body: query,
+          headers: { "User-Agent": "mtwashingtonsoaring-site/1.0 (gorham chart)" },
+        });
+        if (candidate.ok) response = candidate;
+        else lastError = `${endpoint} returned ${candidate.status}`;
+      } catch (error) {
+        lastError = `${endpoint}: ${error.message}`;
+      }
+      if (!response) await new Promise((resolve) => setTimeout(resolve, 15000 * (attempt + 1)));
+    }
+    if (!response) throw new Error(`overpass unreachable — ${lastError}`);
     writeFileSync(cache, Buffer.from(await response.arrayBuffer()));
   }
   const raw = JSON.parse(readFileSync(cache, "utf8"));
@@ -389,12 +448,15 @@ async function buildWaypoints() {
     if (!rawLat || !rawLon) continue;
     const lat = parseLat(rawLat);
     const lon = parseLon(rawLon);
+    const style = Number.parseInt(columns[6], 10) || 0;
     waypoints.push({
       name: WAYPOINT_RENAME[name] ?? name,
       code,
       lat,
       lon,
       elevation: elevation ?? "",
+      // CUP styles 2 and 5 are the airfields, as src/lib/nav-files.ts reads them.
+      airport: style === 2 || style === 5,
       skip: WAYPOINT_SKIP.has(name),
       ...(() => {
         const [u, v] = project(lat, lon);
@@ -422,9 +484,15 @@ function harnessHtml(meta, water, waypoints) {
          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #0f172a; }
   .map { position: absolute; inset: 0; }
   .map canvas, .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .inset { position: absolute; left: ${INSET.marginMm}mm; top: ${INSET.marginMm}mm;
+           width: ${INSET.widthMm}mm; height: ${INSET.heightMm}mm; background: #fff;
+           border-radius: 1.6mm; padding: 1.4mm; box-sizing: content-box;
+           box-shadow: 0 0.8mm 2.6mm rgba(15,23,42,0.35), 0 0 0 0.25mm rgba(15,23,42,0.3); }
+  .inset canvas, .inset svg { position: absolute; inset: 1.4mm; width: ${INSET.widthMm}mm; height: ${INSET.heightMm}mm; }
 </style></head>
 <body>
 <div class="map"><canvas id="c" width="${CANVAS_W}" height="${CANVAS_H}"></canvas><svg id="o" viewBox="0 0 ${CANVAS_W} ${CANVAS_H}"></svg></div>
+<div class="inset"><canvas id="ci"></canvas><svg id="oi"></svg></div>
 <script>
 const META = ${JSON.stringify(meta)};
 const WATER = ${JSON.stringify(water)};
@@ -434,6 +502,8 @@ const LABELS = ${JSON.stringify(LABELS)};
 const TOWNS = ${JSON.stringify(TOWNS)};
 const WAYPOINTS = ${JSON.stringify(waypoints)};
 const WAYPOINT_POS = ${JSON.stringify(WAYPOINT_POS)};
+const INSET = ${JSON.stringify(INSET)};
+const INSET_LABELS = ${JSON.stringify(INSET_LABELS)};
 const CENTER = ${JSON.stringify(CENTER)};
 const CANVAS_W = ${CANVAS_W};
 const CANVAS_H = ${CANVAS_H};
@@ -486,43 +556,46 @@ async function main() {
            dem[i + W] * (1 - tx) * ty + dem[i + W + 1] * tx * ty;
   };
 
-  // Terrain raster: eached canvas pixel is one ground sample, hillshaded north-west.
-  const canvas = document.getElementById("c");
-  const ctx = canvas.getContext("2d");
-  const img = ctx.createImageData(CANVAS_W, CANVAS_H);
-  const data = img.data;
+  // Terrain raster: each canvas pixel is one ground sample, hillshaded north-west.
   const demPerPxX = M_PER_LON * lonStep; // metres to the DEM pixel, each axis
   const demPerPxY = M_PER_LAT * latStep;
-  let idx = 0;
-  for (let y = 0; y < CANVAS_H; y += 1) {
-    for (let x = 0; x < CANVAS_W; x += 1) {
-      const u = (x - CANVAS_W / 2) / pxPerM + SHEET_C.u;
-      const v = -(y - CANVAS_H / 2) / pxPerM + SHEET_C.v;
-      const east = u * ER.east + v * UP.east;
-      const nn = u * ER.north + v * UP.north;
-      const my = (demNorth - (CENTER.lat + nn / M_PER_LAT)) / latStep;
-      const mx = (CENTER.lon + east / M_PER_LON - west) / lonStep;
-      const h = hAt(mx, my);
-      const hx = (hAt(mx + 0.75, my) - hAt(mx - 0.75, my)) / (1.5 * demPerPxX);
-      const hy = (hAt(mx, my + 0.75) - hAt(mx, my - 0.75)) / (1.5 * demPerPxY);
-      let nx = -hx, ny = hy, nz = 1;
-      const nl = Math.hypot(nx, ny, nz);
-      nx /= nl; ny /= nl; nz /= nl;
-      const shade = Math.min(Math.max(nx * LIGHT.east + ny * LIGHT.north + nz * LIGHT.up, 0), 1);
-      const c = reliefColour(h, shade);
-      data[idx] = c[0]; data[idx + 1] = c[1]; data[idx + 2] = c[2]; data[idx + 3] = 255;
-      idx += 4;
+  const paintTerrain = (target, w, h, ppm, cu, cv) => {
+    target.width = w; target.height = h;
+    const tctx = target.getContext("2d");
+    const img = tctx.createImageData(w, h);
+    const data = img.data;
+    let idx = 0;
+    for (let y = 0; y < h; y += 1) {
+      for (let x = 0; x < w; x += 1) {
+        const u = (x - w / 2) / ppm + cu;
+        const v = -(y - h / 2) / ppm + cv;
+        const east = u * ER.east + v * UP.east;
+        const nn = u * ER.north + v * UP.north;
+        const my = (demNorth - (CENTER.lat + nn / M_PER_LAT)) / latStep;
+        const mx = (CENTER.lon + east / M_PER_LON - west) / lonStep;
+        const hgt = hAt(mx, my);
+        const hx = (hAt(mx + 0.75, my) - hAt(mx - 0.75, my)) / (1.5 * demPerPxX);
+        const hy = (hAt(mx, my + 0.75) - hAt(mx, my - 0.75)) / (1.5 * demPerPxY);
+        let nx = -hx, ny = hy, nz = 1;
+        const nl = Math.hypot(nx, ny, nz);
+        nx /= nl; ny /= nl; nz /= nl;
+        const shade = Math.min(Math.max(nx * LIGHT.east + ny * LIGHT.north + nz * LIGHT.up, 0), 1);
+        const c = reliefColour(hgt, shade);
+        data[idx] = c[0]; data[idx + 1] = c[1]; data[idx + 2] = c[2]; data[idx + 3] = 255;
+        idx += 4;
+      }
     }
-  }
-  ctx.putImageData(img, 0, 0);
-  // Swap the canvas for a JPEG-backed image: printToPDF embeds JPEGs as-is, where
-  // a live canvas would be rasterised losslessly and blow the file up tenfold.
-  await new Promise((resolve) => {
+    tctx.putImageData(img, 0, 0);
+  };
+  // Swap a canvas for a JPEG-backed image: printToPDF embeds JPEGs as-is, where a
+  // live canvas would be rasterised losslessly and blow the file up tenfold.
+  const swapToJpeg = (target, quality) => new Promise((resolve) => {
     const jpeg = new Image();
     jpeg.onload = () => {
-      const holder = canvas.parentNode;
-      holder.removeChild(canvas);
-      jpeg.id = "c";
+      const holder = target.parentNode;
+      const id = target.id;
+      holder.removeChild(target);
+      jpeg.id = id;
       jpeg.style.position = "absolute";
       jpeg.style.inset = "0";
       jpeg.style.width = "100%";
@@ -530,8 +603,10 @@ async function main() {
       holder.prepend(jpeg);
       resolve();
     };
-    jpeg.src = canvas.toDataURL("image/jpeg", 0.84);
+    jpeg.src = target.toDataURL("image/jpeg", quality);
   });
+  paintTerrain(document.getElementById("c"), CANVAS_W, CANVAS_H, pxPerM, SHEET_C.u, SHEET_C.v);
+  await swapToJpeg(document.getElementById("c"), 0.84);
 
   // --------------------------------- vector ----------------------------------
   const svg = document.getElementById("o");
@@ -542,7 +617,7 @@ async function main() {
     parent.appendChild(node);
     return node;
   };
-  const text = (str, x, y, opts = {}) => {
+  const text = (str, x, y, opts = {}, parent = svg) => {
     const node = el("text", {
       x: x.toFixed(1), y: y.toFixed(1),
       "text-anchor": opts.anchor === "right" ? "end" : opts.anchor === "center" ? "middle" : "start",
@@ -557,17 +632,17 @@ async function main() {
       "paint-order": "stroke",
       "stroke-linejoin": "round",
       "letter-spacing": opts.spacing ?? "0",
-    });
+    }, parent);
     node.textContent = str;
     return node;
   };
-  const line = (x1, y1, x2, y2, opts = {}) =>
+  const line = (x1, y1, x2, y2, opts = {}, parent = svg) =>
     el("line", { x1: x1.toFixed(1), y1: y1.toFixed(1), x2: x2.toFixed(1), y2: y2.toFixed(1),
                  stroke: opts.stroke ?? "#334155", "stroke-width": opts.width ?? 2,
                  "stroke-opacity": opts.opacity ?? 1, "stroke-dasharray": opts.dash ?? "none",
-                 "stroke-linecap": "round" });
-  const pathOf = (points, close) =>
-    points.map((p, i) => (i === 0 ? "M" : "L") + pxOf(p.lat, p.lon).map((n) => n.toFixed(1)).join(" ")).join(" ") + (close ? " Z" : "");
+                 "stroke-linecap": "round" }, parent);
+  const pathOf = (points, close, px = pxOf) =>
+    points.map((p, i) => (i === 0 ? "M" : "L") + px(p.lat, p.lon).map((n) => n.toFixed(1)).join(" ")).join(" ") + (close ? " Z" : "");
 
   // Water: over the terrain, under everything else.
   for (const lake of WATER.lakes) {
@@ -656,14 +731,20 @@ async function main() {
     if (wp.skip) continue;
     const [sx, sy] = pxOf(wp.lat, wp.lon);
     if (sx < 16 || sx > CANVAS_W - 16 || sy < 16 || sy > CANVAS_H - 16) continue;
-    el("path", {
-      d: "M" + sx + " " + (sy - 7) + " L" + (sx + 7) + " " + sy + " L" + sx + " " + (sy + 7) + " L" + (sx - 7) + " " + sy + " Z",
-      fill: "#3f4c5f", stroke: "rgba(255,255,255,0.9)", "stroke-width": 2.5,
-    });
+    if (wp.airport) {
+      // Airfields get the chart's own icon: a ringed circle with a centre dot.
+      el("circle", { cx: sx, cy: sy, r: 11, fill: "rgba(255,255,255,0.94)", stroke: "#3f4c5f", "stroke-width": 3.4 });
+      el("circle", { cx: sx, cy: sy, r: 3.6, fill: "#3f4c5f" });
+    } else {
+      el("path", {
+        d: "M" + sx + " " + (sy - 7) + " L" + (sx + 7) + " " + sy + " L" + sx + " " + (sy + 7) + " L" + (sx - 7) + " " + sy + " Z",
+        fill: "#3f4c5f", stroke: "rgba(255,255,255,0.9)", "stroke-width": 2.5,
+      });
+    }
     const pos = WAYPOINT_POS[wp.name] ?? {};
     const left = pos.side === "left" || (!pos.side && sx > CANVAS_W - 430);
-    text(wp.name, sx + (left ? -12 : 12), sy + 3 + (pos.dy ?? 0) * PX_PER_MM * 0.25,
-         { anchor: left ? "end" : "start", size: 26, weight: 500, fill: "#3f4c5f", haloWidth: 6, spacing: "0.01em" });
+    text(wp.name, sx + (left ? (wp.airport ? -16 : -12) : wp.airport ? 16 : 12), sy + 3 + (pos.dy ?? 0) * PX_PER_MM * 0.25,
+         { anchor: left ? "end" : "start", size: 26, weight: wp.airport ? 600 : 500, fill: wp.airport ? "#334155" : "#3f4c5f", haloWidth: 6, spacing: "0.01em" });
   }
 
   // Landmark labels: summit triangles, italic ranges and areas, towns, the field.
@@ -736,6 +817,76 @@ async function main() {
   });
   const nLab = at(92, 0);
   text("N", nLab[0], nLab[1], { anchor: "middle", size: 40, weight: 700, haloWidth: 8 });
+
+  // ------------------------- the glider-area inset ---------------------------
+  // The LOA's 10 NM cylinder at 1.5x the sheet's scale, pinned to the top-left.
+  const IW = Math.round(INSET.widthMm * PX_PER_MM);
+  const IH = Math.round(INSET.heightMm * PX_PER_MM);
+  const ippm = PX_PER_MM / INSET.mPerMm;
+  const [igaU, igaV] = project(INSET.lat, INSET.lon);
+  paintTerrain(document.getElementById("ci"), IW, IH, ippm, igaU, igaV);
+  await swapToJpeg(document.getElementById("ci"), 0.84);
+  const io = document.getElementById("oi");
+  io.setAttribute("viewBox", "0 0 " + IW + " " + IH);
+  const icx = IW / 2, icy = IH / 2;
+  const ipx = (lat, lon) => {
+    const [u, v] = project(lat, lon);
+    return [icx + (u - igaU) * ippm, icy - (v - igaV) * ippm];
+  };
+  const ipath = (points, close) =>
+    points.map((p, i) => (i === 0 ? "M" : "L") + ipx(p.lat, p.lon).map((n) => n.toFixed(1)).join(" ")).join(" ") + (close ? " Z" : "");
+  for (const lake of WATER.lakes) {
+    const shape = Array.isArray(lake) ? { points: lake, closed: true } : lake;
+    el("path", { d: ipath(shape.points, shape.closed), fill: shape.closed ? WATER_INK : "none",
+                 "fill-opacity": 0.75, stroke: WATER_INK, "stroke-width": shape.closed ? 1.5 : 5,
+                 "stroke-opacity": shape.closed ? 0.9 : 0.55, "stroke-linejoin": "round" }, io);
+  }
+  for (const river of WATER.rivers) {
+    el("path", { d: ipath(river, false), fill: "none", stroke: WATER_INK, "stroke-width": 4.5,
+                 "stroke-opacity": 0.85, "stroke-linecap": "round" }, io);
+  }
+  // The LOA cylinder, dashed, at its own radius.
+  const loaR = INSET.radiusNm * M_PER_NM * ippm;
+  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "rgba(255,255,255,0.85)", "stroke-width": 7, "stroke-dasharray": "18 13" }, io);
+  el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "#1e293b", "stroke-width": 2.4, "stroke-dasharray": "18 13", "stroke-opacity": 0.9 }, io);
+  text("Glider area \u00b7 10 NM \u00b7 18\u201324,000 ft", icx - 46 * PX_PER_MM, icy - 46 * PX_PER_MM,
+       { size: 30, weight: 600, fill: "#1e293b", haloWidth: 8 }, io);
+
+  // The inset's own label set.
+  for (const label of INSET_LABELS) {
+    const [sx, sy] = ipx(label.lat, label.lon);
+    const tx = icx + label.tx * PX_PER_MM, ty = icy - label.ty * PX_PER_MM;
+    const lead = (px, py) => {
+      const len = Math.hypot(px - sx, py - sy);
+      if (len < 8 * PX_PER_MM) return;
+      const t = (2.5 * PX_PER_MM) / len;
+      line(sx + (px - sx) * t, sy + (py - sy) * t, px, py, { stroke: "#475569", width: 1.8, opacity: 0.5 }, io);
+    };
+    if (label.kind === "summit") {
+      el("path", { d: "M" + sx + " " + (sy - 10) + " L" + (sx - 9) + " " + (sy + 6.5) + " L" + (sx + 9) + " " + (sy + 6.5) + " Z",
+                   fill: "#1e293b", stroke: "rgba(255,255,255,0.95)", "stroke-width": 3.5 }, io);
+      lead(label.align === "right" ? tx + 2 * PX_PER_MM : tx - 2 * PX_PER_MM, ty);
+      text(label.name, tx, ty, { anchor: label.align, size: 36, weight: 600 }, io);
+    } else if (label.kind === "area") {
+      lead(label.align === "right" ? tx + 2 * PX_PER_MM : tx - 2 * PX_PER_MM, ty);
+      text(label.name, tx, ty, { anchor: label.align, size: 34, weight: 600, italic: true, fill: "rgba(15,23,42,0.9)", haloWidth: 8 }, io);
+    } else if (label.kind === "field") {
+      el("circle", { cx: sx, cy: sy, r: 15, fill: "#0ea5e9", stroke: "rgba(255,255,255,0.95)", "stroke-width": 5 }, io);
+      text(label.name, tx, ty, { anchor: label.align, size: 38, weight: 700 }, io);
+    } else {
+      el("circle", { cx: sx, cy: sy, r: 8, fill: "#475569", stroke: "rgba(255,255,255,0.95)", "stroke-width": 3.5 }, io);
+      text(label.name, tx, ty, { anchor: label.align, size: 34, weight: 600, fill: "#334155" }, io);
+    }
+  }
+
+  // A small scale bar for the inset.
+  const ibar = 10000 * ippm;
+  const ibx = 30, iby = IH - 34;
+  line(ibx, iby, ibx + ibar, iby, { stroke: "rgba(255,255,255,0.9)", width: 11 }, io);
+  line(ibx, iby, ibx + ibar, iby, { stroke: "#1e293b", width: 4 }, io);
+  line(ibx, iby - 9, ibx, iby + 9, { stroke: "#1e293b", width: 4 }, io);
+  line(ibx + ibar, iby - 9, ibx + ibar, iby + 9, { stroke: "#1e293b", width: 4 }, io);
+  text("10 km", ibx + ibar / 2, iby - 26, { anchor: "middle", size: 32, weight: 600, haloWidth: 7 }, io);
 
   if (DEBUG) {
     for (let lat = Math.floor(BOUNDS.south * 20) / 20; lat <= BOUNDS.north; lat += 0.05) {
@@ -827,7 +978,7 @@ async function render(port) {
 
     if (process.env.NAV3D_DEBUG) {
       const { result: dump } = await send(ws, "Runtime.evaluate", {
-        expression: "[...document.querySelectorAll('#o text')].map((t) => t.textContent + ' @ ' + t.getAttribute('x') + ',' + t.getAttribute('y')).join('\\n')",
+        expression: "[...document.querySelectorAll('#oi text')].map((t) => 'INSET ' + t.textContent + ' @ ' + t.getAttribute('x') + ',' + t.getAttribute('y')).join('\\n') + '\\n' + [...document.querySelectorAll('#o text')].map((t) => t.textContent + ' @ ' + t.getAttribute('x') + ',' + t.getAttribute('y')).join('\\n')",
         returnByValue: true,
       }, sessionId);
       console.log("text nodes:\n" + dump.value);
