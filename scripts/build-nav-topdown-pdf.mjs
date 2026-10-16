@@ -79,9 +79,10 @@ const INSET = {
   lon: -71.227778,
   radiusNm: 10,
   mPerMm: 230,
-  widthMm: 220,
-  heightMm: 165,
-  marginMm: 12,
+  // A square box clipped to a disc: the glider area is the inset. 166 mm across
+  // leaves the drawn 10 NM rim 2 mm inside the clip.
+  widthMm: 166,
+  heightMm: 166,
 };
 const GRATICULE_DEG = 0.25;
 const M_PER_NM = 1852;
@@ -485,9 +486,9 @@ function harnessHtml(meta, water, waypoints) {
          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #0f172a; }
   .map { position: absolute; inset: 0; }
   .map canvas, .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .inset { position: absolute; right: 0; top: 0;
+  .inset { position: absolute; left: 0; top: 0;
            width: ${INSET.widthMm}mm; height: ${INSET.heightMm}mm; background: #fff;
-           border: 0.5mm solid #334155; box-sizing: border-box; }
+           border: 0.5mm solid #334155; border-radius: 50%; overflow: hidden; box-sizing: border-box; }
   .inset canvas, .inset svg { position: absolute; inset: 0.5mm; width: calc(100% - 1mm); height: calc(100% - 1mm); }
 </style></head>
 <body>
@@ -828,9 +829,9 @@ async function main() {
   const io = document.getElementById("oi");
   io.setAttribute("viewBox", "0 0 " + IW + " " + IH);
   const icx = IW / 2, icy = IH / 2;
-  // The inset's label offsets were authored at 1:300,000 and scale with the zoom,
-  // so a scale change keeps the whole layout self-similar.
-  const iScale = 300 / INSET.mPerMm;
+  // The inset's label offsets were authored at 1:300,000 for a rectangular frame;
+  // 0.9 pulls the layout inside the disc's rim without disturbing its relations.
+  const iScale = 0.9;
   const ipx = (lat, lon) => {
     const [u, v] = project(lat, lon);
     return [icx + (u - igaU) * ippm, icy - (v - igaV) * ippm];
@@ -851,8 +852,8 @@ async function main() {
   const loaR = INSET.radiusNm * M_PER_NM * ippm;
   el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "rgba(255,255,255,0.85)", "stroke-width": 7, "stroke-dasharray": "18 13" }, io);
   el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "#1e293b", "stroke-width": 2.4, "stroke-dasharray": "18 13", "stroke-opacity": 0.9 }, io);
-  text("Glider area \u00b7 10 NM \u00b7 18\u201324,000 ft", icx - 46 * iScale * PX_PER_MM, icy - 46 * iScale * PX_PER_MM,
-       { size: 30, weight: 600, fill: "#1e293b", haloWidth: 8 }, io);
+  text("Glider area", icx, icy + 55 * iScale * PX_PER_MM, { anchor: "middle", size: 32, weight: 700, fill: "#1e293b", haloWidth: 8 }, io);
+  text("10 NM \u00b7 18\u201324,000 ft", icx, icy + 64.5 * iScale * PX_PER_MM, { anchor: "middle", size: 30, weight: 600, fill: "#334155", haloWidth: 8 }, io);
 
   // The inset's own label set.
   for (const label of INSET_LABELS) {
@@ -881,9 +882,9 @@ async function main() {
     }
   }
 
-  // A small scale bar for the inset.
+  // A small scale bar for the inset, tucked inside the disc's lower-left.
   const ibar = 10000 * ippm;
-  const ibx = 30, iby = IH - 34;
+  const ibx = icx - 52 * PX_PER_MM, iby = icy + 74 * PX_PER_MM;
   line(ibx, iby, ibx + ibar, iby, { stroke: "rgba(255,255,255,0.9)", width: 11 }, io);
   line(ibx, iby, ibx + ibar, iby, { stroke: "#1e293b", width: 4 }, io);
   line(ibx, iby - 9, ibx, iby + 9, { stroke: "#1e293b", width: 4 }, io);
