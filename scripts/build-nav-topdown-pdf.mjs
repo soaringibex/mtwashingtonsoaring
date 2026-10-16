@@ -79,8 +79,8 @@ const INSET = {
   lon: -71.227778,
   radiusNm: 10,
   mPerMm: 300,
-  widthMm: 170,
-  heightMm: 128,
+  widthMm: 220,
+  heightMm: 165,
   marginMm: 12,
 };
 const GRATICULE_DEG = 0.25;
@@ -416,6 +416,7 @@ const WAYPOINT_RENAME = { Berlin: "Berlin (BML)" };
 const WAYPOINT_POS = {
   "Mount Washington Observatory": { side: "left", dy: 0.4 },
   "Mount Washington Hotel": { side: "right", dy: 6.5 },
+  "Berlin (BML)": { side: "left", dy: 0 },
 };
 
 async function buildWaypoints() {
@@ -484,10 +485,10 @@ function harnessHtml(meta, water, waypoints) {
          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #0f172a; }
   .map { position: absolute; inset: 0; }
   .map canvas, .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .inset { position: absolute; left: ${INSET.marginMm}mm; top: ${INSET.marginMm}mm;
+  .inset { position: absolute; right: ${INSET.marginMm}mm; top: ${INSET.marginMm}mm;
            width: ${INSET.widthMm}mm; height: ${INSET.heightMm}mm; background: #fff;
-           border-radius: 1.6mm; padding: 1.4mm; box-sizing: content-box;
-           box-shadow: 0 0.8mm 2.6mm rgba(15,23,42,0.35), 0 0 0 0.25mm rgba(15,23,42,0.3); }
+           border: 0.5mm solid #334155; border-radius: 1.6mm; padding: 1.4mm; box-sizing: content-box;
+           box-shadow: 0 0.8mm 2.6mm rgba(15,23,42,0.3); }
   .inset canvas, .inset svg { position: absolute; inset: 1.4mm; width: ${INSET.widthMm}mm; height: ${INSET.heightMm}mm; }
 </style></head>
 <body>
@@ -710,18 +711,17 @@ async function main() {
     const r = (nm * M_PER_NM) * pxPerM;
     el("circle", { cx, cy, r, fill: "none", stroke: "rgba(255,255,255,0.85)", "stroke-width": 7 });
     el("circle", { cx, cy, r, fill: "none", stroke: "#1e293b", "stroke-width": 2.4, "stroke-opacity": 0.85 });
-    // Labels just inside each ring — eastwards in the empty Maine woods for the
-    // inner rings, west of the field for the outermost (the east side runs out).
-    // Two stacked lines: the distance, and the 25:1 glide altitude it demands,
-    // to the nearest 50 ft.
+    // Labels just inside each ring: the 5–20 NM pairs stack due south of the
+    // field, the 25 NM pair west — the top-right corner belongs to the inset.
+    // Two lines each: the distance, and the 25:1 glide altitude it demands.
     const needFt = Math.round((1837 + (nm * 6076.12) / 25) / 50) * 50;
     const needLabel = needFt.toLocaleString("en-US") + " ft";
     if (nm === 25) {
       text(nm + " NM", cx - r + 16, cy - 26, { size: 35, weight: 600, fill: "#334155", haloWidth: 9 });
       text(needLabel, cx - r + 16, cy + 30, { size: 40, weight: 700, fill: "#0f172a", haloWidth: 9 });
     } else {
-      text(nm + " NM", cx + r - 16, cy - 26, { anchor: "end", size: 35, weight: 600, fill: "#334155", haloWidth: 9 });
-      text(needLabel, cx + r - 16, cy + 30, { anchor: "end", size: 40, weight: 700, fill: "#0f172a", haloWidth: 9 });
+      text(nm + " NM", cx, cy + r - 26, { anchor: "middle", size: 35, weight: 600, fill: "#334155", haloWidth: 9 });
+      text(needLabel, cx, cy + r + 30, { anchor: "middle", size: 40, weight: 700, fill: "#0f172a", haloWidth: 9 });
     }
   }
 
@@ -807,7 +807,7 @@ async function main() {
   // direction is its (east, north) components read through the sheet's axes.
   const ndx = ER.north, ndy = -UP.north;
   const pdx = -ndy, pdy = ndx;
-  const ax = CANVAS_W - 104, ay = 178;
+  const ax = CANVAS_W - 116, ay = CANVAS_H - 190;
   const at = (fx, fy) => [ax + ndx * fx + pdx * fy, ay + ndy * fx + pdy * fy];
   const tip = at(54, 0), left = at(-18, 20), notch = at(-4, 0), right = at(-18, -20);
   el("path", {
