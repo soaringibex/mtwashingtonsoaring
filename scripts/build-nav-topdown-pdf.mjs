@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * Build the printable top-down chart — public/files/gorham-range-rings.pdf —
- * a 1:450,000 full-bleed tabloid (17 x 11 in) sheet of the wave country, turned
- * so the exchange's Moosilauke–Sugarloaf AP line runs straight across it as it
- * is flown (Moosilauke left, Sugarloaf right), with Fryeburg closing the bottom
- * edge. Range rings every 5 NM around Gorham (2G8), a graticule, the rivers and
- * lakes, the exchange's turnpoints (airfields ringed, as CUP styles 2/5 read in
+ * a 1:450,000 full-bleed tabloid (17 x 11 in) sheet of the wave country, north up.
+ * The sheet centres on the exchange's Moosilauke–Sugarloaf AP line's midpoint so
+ * both anchors stay in frame, with Fryeburg closing the bottom edge. Range rings
+ * every 5 NM around Gorham (2G8), a graticule, the rivers and lakes, the
+ * exchange's turnpoints (airfields ringed, as CUP styles 2/5 read in
  * src/lib/nav-files.ts) and the landmark labels; the LOA's glider area is drawn
- * again at 1.5x in a corner inset. Each ring is labelled with the altitude a
+ * again at 1:230,000 in a corner disc. Each ring is labelled with the altitude a
  * 25:1 glide in still air needs at that distance to arrive at the field with
  * 1,000 ft to spare: required MSL = field elevation (837 ft) + 1,000 ft + the
  * ring's distance / 25.
@@ -104,7 +104,7 @@ const LABELS = [
   { name: "Mount Washington", kind: "summit", lat: 44.27049, lon: -71.3033, tx: -50, ty: -30, align: "right" },
   { name: "Mount Jefferson", kind: "summit", lat: 44.30423, lon: -71.31675, tx: -42, ty: -23, align: "right" },
   { name: "Mount Adams", kind: "summit", lat: 44.32058, lon: -71.29164, tx: -34, ty: -16.5, align: "right" },
-  { name: "Mount Madison", kind: "summit", lat: 44.32879, lon: -71.27667, tx: -22, ty: -10.5, align: "right" },
+  { name: "Mount Madison", kind: "summit", lat: 44.32879, lon: -71.27667, tx: -22, ty: -9, align: "right" },
   { name: "Tuckerman's Ravine", kind: "area", lat: 44.2605, lon: -71.292, tx: -42, ty: -42, align: "right" },
   { name: "Wildcat Mountain", kind: "summit", lat: 44.2592, lon: -71.20161, tx: -20, ty: -38, align: "right" },
   { name: "The Glen House", kind: "place", lat: 44.29093, lon: -71.22559, tx: -12, ty: -33, align: "right" },
@@ -150,8 +150,8 @@ const TOWNS = [
   { name: "Berlin", lat: 44.4687, lon: -71.1851, dx: 2.2, dy: 2.2, align: "left" },
   { name: "Lancaster", lat: 44.4889, lon: -71.5692, dx: 2.2, dy: 2.2, align: "left" },
   { name: "Whitefield", lat: 44.3675, lon: -71.55, dx: 2.2, dy: 2.2, align: "left" },
-  { name: "Twin Mountain", lat: 44.2642, lon: -71.5467, dx: -2.4, dy: -2.4, align: "right" },
-  { name: "Jackson", lat: 44.1567, lon: -71.1817, dx: 2.2, dy: 2.2, align: "left" },
+  { name: "Twin Mountain", lat: 44.2642, lon: -71.5467, dx: -2.6, dy: 2.6, align: "right" },
+  { name: "Jackson", lat: 44.1567, lon: -71.1817, dx: 3.4, dy: 7, align: "left" },
   { name: "Glen", lat: 44.1058, lon: -71.1861, dx: 2.2, dy: 2.2, align: "left" },
   { name: "North Conway", lat: 44.0537, lon: -71.1284, dx: 2.2, dy: 2.2, align: "left" },
   { name: "Fryeburg", lat: 44.0164, lon: -70.9753, dx: 2.2, dy: 2.2, align: "left" },
@@ -173,19 +173,9 @@ const tileYToLat = (y, z) => {
 const M_PER_LAT = 111194.93;
 const M_PER_LON = M_PER_LAT * Math.cos((CENTER.lat * Math.PI) / 180);
 
-const headOut = (a, b) => {
-  const east = (b.lon - a.lon) * M_PER_LON;
-  const north = (b.lat - a.lat) * M_PER_LAT;
-  const len = Math.hypot(east, north) || 1;
-  return {
-    east: east / len,
-    north: north / len,
-    bearing: ((Math.atan2(east, north) * 180) / Math.PI + 360) % 360,
-  };
-};
-/** Screen-right = Sugarbush → Moosilauke; screen-up is 90° counter-clockwise of it. */
-const ER = headOut(ROUTE.from, ROUTE.to);
-const UP = { east: -ER.north, north: ER.east };
+/** North up: screen right is east, screen up is north. */
+const ER = { east: 1, north: 0, bearing: 90 };
+const UP = { east: 0, north: 1 };
 const PX_PER_M = PX_PER_MM / M_PER_MM;
 const HALF_W_M = CANVAS_W / 2 / PX_PER_M;
 const HALF_H_M = CANVAS_H / 2 / PX_PER_M;
@@ -201,7 +191,8 @@ const FRYEBURG = { lat: 44.0164, lon: -70.9753 };
 const SHEET_C = (() => {
   const [u] = project((ROUTE.from.lat + ROUTE.to.lat) / 2, (ROUTE.from.lon + ROUTE.to.lon) / 2);
   const [, vFryeburg] = project(FRYEBURG.lat, FRYEBURG.lon);
-  return { u, v: vFryeburg - 3800 + HALF_H_M };
+  // The bottom edge sits below Fryeburg but never clips the 25 NM ring's tangent.
+  return { u, v: Math.min(vFryeburg - 3800, -47300) + HALF_H_M };
 })();
 const routeKm = Math.hypot(
   (ROUTE.to.lon - ROUTE.from.lon) * M_PER_LON,
@@ -410,14 +401,16 @@ const WAYPOINT_SKIP = new Set([
   "Pine Mountain", "The Horn", "Wildcat Mountain", "Bald Pate Mountain",
   "Old Speck Mountain", "Glen", "Jackson", "North Conway", "North Conway 1",
   "North Conway 2", "Twin Mountain", "Whitefield", "Fryeburg", "Gorham",
-  "Moosilauke", "Sugarloaf AP",
+  "Moosilauke", "Sugarloaf AP", "Mount Washington GA",
+  // The summit cannot hold three names — Washington's is curated.
+  "Mount Washington Observatory",
 ]);
 const WAYPOINT_RENAME = { Berlin: "Berlin (BML)" };
 /** Where the default "name to the right of the dot" crowds a neighbour. */
 const WAYPOINT_POS = {
-  "Mount Washington Observatory": { side: "left", dy: 0.4 },
-  "Mount Washington Hotel": { side: "right", dy: 6.5 },
+  "Mount Washington Hotel": { side: "left", dy: 0 },
   "Berlin (BML)": { side: "left", dy: 0 },
+  Durand: { side: "left", dy: 0 },
 };
 
 async function buildWaypoints() {
