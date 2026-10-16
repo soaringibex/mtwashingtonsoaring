@@ -144,7 +144,7 @@ export default function HomePage() {
       </section>
 
       {/* Wave camp */}
-      <section className="bg-slate-50 py-20 sm:py-28">
+      <section className="py-20 sm:py-28">
         <Container>
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <Reveal>
@@ -198,12 +198,53 @@ export default function HomePage() {
           <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat, index) => (
               <Reveal key={stat.value} delay={index * 80}>
-                <div className="h-full rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5">
+                <div className="h-full rounded-3xl bg-slate-50 p-6 ring-1 ring-slate-900/5">
                   <p className="font-display text-3xl font-bold tracking-tight text-sky-700">
                     {stat.value}
                   </p>
                   <p className="mt-3 text-sm leading-6 text-slate-600">{stat.label}</p>
                 </div>
+              </Reveal>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Founding clubs */}
+      <section className="bg-slate-50 py-20 sm:py-28">
+        <Container>
+          <SectionHeading
+            eyebrow="Who makes it happen"
+            title="Four clubs, one camp."
+            lede="Founding clubs (GBSC, FSA, PMSC and NESA) and their members provide the necessary resources toward the organization, carrying out and oversight of the wave camp."
+          />
+          <Reveal>
+            <blockquote className="mt-8 max-w-3xl border-l-2 border-sky-300 pl-6 text-[1.0625rem] italic leading-8 text-slate-600">
+              “There are many people who get together to make this happen: arranging availability
+              of facilities at the airport, moving equipment to the airport (tow planes, gliders,
+              golf carts), moving the runway cones to make the airport more glider friendly, then
+              moving them back at the end, acquiring oxygen, renting porta potties, coordinating
+              with the FAA and more. The list is extensive.”
+            </blockquote>
+          </Reveal>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2">
+            {clubs.map((club, index) => (
+              <Reveal key={club.href} delay={index * 80}>
+                <a
+                  href={club.href}
+                  className="group flex h-full flex-col rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 transition hover:shadow-md"
+                >
+                  <span className="font-display text-base font-semibold text-slate-900 group-hover:text-sky-700">
+                    {club.title}
+                  </span>
+                  <span className="mt-2 flex-1 text-sm leading-7 text-slate-600">
+                    {club.description}
+                  </span>
+                  <span className="mt-4 text-sm font-medium text-sky-700">
+                    Visit site
+                    <span aria-hidden="true"> →</span>
+                  </span>
+                </a>
               </Reveal>
             ))}
           </div>
@@ -335,49 +376,8 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* Founding clubs */}
-      <section className="bg-slate-50 py-20 sm:py-28">
-        <Container>
-          <SectionHeading
-            eyebrow="Who makes it happen"
-            title="Four clubs, one camp."
-            lede="Founding clubs (GBSC, FSA, PMSC and NESA) and their members provide the necessary resources toward the organization, carrying out and oversight of the wave camp."
-          />
-          <Reveal>
-            <blockquote className="mt-8 max-w-3xl border-l-2 border-sky-300 pl-6 text-[1.0625rem] italic leading-8 text-slate-600">
-              “There are many people who get together to make this happen: arranging availability
-              of facilities at the airport, moving equipment to the airport (tow planes, gliders,
-              golf carts), moving the runway cones to make the airport more glider friendly, then
-              moving them back at the end, acquiring oxygen, renting porta potties, coordinating
-              with the FAA and more. The list is extensive.”
-            </blockquote>
-          </Reveal>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2">
-            {clubs.map((club, index) => (
-              <Reveal key={club.href} delay={index * 80}>
-                <a
-                  href={club.href}
-                  className="group flex h-full flex-col rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 transition hover:shadow-md"
-                >
-                  <span className="font-display text-base font-semibold text-slate-900 group-hover:text-sky-700">
-                    {club.title}
-                  </span>
-                  <span className="mt-2 flex-1 text-sm leading-7 text-slate-600">
-                    {club.description}
-                  </span>
-                  <span className="mt-4 text-sm font-medium text-sky-700">
-                    Visit site
-                    <span aria-hidden="true"> →</span>
-                  </span>
-                </a>
-              </Reveal>
-            ))}
-          </div>
-        </Container>
-      </section>
-
       {/* CTA */}
-      <section className="py-20 sm:py-28">
+      <section className="bg-slate-50 py-20 sm:py-28">
         <Container>
           <Reveal>
             <div className="flex h-full flex-col justify-between rounded-3xl bg-gradient-to-br from-sky-600 to-sky-900 p-8 text-white sm:p-10">
