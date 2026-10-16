@@ -78,7 +78,7 @@ const INSET = {
   lat: 44.290556,
   lon: -71.227778,
   radiusNm: 10,
-  mPerMm: 300,
+  mPerMm: 230,
   widthMm: 220,
   heightMm: 165,
   marginMm: 12,
@@ -485,11 +485,10 @@ function harnessHtml(meta, water, waypoints) {
          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #0f172a; }
   .map { position: absolute; inset: 0; }
   .map canvas, .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .inset { position: absolute; right: ${INSET.marginMm}mm; top: ${INSET.marginMm}mm;
+  .inset { position: absolute; right: 0; top: 0;
            width: ${INSET.widthMm}mm; height: ${INSET.heightMm}mm; background: #fff;
-           border: 0.5mm solid #334155; border-radius: 1.6mm; padding: 1.4mm; box-sizing: content-box;
-           box-shadow: 0 0.8mm 2.6mm rgba(15,23,42,0.3); }
-  .inset canvas, .inset svg { position: absolute; inset: 1.4mm; width: ${INSET.widthMm}mm; height: ${INSET.heightMm}mm; }
+           border: 0.5mm solid #334155; box-sizing: border-box; }
+  .inset canvas, .inset svg { position: absolute; inset: 0.5mm; width: calc(100% - 1mm); height: calc(100% - 1mm); }
 </style></head>
 <body>
 <div class="map"><canvas id="c" width="${CANVAS_W}" height="${CANVAS_H}"></canvas><svg id="o" viewBox="0 0 ${CANVAS_W} ${CANVAS_H}"></svg></div>
@@ -829,6 +828,9 @@ async function main() {
   const io = document.getElementById("oi");
   io.setAttribute("viewBox", "0 0 " + IW + " " + IH);
   const icx = IW / 2, icy = IH / 2;
+  // The inset's label offsets were authored at 1:300,000 and scale with the zoom,
+  // so a scale change keeps the whole layout self-similar.
+  const iScale = 300 / INSET.mPerMm;
   const ipx = (lat, lon) => {
     const [u, v] = project(lat, lon);
     return [icx + (u - igaU) * ippm, icy - (v - igaV) * ippm];
@@ -849,13 +851,13 @@ async function main() {
   const loaR = INSET.radiusNm * M_PER_NM * ippm;
   el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "rgba(255,255,255,0.85)", "stroke-width": 7, "stroke-dasharray": "18 13" }, io);
   el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "#1e293b", "stroke-width": 2.4, "stroke-dasharray": "18 13", "stroke-opacity": 0.9 }, io);
-  text("Glider area \u00b7 10 NM \u00b7 18\u201324,000 ft", icx - 46 * PX_PER_MM, icy - 46 * PX_PER_MM,
+  text("Glider area \u00b7 10 NM \u00b7 18\u201324,000 ft", icx - 46 * iScale * PX_PER_MM, icy - 46 * iScale * PX_PER_MM,
        { size: 30, weight: 600, fill: "#1e293b", haloWidth: 8 }, io);
 
   // The inset's own label set.
   for (const label of INSET_LABELS) {
     const [sx, sy] = ipx(label.lat, label.lon);
-    const tx = icx + label.tx * PX_PER_MM, ty = icy - label.ty * PX_PER_MM;
+    const tx = icx + label.tx * iScale * PX_PER_MM, ty = icy - label.ty * iScale * PX_PER_MM;
     const lead = (px, py) => {
       const len = Math.hypot(px - sx, py - sy);
       if (len < 8 * PX_PER_MM) return;
