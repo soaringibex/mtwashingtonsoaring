@@ -72,6 +72,7 @@ export const awards: Award[] = [
     blurb:
       "Diamond climbs are the currency of the Mount Washington wave — several hundred were recorded in the original wave camp years alone.",
     years: [
+      { year: "2026", entries: ["Thomas Van de Velde, Brookline, Massachusetts"] },
       { year: "2024", entries: ["David Lysy, Lyme, New Hampshire"] },
       { year: "2016", entries: ["Glen Kelley, Bedford, New Hampshire"] },
       {
