@@ -110,8 +110,8 @@ const INSET_LABELS = [
   { name: "Mount Madison", kind: "summit", lat: 44.32879, lon: -71.27667, tx: -16, ty: 24, align: "left" },
   { name: "Pine Mountain", kind: "summit", lat: 44.36588, lon: -71.21519, tx: 9, ty: 45.5, align: "left" },
   { name: "Mount Hayes", kind: "summit", lat: 44.41566, lon: -71.15986, tx: 32, ty: 75.5, align: "left" },
-  { name: "The Great Gulf", kind: "area", lat: 44.302, lon: -71.2835, tx: -14, ty: 13, align: "left", arrow: true },
-  { name: "The Horn", kind: "summit", lat: 44.29483, lon: -71.279, tx: -17, ty: 2, align: "left" },
+  { name: "The Great Gulf", kind: "area", lat: 44.2845, lon: -71.2945, tx: -14, ty: 13, align: "left", arrow: true },
+  { name: "The Horn", kind: "summit", lat: 44.29483, lon: -71.279, tx: -19, ty: 2.3, align: "left" },
   { name: "Huntington Ravine", kind: "area", lat: 44.2745, lon: -71.2805, tx: -15, ty: -8, align: "left", arrow: true },
   { name: "Tuckerman Ravine", kind: "area", lat: 44.2605, lon: -71.292, tx: -25, ty: -22.5, align: "left", arrow: true },
   { name: "Wildcat Mountain", kind: "summit", lat: 44.2592, lon: -71.20161, tx: 15, ty: -19.5, align: "left" },
@@ -123,6 +123,14 @@ const INSET_LABELS = [
   { name: "Mount Moriah", kind: "summit", lat: 44.34053, lon: -71.13172, tx: 44, ty: 30.5, align: "left" },
   { name: "Crescent Range", kind: "range", lat: 44.438, lon: -71.302, tx: -31, ty: 84, align: "center" },
   { name: "Carter-Moriah Range", kind: "range", lat: 44.245, lon: -71.155, tx: 34, ty: -28.5, align: "left" },
+  { name: "North Carter", kind: "summit", lat: 44.31306, lon: -71.16444, tx: 30, ty: 14, align: "left" },
+  { name: "South Carter", kind: "summit", lat: 44.289486, lon: -71.176911, tx: 25, ty: 0, align: "left" },
+  { name: "Lakes of the Clouds", kind: "place", lat: 44.2585, lon: -71.3187, tx: -42, ty: -20, align: "right" },
+  { name: "Cog Railway base station", kind: "place", lat: 44.2867, lon: -71.3366, tx: -50, ty: -2.5, align: "right" },
+  { name: "Mount Eisenhower", kind: "summit", lat: 44.2403434, lon: -71.3503537, tx: -56, ty: -31, align: "right" },
+  { name: "Wildcat ski area", kind: "area", lat: 44.26347029, lon: -71.24103761, tx: -16, ty: -15, align: "left", arrow: true },
+  { name: "Mount Crescent", kind: "summit", lat: 44.404348, lon: -71.294115, tx: -24, ty: 69, align: "left" },
+  { name: "Pliny Mountain", kind: "summit", lat: 44.4143, lon: -71.3882, tx: -64, ty: 66, align: "left" },
 ];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -381,10 +389,14 @@ async function buildWater() {
 const WAYPOINT_RENAME = { Berlin: "Berlin (BML)" };
 /** Where the default "name to the right of the dot" crowds a neighbour. */
 const WAYPOINT_POS = {
-  "Mount Washington Hotel": { side: "left", dy: 0 },
   "Berlin (BML)": { side: "right", dy: 0 },
   Durand: { side: "left", dy: 0 },
 };
+/** Points the chart leaves to its own furniture: the hotel, the observatory
+ *  (the summit is marked instead) and the glider-area centre. */
+const WAYPOINT_SKIP = new Set(["Mount Washington Hotel", "Mount Washington Observatory", "Mount Washington GA"]);
+/** The one summit the main sheet marks, in the disc's triangle. */
+const MAIN_SUMMITS = [{ name: "Mount Washington", lat: 44.27049, lon: -71.3033 }];
 
 async function buildWaypoints() {
   const cache = join(SCRATCH, "gorham.cup");
@@ -466,6 +478,8 @@ const RINGS_NM = ${JSON.stringify(RINGS_NM)};
 const GRATICULE_DEG = ${JSON.stringify(GRATICULE_DEG)};
 const WAYPOINTS = ${JSON.stringify(waypoints)};
 const WAYPOINT_POS = ${JSON.stringify(WAYPOINT_POS)};
+const WAYPOINT_SKIP = new Set(${JSON.stringify([...WAYPOINT_SKIP])});
+const MAIN_SUMMITS = ${JSON.stringify(MAIN_SUMMITS)};
 const INSET = ${JSON.stringify(INSET)};
 const INSET_LABELS = ${JSON.stringify(INSET_LABELS)};
 const CENTER = ${JSON.stringify(CENTER)};
@@ -734,6 +748,7 @@ async function main() {
   // The exchange's turnpoints: a small diamond and a quiet name each, drawn over
   // the rings so their casings do not cut the type.
   for (const wp of WAYPOINTS) {
+    if (WAYPOINT_SKIP.has(wp.name)) continue;
     const [sx, sy] = pxOf(wp.lat, wp.lon);
     if (sx < 16 || sx > CANVAS_W - 16 || sy < 16 || sy > CANVAS_H - 16) continue;
     if (wp.airport) {
@@ -749,6 +764,16 @@ async function main() {
     const left = pos.side === "left" || (!pos.side && sx > CANVAS_W - 430);
     text(wp.name, sx + (left ? (wp.airport ? -22 : -12) : wp.airport ? 22 : 12), sy + 3 + (pos.dy ?? 0) * PX_PER_MM * 0.25,
          { anchor: left ? "end" : "start", size: 26, weight: wp.airport ? 600 : 500, fill: wp.airport ? "#334155" : "#3f4c5f", haloWidth: 6, spacing: "0.01em" });
+  }
+
+  // Mount Washington itself, in the disc's triangle.
+  for (const peak of MAIN_SUMMITS) {
+    const [sx, sy] = pxOf(peak.lat, peak.lon);
+    el("path", {
+      d: "M" + sx + " " + (sy - 12) + " L" + (sx - 10) + " " + (sy + 8) + " L" + (sx + 10) + " " + (sy + 8) + " Z",
+      fill: "#1e293b", stroke: "rgba(255,255,255,0.95)", "stroke-width": 3.5,
+    });
+    text(peak.name, sx + 16, sy + 4, { size: 26, weight: 600, fill: "#334155", haloWidth: 6 });
   }
 
   // Scale bar (bottom left, in the map) and north arrow (top right).
