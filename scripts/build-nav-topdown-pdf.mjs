@@ -2,8 +2,8 @@
 /**
  * Build the printable top-down chart — public/files/gorham-range-rings.pdf —
  * a 1:450,000 full-bleed tabloid (17 x 11 in) sheet of the wave country, north up.
- * The sheet centres on the exchange's Moosilauke–Sugarloaf AP line's midpoint so
- * both anchors stay in frame, with Fryeburg closing the bottom edge. Range rings
+ * The west edge lands on the exchange's Black Mountain (Benton), the bottom edge
+ * just below Fryeburg; Sugarloaf AP and Moosilauke stay in frame. Range rings
  * every 5 NM around Gorham (2G8), a graticule, the rivers and lakes, the
  * exchange's turnpoints (airfields ringed, as CUP styles 2/5 read in
  * src/lib/nav-files.ts) and the landmark labels; the LOA's glider area is drawn
@@ -121,8 +121,8 @@ const LABELS = [
   { name: "Carter-Moriah Range", kind: "range", lat: 44.245, lon: -71.155, tx: 20, ty: -38, align: "left" },
   { name: "Old Speck Mountain", kind: "summit", lat: 44.57083, lon: -70.95445, tx: 52, ty: 47, align: "left" },
   { name: "Bald Pate Mountain", kind: "summit", lat: 44.60833, lon: -70.89445, tx: 63, ty: 61, align: "left" },
-  { name: "Moosilauke", kind: "summit", lat: 44.02388, lon: -71.83055, tx: -141, ty: -8, align: "left" },
-  { name: "Sugarloaf AP", kind: "place", lat: 45.08528, lon: -70.21638, tx: 240, ty: -8, align: "right" },
+  { name: "Moosilauke", kind: "summit", lat: 44.02388, lon: -71.83055, tx: -110, ty: -94, align: "left" },
+  { name: "Sugarloaf AP", kind: "place", lat: 45.08528, lon: -70.21638, tx: 168, ty: 167, align: "right" },
 ];
 
 /**
@@ -185,14 +185,16 @@ const project = (lat, lon) => {
   const north = (lat - CENTER.lat) * M_PER_LAT;
   return [east * ER.east + north * ER.north, east * UP.east + north * UP.north];
 };
-/** The sheet's frame: centred on the route's midpoint along the corridor, and
- * pushed across it so Fryeburg (the town label) sits just above the bottom edge. */
+/** The sheet's frame: the west edge lands on Black Mountain (the exchange's
+ * BLACKMTN, Benton NH), the bottom edge just below Fryeburg. */
 const FRYEBURG = { lat: 44.0164, lon: -70.9753 };
+const BLACK_MTN = { lat: 44.07472, lon: -71.92388 };
 const SHEET_C = (() => {
-  const [u] = project((ROUTE.from.lat + ROUTE.to.lat) / 2, (ROUTE.from.lon + ROUTE.to.lon) / 2);
+  const [uBlack] = project(BLACK_MTN.lat, BLACK_MTN.lon);
   const [, vFryeburg] = project(FRYEBURG.lat, FRYEBURG.lon);
-  // The bottom edge sits below Fryeburg but never clips the 25 NM ring's tangent.
-  return { u, v: Math.min(vFryeburg - 3800, -47300) + HALF_H_M };
+  // West edge at Black Mountain; bottom edge below Fryeburg but never clipping
+  // the 25 NM ring's southern tangent.
+  return { u: uBlack - 2500 + HALF_W_M, v: Math.min(vFryeburg - 3800, -47300) + HALF_H_M };
 })();
 const routeKm = Math.hypot(
   (ROUTE.to.lon - ROUTE.from.lon) * M_PER_LON,
@@ -479,7 +481,7 @@ function harnessHtml(meta, water, waypoints) {
          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #0f172a; }
   .map { position: absolute; inset: 0; }
   .map canvas, .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .inset { position: absolute; left: 0; top: 0;
+  .inset { position: absolute; right: 0; bottom: 0;
            width: ${INSET.widthMm}mm; height: ${INSET.heightMm}mm; background: #fff;
            border: 0.5mm solid #334155; border-radius: 50%; overflow: hidden; box-sizing: border-box; }
   .inset canvas, .inset svg { position: absolute; inset: 0.5mm; width: calc(100% - 1mm); height: calc(100% - 1mm); }
@@ -800,7 +802,7 @@ async function main() {
   // direction is its (east, north) components read through the sheet's axes.
   const ndx = ER.north, ndy = -UP.north;
   const pdx = -ndy, pdy = ndx;
-  const ax = CANVAS_W - 116, ay = CANVAS_H - 190;
+  const ax = CANVAS_W - 116, ay = 190;
   const at = (fx, fy) => [ax + ndx * fx + pdx * fy, ay + ndy * fx + pdy * fy];
   const tip = at(54, 0), left = at(-18, 20), notch = at(-4, 0), right = at(-18, -20);
   el("path", {
