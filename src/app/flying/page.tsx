@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { PageHero } from "@/components/ui/PageHero";
 import { Container } from "@/components/ui/Container";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { DocCard } from "@/components/ui/DocCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { NavFilesMap } from "@/components/flying/NavFilesMap";
@@ -13,33 +14,6 @@ export const metadata: Metadata = {
   description:
     "For pilots flying the Mount Washington wave — required reading, oxygen and altitude safety, airspace and the LOA, Gorham airport procedures, charts and moving-map files.",
 };
-
-const charts = [
-  {
-    src: "/images/reading/moria-carter-se.webp",
-    full: "/images/reading/moria-carter-se-full.png",
-    alt: "Aerial view of the Moriah and Carter ranges looking southeast",
-    caption: "Moriah Carter to SE",
-    width: 690,
-    height: 527,
-  },
-  {
-    src: "/images/reading/presidential-range-nw.webp",
-    full: "/images/reading/presidential-range-nw-full.png",
-    alt: "Aerial view of the Presidential Range looking northwest",
-    caption: "Presidential Range to NW",
-    width: 690,
-    height: 528,
-  },
-  {
-    src: "/images/reading/gorham-area-nnw.webp",
-    full: "/images/reading/gorham-area-nnw-full.png",
-    alt: "Aerial view of the Gorham area looking north-northwest",
-    caption: "Gorham Area to the NNW",
-    width: 690,
-    height: 526,
-  },
-];
 
 export default function FlyingPage() {
   return (
@@ -210,114 +184,6 @@ export default function FlyingPage() {
               </div>
             </section>
 
-            <section>
-              <SectionHeading
-                eyebrow="Know the ground"
-                title="Navigational references"
-                lede="Pine Mountain, Hayes, Carter Dome, Mt Moriah, Madison, Jefferson, Washington, The Horn, Wildcat, The Great Gulf, Tuckerman's Ravine, Huntington Ravine, the Pilot Range and the Crescent Range are all good things to know."
-              />
-
-              <figure className="mt-8 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
-                <a
-                  href="/images/reading/white-mountains-3d-full.png"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block"
-                >
-                  <Image
-                    src="/images/reading/white-mountains-3d.webp"
-                    alt="A three-dimensional relief map of the White Mountains around Gorham, looking northwest: the Presidential Range with Tuckerman's and Huntington ravines and the Great Gulf, the Carter-Moriah ridge on the right, and the Pilot and Crescent ranges beyond, with Gorham airport marked in the valley"
-                    width={1400}
-                    height={875}
-                    className="w-full"
-                  />
-                </a>
-                <figcaption className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-6 py-4">
-                  <span className="text-sm text-slate-600">
-                    The wave country in three dimensions — the landmarks around the camp, from
-                    Pine Mountain and Mount Hayes to the Pilot Range, drawn from the terrain data
-                    of the region.
-                  </span>
-                  <a
-                    href="/images/reading/white-mountains-3d-full.png"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="shrink-0 text-sm font-medium text-sky-700 hover:text-sky-600"
-                  >
-                    View larger
-                  </a>
-                </figcaption>
-              </figure>
-
-              <div className="mt-6 grid gap-6 md:grid-cols-3">
-                {charts.map((chart) => (
-                  <figure
-                    key={chart.src}
-                    className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5"
-                  >
-                    <a href={chart.full} target="_blank" rel="noreferrer" className="block">
-                      <Image
-                        src={chart.src}
-                        alt={chart.alt}
-                        width={chart.width}
-                        height={chart.height}
-                        className="w-full"
-                      />
-                    </a>
-                    <figcaption className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3.5">
-                      <span className="text-sm text-slate-700">{chart.caption}</span>
-                      <a
-                        href={chart.full}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="shrink-0 text-sm font-medium text-sky-700 hover:text-sky-600"
-                      >
-                        View larger
-                      </a>
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
-
-              <figure className="mt-6 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
-                <a
-                  href="/images/reading/mthays-transition-full.png"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block"
-                >
-                  <Image
-                    src="/images/reading/mthays-transition.webp"
-                    alt="Trace showing a 45-minute diamond climb from Mt Hays to the primary wave"
-                    width={1055}
-                    height={424}
-                    className="w-full"
-                  />
-                </a>
-                <figcaption className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-6 py-4">
-                  <span className="text-sm text-slate-600">
-                    45-minute diamond — Mt Hays to primary transition example.
-                  </span>
-                  <span className="flex gap-4 text-sm font-medium">
-                    <a
-                      href="/files/45-minute-diamond.igc"
-                      className="text-sky-700 hover:text-sky-600"
-                    >
-                      Download IGC
-                    </a>
-                    <a
-                      href="https://igcviewer.bgaladder.net"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sky-700 hover:text-sky-600"
-                    >
-                      Open in IGC viewer
-                    </a>
-                  </span>
-                </figcaption>
-              </figure>
-            </section>
-
             <section id="electronic-files">
               <SectionHeading
                 eyebrow="For your moving map"
@@ -326,6 +192,22 @@ export default function FlyingPage() {
               />
               <div className="mt-8">
                 <NavFilesMap />
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-5 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-7">
+                <div className="max-w-2xl">
+                  <p className="font-display text-base font-semibold text-slate-900">
+                    The printable chart — range rings on paper
+                  </p>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    The wave country from above at 1:500,000, with 5 NM range rings around
+                    Gorham (2G8), the rivers and lakes, and the landmarks the briefing names.
+                    Print at 100% on US Letter for the kneeboard or the wall.
+                  </p>
+                </div>
+                <ButtonLink href="/files/gorham-range-rings.pdf" variant="secondary">
+                  Open the PDF
+                </ButtonLink>
               </div>
             </section>
 

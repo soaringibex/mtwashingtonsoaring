@@ -303,12 +303,12 @@ const flying: SearchEntry[] = [
     keywords: "window cloud imc downwind fryeburg safety briefing weather",
   },
   {
-    title: "Aerial reference charts",
-    href: "/flying",
+    title: "Gorham (2G8) range rings — printable chart",
+    href: "/files/gorham-range-rings.pdf",
     kind: "flying",
-    section: "Know the ground",
-    text: "Aerial photographs of the Moriah–Carter range, the Presidential Range and the Gorham area, for putting names to the landmarks below.",
-    keywords: "moriah carter presidential range gorham aerial chart landmarks",
+    section: "Electronic files",
+    text: "The wave country from above at 1:500,000, with 5 NM range rings around the field, the rivers and lakes, and the landmarks the briefing names. Print at 100% on US Letter.",
+    keywords: "print chart top-down range rings glide distance gorham 2g8 terrain map pdf paper",
   },
 ];
 
