@@ -78,6 +78,7 @@ export function Footer() {
             <ul className="mt-5 grid gap-3 text-sm text-slate-400">
               <li>
                 Every October, from Columbus Day weekend through the following weekend.
+                BY INVITATION ONLY
               </li>
               <li>{site.location.airport}</li>
               <li>{site.location.town}</li>
