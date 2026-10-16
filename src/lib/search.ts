@@ -258,7 +258,7 @@ const flying: SearchEntry[] = [
     kind: "flying" as const,
     section: "Gorham (2G8)",
     text: doc.description,
-    keywords: "airport gorham 2g8 pattern procedures landing sites",
+    keywords: "airport gorham 2g8 pattern procedures landing sites glen house auto road",
   })),
   ...campDocs.filter((doc) => !doc.hidden).map((doc) => ({
     title: doc.title,

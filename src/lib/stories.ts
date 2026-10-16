@@ -46,6 +46,20 @@ export const storyGroups: StoryGroup[] = [
     ],
   },
   {
+    id: "field-notes",
+    title: "Field notes",
+    blurb: "What the ground tells you — the fields you hope never to need.",
+    stories: [
+      {
+        title: "Scouting the Glen House Fields",
+        page: "/stories/scouting-the-glen-house-fields",
+        description:
+          "David Sherrill's 2026 ground survey of the fields behind The Glen House, at the base of the Mt. Washington Auto Road — walked, measured and photographed. Past reports called them marginal; the walk confirms it.",
+        meta: "Report",
+      },
+    ],
+  },
+  {
     id: "early-years",
     title: "From the early years",
     blurb: "The camps before Gorham — White Mountain Airport, North Conway.",

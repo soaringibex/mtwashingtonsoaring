@@ -8,7 +8,7 @@ import { storyGroups } from "@/lib/stories";
 export const metadata: Metadata = {
   title: "Stories",
   description:
-    "First-hand accounts from the Mount Washington wave — bailouts, first visits, recollections from the early camps at North Conway, and the camp logbooks.",
+    "First-hand accounts from the Mount Washington wave — bailouts, first visits, recollections from the early camps at North Conway — plus the camp logbooks and field notes from the ground.",
 };
 
 export default function StoriesPage() {
@@ -17,7 +17,7 @@ export default function StoriesPage() {
       <PageHero
         eyebrow="From the camps"
         title="Stories"
-        lede="First-hand accounts from the wave — a bailout over the Presidentials, a greenhorn's first camp, recollections from the early years, and the camp logbooks."
+        lede="First-hand accounts from the wave — a bailout over the Presidentials, a greenhorn's first camp, recollections from the early years, the camp logbooks, and field notes from the ground."
         image="/images/scenic/clouddeck.webp"
         imageAlt="A cloud deck seen from high altitude in the wave"
         priority

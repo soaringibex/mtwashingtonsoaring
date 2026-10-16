@@ -21,6 +21,107 @@ export type DocumentText = {
 };
 
 export const documentTexts: Record<string, DocumentText> = {
+  // Hand-authored from David Sherrill's 2026 ground survey — the satellite maps and
+  // field photographs are the report's own; the two photo captions are its words.
+  "scouting-the-glen-house-fields": {
+    blocks: [
+      { type: "byline", text: "By David Sherrill" },
+      {
+        type: "img",
+        src: "/images/reading/scouting-the-glen-house-fields/the-glen-house-property.webp",
+        width: 480,
+        height: 851,
+      },
+      {
+        type: "p",
+        text: "The Glen House property from the air — the long field at the north end is at the top, the toll house and the smaller field at the bottom.",
+      },
+      {
+        type: "p",
+        text: "Past reports have described the fields behind The Glen House, at the base of the Mt. Washington Auto Road, as only marginally landable, likely to result in a broken glider, and requiring a bit of luck for the pilot to escape injury. That all remains the same today.",
+      },
+      {
+        type: "p",
+        text: "A large solar array in the field was noted at last year’s Wave Camp. This is the only recent change, and it does not block the approaches or alter landability in any way.",
+      },
+      { type: "h", text: "The large field at the north end of the property" },
+      {
+        type: "p",
+        text: "It is filled with bowl-shaped depressions perhaps 20 feet across and 2 to 4 feet deep. You cannot avoid them because you will not see them properly, even as you touch down. There is no straight-line path that avoids them, and you would not be able to identify and land on such a path if there were one. A couple of these swales are deep enough and steep enough that in a ground roll the glider’s nose would plant firmly in the rising edge of the depression and the glider would stop abruptly.",
+      },
+      {
+        type: "img",
+        src: "/images/reading/scouting-the-glen-house-fields/the-north-field.webp",
+        width: 460,
+        height: 872,
+      },
+      {
+        type: "p",
+        text: "The large field at the north end, with a 538-foot run measured along it.",
+      },
+      {
+        type: "p",
+        text: "If forced to land here, try to use the northernmost part of the field. If landing to the south, touch down as soon as possible. If landing to the north, the approach is reasonably clear. Again, use the northernmost part of the field. The entire field is bad, but the southern half is decidedly worse.",
+      },
+      {
+        type: "p",
+        text: "As we walked the field we repeatedly assessed that we were standing at the boundary of the unlandable section, and that the ground 20 feet ahead was acceptably even and level. Upon walking those 20 feet we were surprised to see that it was just as bad. This misperception caught us many times over.",
+      },
+      {
+        type: "p",
+        text: "Do not be deceived by the green swath up the middle of the image. It is mowed differently but equally uneven.",
+      },
+      {
+        type: "p",
+        text: "It was not possible to take a photograph that reveals these problems. The shadowless light on this overcast day made all look flat.",
+      },
+      {
+        type: "img",
+        src: "/images/reading/scouting-the-glen-house-fields/the-north-field-panorama.webp",
+        width: 1600,
+        height: 522,
+      },
+      {
+        type: "p",
+        text: "Panorama spanning from north (looking at the open field), to east, to south (looking at the solar array in the distance).",
+      },
+      {
+        type: "img",
+        src: "/images/reading/scouting-the-glen-house-fields/bill-mileski-in-the-undulations.webp",
+        width: 440,
+        height: 587,
+      },
+      {
+        type: "p",
+        text: "This photo, looking south, shows Bill Mileski standing a few feet away, in an attempt to depict the depth of the undulations in the terrain. The grass is barely ankle high but Bill is visible only from the knees up.",
+      },
+      { type: "h", text: "The smaller field at the south end of the property" },
+      {
+        type: "p",
+        text: "It is perfectly flat and unobstructed, save for a knee-high rock in the middle that should be easily avoidable, if seen in time. But this field is barely long enough and might have sightseers milling about. The only approach is southbound. There will be cars all along the Auto Road at the approach end of the field, so you are unlikely to touch down before the white gravel path.",
+      },
+      {
+        type: "img",
+        src: "/images/reading/scouting-the-glen-house-fields/the-south-field.webp",
+        width: 560,
+        height: 562,
+      },
+      {
+        type: "p",
+        text: "The smaller field at the south end, with a 538-foot run measured along it.",
+      },
+      {
+        type: "p",
+        text: "I did not take a photo of this field, so here is an image from Google Maps’ Street View.",
+      },
+      {
+        type: "img",
+        src: "/images/reading/scouting-the-glen-house-fields/the-south-field-street-view.webp",
+        width: 1600,
+        height: 850,
+      },
+    ],
+  },
   // Hand-authored: the 2026 camp logbook grows a day at a time and never had a PDF.
   "2026-wave-camp-logbook-glen-kelley": {
     newestFirst: true,

@@ -141,6 +141,13 @@ export const gorham: DocLink[] = [
       "Worldwide Soaring Turnpoint Exchange coordinates for Gorham control points and landmarks, courtesy of Evan Ludeman.",
     meta: "PDF",
   },
+  {
+    title: "Scouting the Glen House Fields",
+    page: "/stories/scouting-the-glen-house-fields",
+    description:
+      "David Sherrill's 2026 ground survey of the fields behind The Glen House, at the base of the Mt. Washington Auto Road — walked, measured and photographed, with what a landing there would really be like.",
+    meta: "Report",
+  },
 ];
 
 /** Paperwork for the camp itself. */
