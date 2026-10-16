@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 /**
  * Build the printable top-down chart — public/files/gorham-range-rings.pdf —
- * a 1:500,000 US Letter landscape sheet of the wave country centred on Gorham
- * (2G8), with 5 NM range rings, a graticule, the rivers and lakes for
- * orientation, and the landmark labels the Flying page's lede names.
+ * a 1:400,000 full-bleed tabloid (17 x 11 in) sheet of the wave country centred
+ * on Gorham (2G8), with range rings every 5 NM, a graticule, the rivers and
+ * lakes for orientation, and the landmark labels. Each ring is labelled with
+ * the altitude a 25:1 glide in still air needs at that distance to arrive at
+ * the field with 1,000 ft to spare: required MSL = field elevation (837 ft) +
+ * 1,000 ft + the ring's distance / 25.
  *
  * Same machinery as scripts/build-nav-3d-map.mjs: AWS Terrain Tiles (Terrarium,
  * cache shared in .screenshots/nav3d/tiles), a harneess page rendered in headless
@@ -36,13 +39,19 @@ const TILE_HOST = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium";
 const ZOOM = 12;
 const TILE_SIZE = 256;
 
-/** The chart is centred on the field; the square covers 95 km — the 25 NM ring plus a margin. */
+/** The chart is centred on the field and fills a tabloid sheet, landscape. */
 const CENTER = { lat: 44.39472, lon: -71.19805 };
-const SPAN_KM = 95;
-/** 190 mm of paper over 95 km of ground = 1:500,000, exactly. */
-const MAP_MM = 190;
-const CANVAS_PX = 2244; // 190 mm at 300 dpi
-const M_PER_MM = (SPAN_KM * 1000) / MAP_MM;
+const PAPER_IN = { width: 17, height: 11 };
+const DPI = 300;
+const PX_PER_MM = DPI / 25.4;
+const MAP_W_MM = PAPER_IN.width * 25.4;
+const MAP_H_MM = PAPER_IN.height * 25.4;
+const CANVAS_W = Math.round(MAP_W_MM * PX_PER_MM);
+const CANVAS_H = Math.round(MAP_H_MM * PX_PER_MM);
+/** 1 mm of paper over 400 m of ground = 1:400,000; the 25 NM ring fills the sheet height. */
+const M_PER_MM = 400;
+const SPAN_X_KM = (MAP_W_MM * M_PER_MM) / 1000;
+const SPAN_Y_KM = (MAP_H_MM * M_PER_MM) / 1000;
 
 const RINGS_NM = [5, 10, 15, 20, 25];
 const GRATICULE_DEG = 0.25;
@@ -80,13 +89,20 @@ const LABELS = [
   { name: "Crescent Range", kind: "range", lat: 44.438, lon: -71.302, tx: -32, ty: 12, align: "center" },
   { name: "Pilot Range", kind: "range", lat: 44.5285, lon: -71.4185, tx: -35, ty: 26.5, align: "center" },
   { name: "Carter-Moriah Range", kind: "range", lat: 44.245, lon: -71.155, tx: 20, ty: -38, align: "left" },
+  { name: "Old Speck Mountain", kind: "summit", lat: 44.57083, lon: -70.95445, tx: 52, ty: 47, align: "left" },
+  { name: "Bald Pate Mountain", kind: "summit", lat: 44.60833, lon: -70.89445, tx: 63, ty: 61, align: "left" },
 ];
 
 const TOWNS = [
   { name: "Gorham", lat: 44.3878, lon: -71.1729, dx: 2.2, dy: 2.2, align: "left" },
   { name: "Berlin", lat: 44.4687, lon: -71.1851, dx: 2.2, dy: 2.2, align: "left" },
   { name: "Lancaster", lat: 44.4889, lon: -71.5692, dx: 2.2, dy: 2.2, align: "left" },
+  { name: "Whitefield", lat: 44.3675, lon: -71.55, dx: 2.2, dy: 2.2, align: "left" },
+  { name: "Twin Mountain", lat: 44.2642, lon: -71.5467, dx: 2.2, dy: 2.2, align: "left" },
+  { name: "Jackson", lat: 44.1567, lon: -71.1817, dx: 2.2, dy: 2.2, align: "left" },
+  { name: "Glen", lat: 44.1058, lon: -71.1861, dx: 2.2, dy: 2.2, align: "left" },
   { name: "North Conway", lat: 44.0537, lon: -71.1284, dx: 2.2, dy: 2.2, align: "left" },
+  { name: "Fryeburg", lat: 44.0164, lon: -70.9753, dx: 2.2, dy: 2.2, align: "left" },
 ];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -104,8 +120,8 @@ const tileYToLat = (y, z) => {
 
 const M_PER_LAT = 111194.93;
 const M_PER_LON = M_PER_LAT * Math.cos((CENTER.lat * Math.PI) / 180);
-const D_LAT = SPAN_KM * 500 / M_PER_LAT;
-const D_LON = SPAN_KM * 500 / M_PER_LON;
+const D_LAT = (SPAN_Y_KM * 500) / M_PER_LAT;
+const D_LON = (SPAN_X_KM * 500) / M_PER_LON;
 const BOUNDS = {
   west: CENTER.lon - D_LON,
   east: CENTER.lon + D_LON,
@@ -264,43 +280,15 @@ function harnessHtml(meta, water) {
   return `<!doctype html>
 <html><head><meta charset="utf-8"><title>Gorham (2G8) range rings — Mount Washington wave camp</title>
 <style>
-  @page { size: 11in 8.5in; margin: 0; }
+  @page { size: 17in 11in; margin: 0; }
   html, body { margin: 0; padding: 0; background: #fff; }
-  body { width: 11in; height: 8.5in; position: relative;
+  body { width: 17in; height: 11in; position: relative; overflow: hidden;
          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #0f172a; }
-  .sheet { position: absolute; inset: 8mm; }
-  .map { position: absolute; left: 0; top: 0; width: ${MAP_MM}mm; height: ${MAP_MM}mm;
-         border-radius: 2mm; overflow: hidden; box-shadow: inset 0 0 0 0.35mm rgba(15,23,42,0.35); }
+  .map { position: absolute; inset: 0; }
   .map canvas, .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .panel { position: absolute; left: ${MAP_MM + 10}mm; top: 0; width: 62mm; height: ${MAP_MM}mm; }
-  .panel .eyebrow { font-size: 8pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0369a1; }
-  .panel h1 { margin: 2mm 0 0; font-size: 21pt; line-height: 1.06; letter-spacing: -0.01em; }
-  .panel p { margin: 3.5mm 0 0; font-size: 9.5pt; line-height: 1.5; color: #334155; }
-  .panel .rule { height: 0.3mm; background: #e2e8f0; margin: 4.5mm 0; }
-  .panel .key { font-size: 8.5pt; line-height: 1.75; color: #334155; }
-  .panel .key .water { color: #4a86ad; }
-  .panel .credit { position: absolute; bottom: 0; left: 0; right: 0; font-size: 7pt; line-height: 1.55; color: #94a3b8; }
 </style></head>
 <body>
-<div class="sheet">
-  <div class="map"><canvas id="c" width="${CANVAS_PX}" height="${CANVAS_PX}"></canvas><svg id="o" viewBox="0 0 ${CANVAS_PX} ${CANVAS_PX}"></svg></div>
-  <div class="panel">
-    <p class="eyebrow">Mount Washington wave camp</p>
-    <h1>Gorham (2G8)<br>range rings</h1>
-    <p>Top-down terrain of the wave country, centred on the field, with range rings every 5&nbsp;NM &mdash; the landmarks the briefing names, from Pine Mountain and Mount Hayes to the Pilot Range.</p>
-    <p>The LOA&rsquo;s glider area is a 10&nbsp;NM cylinder centred by the Glen House, just southwest of the field; the rings here are centred on the field itself.</p>
-    <div class="rule"></div>
-    <div class="key">
-      &#9650; summit &nbsp;&middot;&nbsp; &#9679; town<br>
-      <span class="water">&#9632;</span> water &nbsp;&middot;&nbsp; &#9711; range ring, every 5 NM<br>
-      North up &nbsp;&middot;&nbsp; scale 1:500,000 (10 km bar on the map)
-    </div>
-    <div class="credit">
-      Terrain: AWS Terrain Tiles &middot; Water: &copy; OpenStreetMap contributors (ODbL)<br>
-      Print at 100% on US Letter &middot; An aid to orientation &mdash; not for navigation.
-    </div>
-  </div>
-</div>
+<div class="map"><canvas id="c" width="${CANVAS_W}" height="${CANVAS_H}"></canvas><svg id="o" viewBox="0 0 ${CANVAS_W} ${CANVAS_H}"></svg></div>
 <script>
 const META = ${JSON.stringify(meta)};
 const WATER = ${JSON.stringify(water)};
@@ -309,8 +297,9 @@ const GRATICULE_DEG = ${JSON.stringify(GRATICULE_DEG)};
 const LABELS = ${JSON.stringify(LABELS)};
 const TOWNS = ${JSON.stringify(TOWNS)};
 const CENTER = ${JSON.stringify(CENTER)};
-const CANVAS_PX = ${CANVAS_PX};
-const MAP_MM = ${MAP_MM};
+const CANVAS_W = ${CANVAS_W};
+const CANVAS_H = ${CANVAS_H};
+const PX_PER_MM = ${PX_PER_MM};
 const M_PER_MM = ${M_PER_MM};
 const M_PER_NM = ${M_PER_NM};
 const M_PER_LAT = ${M_PER_LAT};
@@ -319,12 +308,11 @@ const LIGHT = ${JSON.stringify(LIGHT)};
 const RAMP = ${JSON.stringify(RAMP)};
 const DEBUG = ${process.env.NAV3D_DEBUG ? "true" : "false"};
 const WATER_INK = "#79aed6";
-const MAP_M = ${SPAN_KM} * 1000;
-const M_PER_PX = MAP_M / CANVAS_PX;
-const LAT_TOP = CENTER.lat + (MAP_M / 2) / M_PER_LAT;
-const LAT_BOTTOM = CENTER.lat - (MAP_M / 2) / M_PER_LAT;
-const LON_LEFT = CENTER.lon - (MAP_M / 2) / M_PER_LON;
-const LON_RIGHT = CENTER.lon + (MAP_M / 2) / M_PER_LON;
+const M_PER_PX = M_PER_MM / PX_PER_MM;
+const LAT_TOP = CENTER.lat + (CANVAS_H / 2) * M_PER_PX / M_PER_LAT;
+const LAT_BOTTOM = CENTER.lat - (CANVAS_H / 2) * M_PER_PX / M_PER_LAT;
+const LON_LEFT = CENTER.lon - (CANVAS_W / 2) * M_PER_PX / M_PER_LON;
+const LON_RIGHT = CENTER.lon + (CANVAS_W / 2) * M_PER_PX / M_PER_LON;
 
 function reliefColour(elevationM, shade) {
   const low = RAMP[0], high = RAMP[RAMP.length - 1];
@@ -343,10 +331,10 @@ function reliefColour(elevationM, shade) {
 async function main() {
   const dem = new Float32Array(await (await fetch("dem.bin")).arrayBuffer());
   const { width: W, height: H, west, north, lonStep, latStep } = META;
-  const pxPerM = CANVAS_PX / MAP_M;
+  const pxPerM = PX_PER_MM / M_PER_MM;
   const pxOf = (lat, lon) => [
-    CANVAS_PX / 2 + (lon - CENTER.lon) * M_PER_LON * pxPerM,
-    CANVAS_PX / 2 - (lat - CENTER.lat) * M_PER_LAT * pxPerM,
+    CANVAS_W / 2 + (lon - CENTER.lon) * M_PER_LON * pxPerM,
+    CANVAS_H / 2 - (lat - CENTER.lat) * M_PER_LAT * pxPerM,
   ];
   const hAt = (mx, my) => {
     const fx = Math.min(Math.max(mx, 0), W - 1.001), fy = Math.min(Math.max(my, 0), H - 1.001);
@@ -359,15 +347,15 @@ async function main() {
   // Terrain raster: eached canvas pixel is one ground sample, hillshaded north-west.
   const canvas = document.getElementById("c");
   const ctx = canvas.getContext("2d");
-  const img = ctx.createImageData(CANVAS_PX, CANVAS_PX);
+  const img = ctx.createImageData(CANVAS_W, CANVAS_H);
   const data = img.data;
   const demPerPxX = M_PER_LON * lonStep; // metres to the DEM pixel, each axis
   const demPerPxY = M_PER_LAT * latStep;
   let idx = 0;
-  for (let y = 0; y < CANVAS_PX; y += 1) {
-    const my = (north - (CENTER.lat + (CANVAS_PX / 2 - y) * M_PER_PX / M_PER_LAT)) / latStep;
-    for (let x = 0; x < CANVAS_PX; x += 1) {
-      const mx = ((CENTER.lon + (x - CANVAS_PX / 2) * M_PER_PX / M_PER_LON) - west) / lonStep;
+  for (let y = 0; y < CANVAS_H; y += 1) {
+    const my = (north - (CENTER.lat + (CANVAS_H / 2 - y) * M_PER_PX / M_PER_LAT)) / latStep;
+    for (let x = 0; x < CANVAS_W; x += 1) {
+      const mx = ((CENTER.lon + (x - CANVAS_W / 2) * M_PER_PX / M_PER_LON) - west) / lonStep;
       const h = hAt(mx, my);
       const hx = (hAt(mx + 0.75, my) - hAt(mx - 0.75, my)) / (1.5 * demPerPxX);
       const hy = (hAt(mx, my + 0.75) - hAt(mx, my - 0.75)) / (1.5 * demPerPxY);
@@ -396,7 +384,7 @@ async function main() {
       holder.prepend(jpeg);
       resolve();
     };
-    jpeg.src = canvas.toDataURL("image/jpeg", 0.88);
+    jpeg.src = canvas.toDataURL("image/jpeg", 0.84);
   });
 
   // --------------------------------- vector ----------------------------------
@@ -452,17 +440,17 @@ async function main() {
   const lonMin = Math.ceil(LON_LEFT / GRATICULE_DEG) * GRATICULE_DEG;
   for (let lat = latMin; lat <= LAT_TOP; lat += GRATICULE_DEG) {
     const [, y] = pxOf(lat, CENTER.lon);
-    if (y < 24 || y > CANVAS_PX - 24) continue;
-    line(0, y, CANVAS_PX, y, { stroke: "#475569", width: 1.4, opacity: 0.28 });
+    if (y < 24 || y > CANVAS_H - 24) continue;
+    line(0, y, CANVAS_W, y, { stroke: "#475569", width: 1.4, opacity: 0.28 });
     const deg = Math.floor(lat), min = Math.round((lat - deg) * 60);
-    text(deg + "°" + String(min).padStart(2, "0") + "′", 14, y - 16, { size: 30, weight: 500, fill: "#334155", haloWidth: 7 });
+    text(deg + "°" + String(min).padStart(2, "0") + "′", 18, y - 20, { size: 34, weight: 500, fill: "#334155", haloWidth: 8 });
   }
   for (let lon = lonMin; lon <= LON_RIGHT; lon += GRATICULE_DEG) {
     const [x] = pxOf(CENTER.lat, lon);
-    if (x < 30 || x > CANVAS_PX - 30) continue;
-    line(x, 0, x, CANVAS_PX, { stroke: "#475569", width: 1.4, opacity: 0.28 });
+    if (x < 30 || x > CANVAS_W - 30) continue;
+    line(x, 0, x, CANVAS_H, { stroke: "#475569", width: 1.4, opacity: 0.28 });
     const deg = Math.floor(-lon), min = Math.round((-lon - deg) * 60);
-    text(deg + "°" + String(min).padStart(2, "0") + "′W", x + 14, 26, { size: 30, weight: 500, fill: "#334155", haloWidth: 7 });
+    text(deg + "°" + String(min).padStart(2, "0") + "′W", x + 18, 32, { size: 34, weight: 500, fill: "#334155", haloWidth: 8 });
   }
 
   // Range rings: centred on the field, every 5 NM, cased so they read over terrain.
@@ -473,8 +461,17 @@ async function main() {
     el("circle", { cx, cy, r, fill: "none", stroke: "#1e293b", "stroke-width": 2.4, "stroke-opacity": 0.85 });
     // Labels just inside each ring — eastwards in the empty Maine woods for the
     // inner rings, west of the field for the outermost (the east side runs out).
-    if (nm === 25) text(nm + " NM", cx - r + 12, cy + 9, { size: 32, weight: 600, fill: "#1e293b", haloWidth: 8 });
-    else text(nm + " NM", cx + r - 12, cy + 9, { anchor: "end", size: 32, weight: 600, fill: "#1e293b", haloWidth: 8 });
+    // Two stacked lines: the distance, and the 25:1 glide altitude it demands,
+    // to the nearest 50 ft.
+    const needFt = Math.round((1837 + (nm * 6076.12) / 25) / 50) * 50;
+    const needLabel = needFt.toLocaleString("en-US") + " ft";
+    if (nm === 25) {
+      text(nm + " NM", cx - r + 16, cy - 26, { size: 35, weight: 600, fill: "#334155", haloWidth: 9 });
+      text(needLabel, cx - r + 16, cy + 30, { size: 40, weight: 700, fill: "#0f172a", haloWidth: 9 });
+    } else {
+      text(nm + " NM", cx + r - 16, cy - 26, { anchor: "end", size: 35, weight: 600, fill: "#334155", haloWidth: 9 });
+      text(needLabel, cx + r - 16, cy + 30, { anchor: "end", size: 40, weight: 700, fill: "#0f172a", haloWidth: 9 });
+    }
   }
 
   // Landmark labels: summit triangles, italic ranges and areas, towns, the field.
@@ -484,7 +481,7 @@ async function main() {
     anchors[label.name] = [Math.round(p[0]), Math.round(p[1])];
     return p;
   };
-  const mm = CANVAS_PX / MAP_MM;
+  const mm = PX_PER_MM;
   const leader = (sx, sy, px, py) => {
     const len = Math.hypot(px - sx, py - sy);
     if (len < 8 * mm) return;
@@ -499,47 +496,50 @@ async function main() {
       el("path", { d: "M" + sx + " " + (sy - 13) + " L" + (sx - 11) + " " + (sy + 7) + " L" + (sx + 11) + " " + (sy + 7) + " Z",
                    fill: "#1e293b", stroke: "rgba(255,255,255,0.95)", "stroke-width": 4 });
       if (label.align !== "center") leader(sx, sy, label.align === "right" ? tx + 2 * mm : tx - 2 * mm, ty);
-      text(label.name, tx, ty, { anchor: label.align, size: 37, weight: 600 });
+      text(label.name, tx, ty, { anchor: label.align, size: 42, weight: 600 });
     } else if (label.kind === "field") {
       el("circle", { cx: sx, cy: sy, r: 16, fill: "#0ea5e9", stroke: "rgba(255,255,255,0.95)", "stroke-width": 5 });
       if (label.align !== "center") leader(sx, sy, label.align === "right" ? tx + 2 * mm : tx - 2 * mm, ty);
-      text(label.name, tx, ty, { anchor: label.align, size: 39, weight: 700 });
+      text(label.name, tx, ty, { anchor: label.align, size: 44, weight: 700 });
     } else if (label.kind === "place") {
       el("circle", { cx: sx, cy: sy, r: 8, fill: "#475569", stroke: "rgba(255,255,255,0.95)", "stroke-width": 3.5 });
       if (label.align !== "center") leader(sx, sy, label.align === "right" ? tx + 2 * mm : tx - 2 * mm, ty);
-      text(label.name, tx, ty, { anchor: label.align, size: 34, weight: 600, fill: "#334155" });
+      text(label.name, tx, ty, { anchor: label.align, size: 38, weight: 600, fill: "#334155" });
     } else if (label.kind === "area") {
       if (label.align !== "center") leader(sx, sy, label.align === "right" ? tx + 2 * mm : tx - 2 * mm, ty);
-      text(label.name, tx, ty, { anchor: label.align, size: 35, weight: 600, italic: true, fill: "rgba(15,23,42," + (label.alpha ?? 0.85) + ")", haloWidth: 8 });
+      text(label.name, tx, ty, { anchor: label.align, size: 40, weight: 600, italic: true, fill: "rgba(15,23,42," + (label.alpha ?? 0.85) + ")", haloWidth: 9 });
     } else {
-      text(label.name, tx, ty, { anchor: label.align, size: 36, weight: 600, italic: true, fill: "#334155", spacing: "0.05em", haloWidth: 8 });
+      text(label.name, tx, ty, { anchor: label.align, size: 40, weight: 600, italic: true, fill: "#334155", spacing: "0.05em", haloWidth: 9 });
     }
   }
   for (const town of TOWNS) {
     const [sx, sy] = place(town);
     el("circle", { cx: sx, cy: sy, r: 7, fill: "#334155", stroke: "rgba(255,255,255,0.95)", "stroke-width": 3 });
-    text(town.name, sx + town.dx * mm, sy + town.dy * mm, { anchor: town.align, size: 33, weight: 600, fill: "#334155", haloWidth: 7 });
+    text(town.name, sx + town.dx * mm, sy + town.dy * mm, { anchor: town.align, size: 37, weight: 600, fill: "#334155", haloWidth: 8 });
   }
 
   // Scale bar (bottom left, in the map) and north arrow (top right).
   const bar10 = 10000 * pxPerM;
-  const bx = 24, by = CANVAS_PX - 30;
-  line(bx, by, bx + bar10, by, { stroke: "rgba(255,255,255,0.9)", width: 12 });
-  line(bx, by, bx + bar10, by, { stroke: "#1e293b", width: 4 });
-  for (const xx of [bx, bx + bar10 / 2, bx + bar10]) line(xx, by - 9, xx, by + 9, { stroke: "#1e293b", width: 4 });
-  text("0", bx, by - 24, { anchor: "middle", size: 30, weight: 600, haloWidth: 7 });
-  text("5", bx + bar10 / 2, by - 24, { anchor: "middle", size: 30, weight: 600, haloWidth: 7 });
-  text("10 km", bx + bar10, by - 24, { anchor: "middle", size: 30, weight: 600, haloWidth: 7 });
-  const nx = CANVAS_PX - 60, ny = 46;
+  const bx = 40, by = CANVAS_H - 46;
+  line(bx, by, bx + bar10 * 2, by, { stroke: "rgba(255,255,255,0.9)", width: 12 });
+  line(bx, by, bx + bar10 * 2, by, { stroke: "#1e293b", width: 4 });
+  for (const xx of [bx, bx + bar10, bx + bar10 * 2]) line(xx, by - 10, xx, by + 10, { stroke: "#1e293b", width: 4 });
+  text("0", bx, by - 28, { anchor: "middle", size: 34, weight: 600, haloWidth: 8 });
+  text("10", bx + bar10, by - 28, { anchor: "middle", size: 34, weight: 600, haloWidth: 8 });
+  text("20 km", bx + bar10 * 2, by - 28, { anchor: "middle", size: 34, weight: 600, haloWidth: 8 });
+  // The one line of print the data licences ask for.
+  text("Terrain: AWS Terrain Tiles  ·  Water: © OpenStreetMap contributors (ODbL)  ·  25:1, 1,000 ft arrival",
+       bx, by - 70, { size: 29, weight: 500, fill: "#334155", haloWidth: 8 });
+  const nx = CANVAS_W - 96, ny = 72;
   el("path", { d: "M" + nx + " " + (ny - 30) + " L" + (nx - 15) + " " + (ny + 16) + " L" + nx + " " + (ny + 6) + " L" + (nx + 15) + " " + (ny + 16) + " Z",
                fill: "#1e293b", stroke: "rgba(255,255,255,0.95)", "stroke-width": 4 });
-  text("N", nx, ny + 40, { anchor: "middle", size: 36, weight: 700, haloWidth: 7 });
+  text("N", nx, ny + 44, { anchor: "middle", size: 40, weight: 700, haloWidth: 8 });
 
   if (DEBUG) {
     for (let lat = 44.0; lat <= 44.85; lat += 0.05) {
       const [, y] = pxOf(lat, CENTER.lon);
-      if (y < 0 || y > CANVAS_PX) continue;
-      line(0, y, CANVAS_PX, y, { stroke: "#dc2626", width: 1, opacity: 0.5 });
+      if (y < 0 || y > CANVAS_H) continue;
+      line(0, y, CANVAS_W, y, { stroke: "#dc2626", width: 1, opacity: 0.5 });
       text(lat.toFixed(2), 60, y - 10, { size: 24, fill: "#dc2626", haloWidth: 4 });
     }
     for (const label of LABELS) {
@@ -578,7 +578,7 @@ async function render(port) {
   const chrome = spawn(CHROME, [
     "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
     `--remote-debugging-port=${dbgPort}`, `--user-data-dir=${profile}`,
-    `--window-size=${CANVAS_PX},${CANVAS_PX}`,
+    `--window-size=${CANVAS_W},${CANVAS_H}`,
   ], { stdio: "ignore" });
 
   let seq = 0;
@@ -632,7 +632,7 @@ async function render(port) {
     const shot = await send(ws, "Page.captureScreenshot", { format: "png", captureBeyondViewport: false }, sessionId);
     const pdf = await send(ws, "Page.printToPDF", {
       landscape: true, printBackground: true, preferCSSPageSize: true,
-      paperWidth: 11, paperHeight: 8.5,
+      paperWidth: PAPER_IN.width, paperHeight: PAPER_IN.height,
       marginTop: 0, marginBottom: 0, marginLeft: 0, marginRight: 0,
     }, sessionId);
     ws.close();

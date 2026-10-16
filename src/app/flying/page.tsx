@@ -200,9 +200,10 @@ export default function FlyingPage() {
                     The printable chart — range rings on paper
                   </p>
                   <p className="mt-2 text-sm leading-7 text-slate-600">
-                    The wave country from above at 1:500,000, with 5 NM range rings around
-                    Gorham (2G8), the rivers and lakes, and the landmarks the briefing names.
-                    Print at 100% on US Letter for the kneeboard or the wall.
+                    The wave country from above at 1:400,000 on a full tabloid sheet — rings
+                    every 5 NM around Gorham (2G8), each labelled with the altitude a 25:1
+                    glide needs to arrive with 1,000 ft to spare — over the rivers, lakes
+                    and landmarks the briefing names.
                   </p>
                 </div>
                 <ButtonLink href="/files/gorham-range-rings.pdf" variant="secondary">
