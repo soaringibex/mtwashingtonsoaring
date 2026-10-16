@@ -215,7 +215,40 @@ export default function FlyingPage() {
                 title="Navigational references"
                 lede="Pine Mountain, Hayes, Carter Dome, Mt Moriah, Madison, Jefferson, Washington, The Horn, Wildcat, The Great Gulf, Tuckerman's Ravine, Huntington Ravine, the Pilot Range and the Crescent Range are all good things to know."
               />
-              <div className="mt-8 grid gap-6 md:grid-cols-3">
+
+              <figure className="mt-8 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
+                <a
+                  href="/images/reading/white-mountains-3d-full.png"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block"
+                >
+                  <Image
+                    src="/images/reading/white-mountains-3d.webp"
+                    alt="A three-dimensional relief map of the White Mountains around Gorham, looking northwest: the Presidential Range with Tuckerman's and Huntington ravines and the Great Gulf, the Carter-Moriah ridge on the right, and the Pilot and Crescent ranges beyond, with Gorham airport marked in the valley"
+                    width={1400}
+                    height={875}
+                    className="w-full"
+                  />
+                </a>
+                <figcaption className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-6 py-4">
+                  <span className="text-sm text-slate-600">
+                    The wave country in three dimensions — every landmark the brief names, from
+                    Pine Mountain and Mount Hayes to the Pilot Range, drawn from the terrain data
+                    of the region.
+                  </span>
+                  <a
+                    href="/images/reading/white-mountains-3d-full.png"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0 text-sm font-medium text-sky-700 hover:text-sky-600"
+                  >
+                    View larger
+                  </a>
+                </figcaption>
+              </figure>
+
+              <div className="mt-6 grid gap-6 md:grid-cols-3">
                 {charts.map((chart) => (
                   <figure
                     key={chart.src}
