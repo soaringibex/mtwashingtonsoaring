@@ -79,7 +79,7 @@ const INSET = {
   lat: 44.290556,
   lon: -71.227778,
   radiusNm: 10,
-  mPerMm: 230,
+  mPerMm: 186,
   // A square box clipped to a disc, flush in the bottom-right corner. 204 mm
   // across sizes the rim to just reach the Webb Lake mark on the main sheet
   // (~5 mm shy); the drawn 10 NM cylinder sits well inside it.
@@ -114,7 +114,6 @@ const INSET_LABELS = [
   { name: "Tuckerman's Ravine", kind: "area", lat: 44.2605, lon: -71.292, tx: -24, ty: 2.5, align: "right" },
   { name: "Wildcat Mountain", kind: "summit", lat: 44.2592, lon: -71.20161, tx: -6, ty: -17, align: "right" },
   { name: "Carter Dome", kind: "summit", lat: 44.2674, lon: -71.17912, tx: 6.5, ty: -18, align: "left" },
-  { name: "Berlin", kind: "town", lat: 44.4687, lon: -71.1851, tx: 56, ty: 41, align: "left" },
   { name: "Gorham 2G8", kind: "field", lat: 44.39472, lon: -71.19805, tx: 33, ty: 14, align: "left" },
   { name: "The Glen House", kind: "place", lat: 44.29093, lon: -71.22559, tx: -2.5, ty: 3, align: "right" },
   { name: "Mount Jefferson", kind: "summit", lat: 44.30423, lon: -71.31675, tx: -34, ty: 7, align: "right" },
@@ -784,9 +783,10 @@ async function main() {
   const io = document.getElementById("oi");
   io.setAttribute("viewBox", "0 0 " + IW + " " + IH);
   const icx = IW / 2, icy = IH / 2;
-  // The inset's label offsets were authored at 1:300,000 for a rectangular frame;
-  // 0.9 pulls the layout inside the disc's rim without disturbing its relations.
-  const iScale = 0.9;
+  // The inset's label offsets were authored at 1:300,000 for a rectangular frame and
+  // tuned to 0.9 against a disc at 1:230,000; scaling by that ratio keeps the layout
+  // self-similar at any disc zoom.
+  const iScale = 0.9 * (230 / INSET.mPerMm);
   const ipx = (lat, lon) => {
     const [u, v] = project(lat, lon);
     return [icx + (u - igaU) * ippm, icy - (v - igaV) * ippm];
@@ -841,13 +841,13 @@ async function main() {
   }
 
   // A small scale bar for the inset, tucked inside the disc's lower-left.
-  const ibar = 10000 * ippm;
+  const ibar = 5000 * ippm;
   const ibx = icx - 52 * PX_PER_MM, iby = icy + 74 * PX_PER_MM;
   line(ibx, iby, ibx + ibar, iby, { stroke: "rgba(255,255,255,0.9)", width: 11 }, io);
   line(ibx, iby, ibx + ibar, iby, { stroke: "#1e293b", width: 4 }, io);
   line(ibx, iby - 9, ibx, iby + 9, { stroke: "#1e293b", width: 4 }, io);
   line(ibx + ibar, iby - 9, ibx + ibar, iby + 9, { stroke: "#1e293b", width: 4 }, io);
-  text("10 km", ibx + ibar / 2, iby - 26, { anchor: "middle", size: 32, weight: 600, haloWidth: 7 }, io);
+  text("5 km", ibx + ibar / 2, iby - 26, { anchor: "middle", size: 32, weight: 600, haloWidth: 7 }, io);
 
   if (DEBUG) {
     for (let lat = Math.floor(BOUNDS.south * 20) / 20; lat <= BOUNDS.north; lat += 0.05) {
