@@ -106,31 +106,32 @@ const RAMP = [[150,[52,76,60]],[400,[84,108,74]],[650,[122,132,88]],[900,[160,14
  * each anchor so every name sits by its feature with a short leader.
  */
 const INSET_LABELS = [
-  { name: "Mount Washington", kind: "summit", lat: 44.27049, lon: -71.3033, tx: -36, ty: -11, align: "right" },
-  { name: "Mount Madison", kind: "summit", lat: 44.32879, lon: -71.27667, tx: -16, ty: 24, align: "left" },
-  { name: "Pine Mountain", kind: "summit", lat: 44.36588, lon: -71.21519, tx: 9, ty: 45.5, align: "left" },
-  { name: "Mount Hayes", kind: "summit", lat: 44.41566, lon: -71.15986, tx: 32, ty: 75.5, align: "left" },
-  { name: "The Great Gulf", kind: "area", lat: 44.2845, lon: -71.2945, tx: -14, ty: 13, align: "left", arrow: true },
+  { name: "Mt Washington", kind: "summit", lat: 44.27049, lon: -71.3033, tx: -36, ty: -11, align: "right" },
+  { name: "Mt Madison", kind: "summit", lat: 44.32879, lon: -71.27667, tx: -16, ty: 24, align: "left" },
+  { name: "Pine Mtn", kind: "summit", lat: 44.36588, lon: -71.21519, tx: 9, ty: 45.5, align: "left" },
+  { name: "Mt Hayes", kind: "summit", lat: 44.41566, lon: -71.15986, tx: 32, ty: 75.5, align: "left" },
+  { name: "The Great Gulf", kind: "area", lat: 44.2845, lon: -71.2945, tx: -21, ty: 9, align: "left", arrow: true },
   { name: "The Horn", kind: "summit", lat: 44.29483, lon: -71.279, tx: -19, ty: 2.3, align: "left" },
   { name: "Huntington Ravine", kind: "area", lat: 44.2745, lon: -71.2805, tx: -15, ty: -8, align: "left", arrow: true },
   { name: "Tuckerman Ravine", kind: "area", lat: 44.2605, lon: -71.292, tx: -25, ty: -22.5, align: "left", arrow: true },
-  { name: "Wildcat Mountain", kind: "summit", lat: 44.2592, lon: -71.20161, tx: 15, ty: -19.5, align: "left" },
+  { name: "Wildcat Mtn", kind: "summit", lat: 44.2592, lon: -71.20161, tx: 19, ty: -21.5, align: "left" },
   { name: "Carter Dome", kind: "summit", lat: 44.2674, lon: -71.17912, tx: 27, ty: -12, align: "left" },
   { name: "Gorham 2G8", kind: "field", lat: 44.39472, lon: -71.19805, tx: 16, ty: 63, align: "left" },
   { name: "The Glen House", kind: "place", lat: 44.29093, lon: -71.22559, tx: 3, ty: -2.5, align: "left" },
-  { name: "Mount Jefferson", kind: "summit", lat: 44.30423, lon: -71.31675, tx: -42, ty: 6, align: "right" },
-  { name: "Mount Adams", kind: "summit", lat: 44.32058, lon: -71.29164, tx: -31, ty: 19, align: "right" },
-  { name: "Mount Moriah", kind: "summit", lat: 44.34053, lon: -71.13172, tx: 44, ty: 30.5, align: "left" },
+  { name: "Mt Jefferson", kind: "summit", lat: 44.30423, lon: -71.31675, tx: -42, ty: 6, align: "right" },
+  { name: "Mt Adams", kind: "summit", lat: 44.32058, lon: -71.29164, tx: -31, ty: 19, align: "right" },
+  { name: "Mt Moriah", kind: "summit", lat: 44.34053, lon: -71.13172, tx: 44, ty: 30.5, align: "left" },
   { name: "Crescent Range", kind: "range", lat: 44.438, lon: -71.302, tx: -31, ty: 84, align: "center" },
   { name: "Carter-Moriah Range", kind: "range", lat: 44.245, lon: -71.155, tx: 34, ty: -28.5, align: "left" },
-  { name: "North Carter", kind: "summit", lat: 44.31306, lon: -71.16444, tx: 30, ty: 14, align: "left" },
+  { name: "North Carter", kind: "summit", lat: 44.31306, lon: -71.16444, tx: 30, ty: 15, align: "left" },
+  { name: "Middle Carter", kind: "summit", lat: 44.30312, lon: -71.16722, tx: 29, ty: 7.5, align: "left" },
   { name: "South Carter", kind: "summit", lat: 44.289486, lon: -71.176911, tx: 25, ty: 0, align: "left" },
   { name: "Lakes of the Clouds", kind: "place", lat: 44.2585, lon: -71.3187, tx: -42, ty: -20, align: "right" },
   { name: "Cog Railway base station", kind: "place", lat: 44.2867, lon: -71.3366, tx: -50, ty: -2.5, align: "right" },
-  { name: "Mount Eisenhower", kind: "summit", lat: 44.2403434, lon: -71.3503537, tx: -56, ty: -31, align: "right" },
-  { name: "Wildcat ski area", kind: "area", lat: 44.26347029, lon: -71.24103761, tx: -16, ty: -15, align: "left", arrow: true },
-  { name: "Mount Crescent", kind: "summit", lat: 44.404348, lon: -71.294115, tx: -24, ty: 69, align: "left" },
-  { name: "Pliny Mountain", kind: "summit", lat: 44.4143, lon: -71.3882, tx: -64, ty: 66, align: "left" },
+  { name: "Mt Eisenhower", kind: "summit", lat: 44.2403434, lon: -71.3503537, tx: -56, ty: -31, align: "right" },
+  { name: "Mt Crescent", kind: "summit", lat: 44.404348, lon: -71.294115, tx: -24, ty: 69, align: "left" },
+  { name: "Pinkham Notch", kind: "area", lat: 44.2575, lon: -71.2531, tx: 2, ty: -17, align: "left", arrow: true },
+  { name: "Pliny Mtn", kind: "summit", lat: 44.4143, lon: -71.3882, tx: -62, ty: 70, align: "left" },
 ];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -396,7 +397,9 @@ const WAYPOINT_POS = {
  *  (the summit is marked instead) and the glider-area centre. */
 const WAYPOINT_SKIP = new Set(["Mount Washington Hotel", "Mount Washington Observatory", "Mount Washington GA"]);
 /** The one summit the main sheet marks, in the disc's triangle. */
-const MAIN_SUMMITS = [{ name: "Mount Washington", lat: 44.27049, lon: -71.3033 }];
+const MAIN_SUMMITS = [{ name: "Mt Washington", lat: 44.27049, lon: -71.3033 }];
+/** The notch's ski area, marked with crossed skis. */
+const SKI_AREAS = [{ lat: 44.26347029, lon: -71.24103761 }];
 
 async function buildWaypoints() {
   const cache = join(SCRATCH, "gorham.cup");
@@ -480,6 +483,7 @@ const WAYPOINTS = ${JSON.stringify(waypoints)};
 const WAYPOINT_POS = ${JSON.stringify(WAYPOINT_POS)};
 const WAYPOINT_SKIP = new Set(${JSON.stringify([...WAYPOINT_SKIP])});
 const MAIN_SUMMITS = ${JSON.stringify(MAIN_SUMMITS)};
+const SKI_AREAS = ${JSON.stringify(SKI_AREAS)};
 const INSET = ${JSON.stringify(INSET)};
 const INSET_LABELS = ${JSON.stringify(INSET_LABELS)};
 const CENTER = ${JSON.stringify(CENTER)};
@@ -745,6 +749,15 @@ async function main() {
     }, parent);
   };
 
+  // Crossed skis for the ski areas — white casing first, then both blades.
+  const skiIcon = (x, y, len, fill, parent) => {
+    const s = len / 20;
+    const tf = "translate(" + x + " " + y + ") scale(" + s + ") translate(-10 -11)";
+    const skis = ["M4.2 17.5 L13.8 6.2 Q15.2 4.8 17.2 5.6", "M15.8 17.5 L6.2 6.2 Q4.8 4.8 2.8 5.6"];
+    for (const d of skis) el("path", { d, transform: tf, fill: "none", stroke: "rgba(255,255,255,0.95)", "stroke-width": 4.4, "stroke-linecap": "round" }, parent);
+    for (const d of skis) el("path", { d, transform: tf, fill: "none", stroke: fill, "stroke-width": 2 / s, "stroke-linecap": "round" }, parent);
+  };
+
   // The exchange's turnpoints: a small diamond and a quiet name each, drawn over
   // the rings so their casings do not cut the type.
   for (const wp of WAYPOINTS) {
@@ -762,7 +775,8 @@ async function main() {
     }
     const pos = WAYPOINT_POS[wp.name] ?? {};
     const left = pos.side === "left" || (!pos.side && sx > CANVAS_W - 430);
-    text(wp.name, sx + (left ? (wp.airport ? -22 : -12) : wp.airport ? 22 : 12), sy + 3 + (pos.dy ?? 0) * PX_PER_MM * 0.25,
+    const shown = wp.name.replace(/^Mount /, "Mt ").replace(/ Mountain$/, " Mtn");
+    text(shown, sx + (left ? (wp.airport ? -22 : -12) : wp.airport ? 22 : 12), sy + 3 + (pos.dy ?? 0) * PX_PER_MM * 0.25,
          { anchor: left ? "end" : "start", size: 26, weight: wp.airport ? 600 : 500, fill: wp.airport ? "#334155" : "#3f4c5f", haloWidth: 6, spacing: "0.01em" });
   }
 
@@ -842,8 +856,6 @@ async function main() {
   const loaR = INSET.radiusNm * M_PER_NM * ippm;
   el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "rgba(255,255,255,0.9)", "stroke-width": 7.5 }, io);
   el("circle", { cx: icx, cy: icy, r: loaR, fill: "none", stroke: "#dc2626", "stroke-width": 4 }, io);
-  text("Glider area", icx, icy + 55 * iScale * PX_PER_MM, { anchor: "middle", size: 32, weight: 700, fill: "#1e293b", haloWidth: 8 }, io);
-  text("10 NM \u00b7 18\u201324,000 ft", icx, icy + 64.5 * iScale * PX_PER_MM, { anchor: "middle", size: 30, weight: 600, fill: "#334155", haloWidth: 8 }, io);
 
   // The inset's own label set.
   for (const label of INSET_LABELS) {
@@ -891,6 +903,10 @@ async function main() {
       el("circle", { cx: sx, cy: sy, r: 8, fill: "#475569", stroke: "rgba(255,255,255,0.95)", "stroke-width": 3.5 }, io);
       text(label.name, tx, ty, { anchor: label.align, size: 34, weight: 600, fill: "#334155" }, io);
     }
+  }
+  for (const area of SKI_AREAS) {
+    const [kx, ky] = ipx(area.lat, area.lon);
+    skiIcon(kx, ky, 36, "#0ea5e9", io);
   }
 
   // A small scale bar for the inset, tucked inside the disc's lower-left.
