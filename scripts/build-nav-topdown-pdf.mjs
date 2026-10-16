@@ -130,7 +130,7 @@ const INSET_LABELS = [
   { name: "Cog Railway base station", kind: "place", lat: 44.2867, lon: -71.3366, tx: -49, ty: -2.3, align: "right" },
   { name: "Mt Eisenhower", kind: "summit", lat: 44.2403434, lon: -71.3503537, tx: -54.5, ty: -30.5, align: "right" },
   { name: "Mt Crescent", kind: "summit", lat: 44.404348, lon: -71.294115, tx: -25.5, ty: 68.7, align: "left" },
-  { name: "Pinkham Notch", kind: "area", lat: 44.2575, lon: -71.2531, tx: -19, ty: -16.5, align: "left" },
+  { name: "Pinkham Notch", kind: "place", lat: 44.2575, lon: -71.2531, tx: -16, ty: -17.5, align: "left" },
   { name: "Pliny Mtn", kind: "summit", lat: 44.4143, lon: -71.3882, tx: -65, ty: 72, align: "left" },
 ];
 
@@ -705,8 +705,8 @@ async function main() {
     // clear of Berlin's airport marker on the 10 NM ring.
     const needFt = Math.round((1837 + (nm * 6076.12) / 25) / 50) * 50;
     const needLabel = needFt.toLocaleString("en-US") + " ft";
-    text(nm + " NM", cx - 75, cy - r - 30, { anchor: "middle", size: 35, weight: 600, fill: "#334155", haloWidth: 9 });
-    text(needLabel, cx - 75, cy - r + 34, { anchor: "middle", size: 40, weight: 700, fill: "#0f172a", haloWidth: 9 });
+    text(nm + " NM", cx - 75, cy - r - 22, { anchor: "middle", size: 26, weight: 600, fill: "#334155", haloWidth: 0 });
+    text(needLabel, cx - 75, cy - r + 28, { anchor: "middle", size: 28, weight: 700, fill: "#0f172a", haloWidth: 0 });
   }
 
   // The LOA's glider-area cylinder on the main map — solid red on both the
@@ -892,15 +892,19 @@ async function main() {
       text(label.name, tx, ty, { anchor: label.align, size: 26, weight: 600, fill: "#334155" }, io);
     }
   }
-  // A small scale bar for the inset, tucked inside the disc's lower-left.
-  const ibar = 2 * M_PER_NM * ippm;
+  // A 5 NM scale bar for the inset, tucked inside the disc's lower-left —
+  // one-mile ticks, the ends carrying the numerals.
+  const ibar = 5 * M_PER_NM * ippm;
   const ibx = icx - 52 * PX_PER_MM, iby = icy + 74 * PX_PER_MM;
-  line(ibx, iby, ibx + ibar * 2, iby, { stroke: "rgba(255,255,255,0.9)", width: 11 }, io);
-  line(ibx, iby, ibx + ibar * 2, iby, { stroke: "#1e293b", width: 4 }, io);
-  for (const xx of [ibx, ibx + ibar, ibx + ibar * 2]) line(xx, iby - 9, xx, iby + 9, { stroke: "#1e293b", width: 4 }, io);
-  text("0", ibx, iby - 26, { anchor: "middle", size: 30, weight: 600, haloWidth: 7 }, io);
-  text("2", ibx + ibar, iby - 26, { anchor: "middle", size: 30, weight: 600, haloWidth: 7 }, io);
-  text("4 NM", ibx + ibar * 2, iby - 26, { anchor: "middle", size: 30, weight: 600, haloWidth: 7 }, io);
+  line(ibx, iby, ibx + ibar, iby, { stroke: "rgba(255,255,255,0.9)", width: 11 }, io);
+  line(ibx, iby, ibx + ibar, iby, { stroke: "#1e293b", width: 4 }, io);
+  for (let k = 0; k <= 5; k++) {
+    const xx = ibx + (ibar / 5) * k;
+    const big = k === 0 || k === 5;
+    line(xx, iby - (big ? 10 : 6), xx, iby + (big ? 10 : 6), { stroke: "#1e293b", width: big ? 4 : 3 }, io);
+  }
+  text("0", ibx, iby - 27, { anchor: "middle", size: 30, weight: 600, haloWidth: 7 }, io);
+  text("5 NM", ibx + ibar, iby - 27, { anchor: "middle", size: 30, weight: 600, haloWidth: 7 }, io);
 
   if (DEBUG) {
     for (let lat = Math.floor(BOUNDS.south * 20) / 20; lat <= BOUNDS.north; lat += 0.05) {
