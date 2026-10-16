@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
  * Build the printable top-down chart — public/files/gorham-range-rings.pdf —
- * a 1:400,000 full-bleed tabloid (17 x 11 in) sheet of the wave country centred
- * on Gorham (2G8), with range rings every 5 NM, a graticule, the rivers and
- * lakes for orientation, and the landmark labels. Each ring is labelled with
- * the altitude a 25:1 glide in still air needs at that distance to arrive at
- * the field with 1,000 ft to spare: required MSL = field elevation (837 ft) +
- * 1,000 ft + the ring's distance / 25.
+ * a 1:450,000 full-bleed tabloid (17 x 11 in) sheet of the wave country, turned
+ * so the exchange's Moosilauke–Sugarloaf AP line runs straight across it as it
+ * is flown (Moosilauke left, Sugarloaf right). Range rings every 5 NM around Gorham (2G8), a
+ * graticule, the rivers and lakes, the exchange's turnpoints and the landmark
+ * labels. Each ring is labelled with the altitude a 25:1 glide in still air
+ * needs at that distance to arrive at the field with 1,000 ft to spare:
+ * required MSL = field elevation (837 ft) + 1,000 ft + the ring's distance / 25.
  *
  * Same machinery as scripts/build-nav-3d-map.mjs: AWS Terrain Tiles (Terrarium,
  * cache shared in .screenshots/nav3d/tiles), a harneess page rendered in headless
@@ -39,7 +40,7 @@ const TILE_HOST = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium";
 const ZOOM = 12;
 const TILE_SIZE = 256;
 
-/** The chart is centred on the field and fills a tabloid sheet, landscape. */
+/** The rings stay centred on the field — Gorham 2G8. */
 const CENTER = { lat: 44.39472, lon: -71.19805 };
 const PAPER_IN = { width: 17, height: 11 };
 const DPI = 300;
@@ -48,10 +49,20 @@ const MAP_W_MM = PAPER_IN.width * 25.4;
 const MAP_H_MM = PAPER_IN.height * 25.4;
 const CANVAS_W = Math.round(MAP_W_MM * PX_PER_MM);
 const CANVAS_H = Math.round(MAP_H_MM * PX_PER_MM);
-/** 1 mm of paper over 400 m of ground = 1:400,000; the 25 NM ring fills the sheet height. */
-const M_PER_MM = 400;
-const SPAN_X_KM = (MAP_W_MM * M_PER_MM) / 1000;
-const SPAN_Y_KM = (MAP_H_MM * M_PER_MM) / 1000;
+/** 1 mm of paper over 450 m of ground = 1:450,000. */
+const M_PER_MM = 450;
+
+/**
+ * The sheet is turned so the exchange's Moosilauke–Sugarloaf line runs straight
+ * across it, the way it is flown: Moosilauke at the left end, Sugarloaf AP at
+ * the right, screen right along the corridor (≈047°) and screen up ≈317°. The
+ * sheet centres on the route's midpoint, which leaves the field just left of
+ * centre and both anchors inside the edges.
+ */
+const ROUTE = {
+  from: { lat: 44.02388, lon: -71.83055 }, // Moosilauke (MOOSILAK)
+  to: { lat: 45.08528, lon: -70.21638 }, // Sugarloaf AP (B21, Carrabassett Valley ME)
+};
 
 const RINGS_NM = [5, 10, 15, 20, 25];
 const GRATICULE_DEG = 0.25;
@@ -91,6 +102,8 @@ const LABELS = [
   { name: "Carter-Moriah Range", kind: "range", lat: 44.245, lon: -71.155, tx: 20, ty: -38, align: "left" },
   { name: "Old Speck Mountain", kind: "summit", lat: 44.57083, lon: -70.95445, tx: 52, ty: 47, align: "left" },
   { name: "Bald Pate Mountain", kind: "summit", lat: 44.60833, lon: -70.89445, tx: 63, ty: 61, align: "left" },
+  { name: "Moosilauke", kind: "summit", lat: 44.02388, lon: -71.83055, tx: -141, ty: -8, align: "left" },
+  { name: "Sugarloaf AP", kind: "place", lat: 45.08528, lon: -70.21638, tx: 240, ty: -8, align: "right" },
 ];
 
 const TOWNS = [
@@ -120,14 +133,56 @@ const tileYToLat = (y, z) => {
 
 const M_PER_LAT = 111194.93;
 const M_PER_LON = M_PER_LAT * Math.cos((CENTER.lat * Math.PI) / 180);
-const D_LAT = (SPAN_Y_KM * 500) / M_PER_LAT;
-const D_LON = (SPAN_X_KM * 500) / M_PER_LON;
-const BOUNDS = {
-  west: CENTER.lon - D_LON,
-  east: CENTER.lon + D_LON,
-  south: CENTER.lat - D_LAT,
-  north: CENTER.lat + D_LAT,
+
+const headOut = (a, b) => {
+  const east = (b.lon - a.lon) * M_PER_LON;
+  const north = (b.lat - a.lat) * M_PER_LAT;
+  const len = Math.hypot(east, north) || 1;
+  return {
+    east: east / len,
+    north: north / len,
+    bearing: ((Math.atan2(east, north) * 180) / Math.PI + 360) % 360,
+  };
 };
+/** Screen-right = Sugarbush → Moosilauke; screen-up is 90° counter-clockwise of it. */
+const ER = headOut(ROUTE.from, ROUTE.to);
+const UP = { east: -ER.north, north: ER.east };
+const PX_PER_M = PX_PER_MM / M_PER_MM;
+const HALF_W_M = CANVAS_W / 2 / PX_PER_M;
+const HALF_H_M = CANVAS_H / 2 / PX_PER_M;
+
+const project = (lat, lon) => {
+  const east = (lon - CENTER.lon) * M_PER_LON;
+  const north = (lat - CENTER.lat) * M_PER_LAT;
+  return [east * ER.east + north * ER.north, east * UP.east + north * UP.north];
+};
+/** The sheet centre, in field-relative (along, across) metres: the route's midpoint. */
+const SHEET_C = (() => {
+  const [u, v] = project((ROUTE.from.lat + ROUTE.to.lat) / 2, (ROUTE.from.lon + ROUTE.to.lon) / 2);
+  return { u, v };
+})();
+const routeKm = Math.hypot(
+  (ROUTE.to.lon - ROUTE.from.lon) * M_PER_LON,
+  (ROUTE.to.lat - ROUTE.from.lat) * M_PER_LAT,
+) / 1000;
+const unprojectAt = (u, v) => {
+  const east = u * ER.east + v * UP.east;
+  const north = u * ER.north + v * UP.north;
+  return { lat: CENTER.lat + north / M_PER_LAT, lon: CENTER.lon + east / M_PER_LON };
+};
+const boxCorners = [
+  unprojectAt(SHEET_C.u - HALF_W_M, SHEET_C.v - HALF_H_M),
+  unprojectAt(SHEET_C.u + HALF_W_M, SHEET_C.v - HALF_H_M),
+  unprojectAt(SHEET_C.u - HALF_W_M, SHEET_C.v + HALF_H_M),
+  unprojectAt(SHEET_C.u + HALF_W_M, SHEET_C.v + HALF_H_M),
+];
+const BOUNDS = {
+  south: Math.min(...boxCorners.map((c) => c.lat)) - 0.03,
+  north: Math.max(...boxCorners.map((c) => c.lat)) + 0.03,
+  west: Math.min(...boxCorners.map((c) => c.lon)) - 0.03,
+  east: Math.max(...boxCorners.map((c) => c.lon)) + 0.03,
+};
+console.log(`sheet: Moosilauke–Sugarloaf AP ${routeKm.toFixed(0)} km, screen-right ${ER.bearing.toFixed(1)}°, covers ${BOUNDS.west.toFixed(2)}..${BOUNDS.east.toFixed(2)} lon, ${BOUNDS.south.toFixed(2)}..${BOUNDS.north.toFixed(2)} lat`);
 
 /* ---------------------------------- tiles ---------------------------------- */
 
@@ -193,7 +248,7 @@ async function buildDem() {
 /* ---------------------------------- water ---------------------------------- */
 
 async function buildWater() {
-  const cache = join(SCRATCH, "water.json");
+  const cache = join(SCRATCH, `water-${BOUNDS.west.toFixed(2)}_${BOUNDS.south.toFixed(2)}_${BOUNDS.east.toFixed(2)}.json`);
   if (!existsSync(cache)) {
     console.log("fetching water from Overpass …");
     const query = `[out:json][timeout:120];
@@ -230,11 +285,11 @@ async function buildWater() {
     if (asLake) {
       const lats = points.map((p) => p.lat);
       const lons = points.map((p) => p.lon);
-      const spanKm = Math.hypot(
+      const spanM = Math.hypot(
         (Math.max(...lats) - Math.min(...lats)) * M_PER_LAT,
         (Math.max(...lons) - Math.min(...lons)) * M_PER_LON,
       );
-      if (spanKm < 0.8) return; // pondlets are all noise at 1:500,000
+      if (spanM < 1600) return; // Maine has thousands of pondlets; only the lakes orient
       lakes.push(points);
     } else {
       rivers.push(points);
@@ -268,6 +323,15 @@ async function buildWater() {
     const closed =
       Math.abs(points[0].lat - points[points.length - 1].lat) < 1e-6 &&
       Math.abs(points[0].lon - points[points.length - 1].lon) < 1e-6;
+    if (closed) {
+      const lats = points.map((p) => p.lat);
+      const lons = points.map((p) => p.lon);
+      const spanM = Math.hypot(
+        (Math.max(...lats) - Math.min(...lats)) * M_PER_LAT,
+        (Math.max(...lons) - Math.min(...lons)) * M_PER_LON,
+      );
+      if (spanM < 1600) continue;
+    }
     lakes.push({ points, closed });
   }
   console.log(`water: ${rivers.length} rivers, ${lakes.length} lake shapes`);
@@ -286,6 +350,7 @@ const WAYPOINT_SKIP = new Set([
   "Pine Mountain", "The Horn", "Wildcat Mountain", "Bald Pate Mountain",
   "Old Speck Mountain", "Glen", "Jackson", "North Conway", "North Conway 1",
   "North Conway 2", "Twin Mountain", "Whitefield", "Fryeburg", "Gorham",
+  "Moosilauke", "Sugarloaf AP",
 ]);
 const WAYPOINT_RENAME = { Berlin: "Berlin (BML)" };
 /** Where the default "name to the right of the dot" crowds a neighbour. */
@@ -331,7 +396,14 @@ async function buildWaypoints() {
       lon,
       elevation: elevation ?? "",
       skip: WAYPOINT_SKIP.has(name),
-      chart: lat >= 43.85 && lat <= 44.94 && lon >= -72.33 && lon <= -70.06,
+      ...(() => {
+        const [u, v] = project(lat, lon);
+        return {
+          chart:
+            Math.abs(u - SHEET_C.u) <= HALF_W_M + 4000 &&
+            Math.abs(v - SHEET_C.v) <= HALF_H_M + 4000,
+        };
+      })(),
     });
   }
   console.log(`waypoints: ${waypoints.length} in the file, ${waypoints.filter((w) => w.chart).length} on the sheet`);
@@ -374,11 +446,10 @@ const LIGHT = ${JSON.stringify(LIGHT)};
 const RAMP = ${JSON.stringify(RAMP)};
 const DEBUG = ${process.env.NAV3D_DEBUG ? "true" : "false"};
 const WATER_INK = "#79aed6";
-const M_PER_PX = M_PER_MM / PX_PER_MM;
-const LAT_TOP = CENTER.lat + (CANVAS_H / 2) * M_PER_PX / M_PER_LAT;
-const LAT_BOTTOM = CENTER.lat - (CANVAS_H / 2) * M_PER_PX / M_PER_LAT;
-const LON_LEFT = CENTER.lon - (CANVAS_W / 2) * M_PER_PX / M_PER_LON;
-const LON_RIGHT = CENTER.lon + (CANVAS_W / 2) * M_PER_PX / M_PER_LON;
+const ER = ${JSON.stringify(ER)};
+const UP = ${JSON.stringify(UP)};
+const SHEET_C = ${JSON.stringify(SHEET_C)};
+const BOUNDS = ${JSON.stringify(BOUNDS)};
 
 function reliefColour(elevationM, shade) {
   const low = RAMP[0], high = RAMP[RAMP.length - 1];
@@ -396,12 +467,17 @@ function reliefColour(elevationM, shade) {
 
 async function main() {
   const dem = new Float32Array(await (await fetch("dem.bin")).arrayBuffer());
-  const { width: W, height: H, west, north, lonStep, latStep } = META;
+  const { width: W, height: H, west, north: demNorth, lonStep, latStep } = META;
   const pxPerM = PX_PER_MM / M_PER_MM;
-  const pxOf = (lat, lon) => [
-    CANVAS_W / 2 + (lon - CENTER.lon) * M_PER_LON * pxPerM,
-    CANVAS_H / 2 - (lat - CENTER.lat) * M_PER_LAT * pxPerM,
-  ];
+  const project = (lat, lon) => {
+    const east = (lon - CENTER.lon) * M_PER_LON;
+    const north = (lat - CENTER.lat) * M_PER_LAT;
+    return [east * ER.east + north * ER.north, east * UP.east + north * UP.north];
+  };
+  const pxOf = (lat, lon) => {
+    const [u, v] = project(lat, lon);
+    return [CANVAS_W / 2 + (u - SHEET_C.u) * pxPerM, CANVAS_H / 2 - (v - SHEET_C.v) * pxPerM];
+  };
   const hAt = (mx, my) => {
     const fx = Math.min(Math.max(mx, 0), W - 1.001), fy = Math.min(Math.max(my, 0), H - 1.001);
     const ix = Math.floor(fx), iy = Math.floor(fy), tx = fx - ix, ty = fy - iy;
@@ -419,9 +495,13 @@ async function main() {
   const demPerPxY = M_PER_LAT * latStep;
   let idx = 0;
   for (let y = 0; y < CANVAS_H; y += 1) {
-    const my = (north - (CENTER.lat + (CANVAS_H / 2 - y) * M_PER_PX / M_PER_LAT)) / latStep;
     for (let x = 0; x < CANVAS_W; x += 1) {
-      const mx = ((CENTER.lon + (x - CANVAS_W / 2) * M_PER_PX / M_PER_LON) - west) / lonStep;
+      const u = (x - CANVAS_W / 2) / pxPerM + SHEET_C.u;
+      const v = -(y - CANVAS_H / 2) / pxPerM + SHEET_C.v;
+      const east = u * ER.east + v * UP.east;
+      const nn = u * ER.north + v * UP.north;
+      const my = (demNorth - (CENTER.lat + nn / M_PER_LAT)) / latStep;
+      const mx = (CENTER.lon + east / M_PER_LON - west) / lonStep;
       const h = hAt(mx, my);
       const hx = (hAt(mx + 0.75, my) - hAt(mx - 0.75, my)) / (1.5 * demPerPxX);
       const hy = (hAt(mx, my + 0.75) - hAt(mx, my - 0.75)) / (1.5 * demPerPxY);
@@ -501,22 +581,52 @@ async function main() {
                  "stroke-opacity": 0.85, "stroke-linecap": "round" });
   }
 
-  // Graticule, every quarter degree, labelled along the left and top edges.
-  const latMin = Math.ceil(LAT_BOTTOM / GRATICULE_DEG) * GRATICULE_DEG;
-  const lonMin = Math.ceil(LON_LEFT / GRATICULE_DEG) * GRATICULE_DEG;
-  for (let lat = latMin; lat <= LAT_TOP; lat += GRATICULE_DEG) {
-    const [, y] = pxOf(lat, CENTER.lon);
-    if (y < 24 || y > CANVAS_H - 24) continue;
-    line(0, y, CANVAS_W, y, { stroke: "#475569", width: 1.4, opacity: 0.28 });
-    const deg = Math.floor(lat), min = Math.round((lat - deg) * 60);
-    text(deg + "°" + String(min).padStart(2, "0") + "′", 18, y - 20, { size: 34, weight: 500, fill: "#334155", haloWidth: 8 });
+  // Graticule, every quarter degree. The sheet is turned, so each line is drawn as
+  // a sampled polyline, labelled where it meets the sheet's left or top edge.
+  const inSheet = (x, y) => x > -80 && x < CANVAS_W + 80 && y > -80 && y < CANVAS_H + 80;
+  const strokeGraticule = (samples, style) => {
+    let run = [];
+    const flush = () => {
+      if (run.length > 1) {
+        const d = run.map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+        el("path", { d, fill: "none", stroke: style.stroke, "stroke-width": style.width, "stroke-opacity": style.opacity });
+      }
+      run = [];
+    };
+    for (const p of samples) (p && inSheet(p[0], p[1]) ? run.push(p) : flush());
+    flush();
+  };
+  const latMinG = Math.ceil(BOUNDS.south / GRATICULE_DEG) * GRATICULE_DEG;
+  const lonMinG = Math.ceil(BOUNDS.west / GRATICULE_DEG) * GRATICULE_DEG;
+  for (let lat = latMinG; lat <= BOUNDS.north; lat += GRATICULE_DEG) {
+    const samples = [];
+    for (let lon = BOUNDS.west; lon <= BOUNDS.east; lon += 0.005) samples.push(pxOf(lat, lon));
+    strokeGraticule(samples, { stroke: "#475569", width: 1.4, opacity: 0.28 });
+    let best = null;
+    for (const p of samples) {
+      if (!p || p[1] < 34 || p[1] > CANVAS_H - 34) continue;
+      const d = Math.abs(p[0] - 44);
+      if (!best || d < best.d) best = { d, p };
+    }
+    if (best) {
+      const deg = Math.floor(lat), min = Math.round((lat - deg) * 60);
+      text(deg + "°" + String(min).padStart(2, "0") + "′", 18, best.p[1] - 20, { size: 34, weight: 500, fill: "#334155", haloWidth: 8 });
+    }
   }
-  for (let lon = lonMin; lon <= LON_RIGHT; lon += GRATICULE_DEG) {
-    const [x] = pxOf(CENTER.lat, lon);
-    if (x < 30 || x > CANVAS_W - 30) continue;
-    line(x, 0, x, CANVAS_H, { stroke: "#475569", width: 1.4, opacity: 0.28 });
-    const deg = Math.floor(-lon), min = Math.round((-lon - deg) * 60);
-    text(deg + "°" + String(min).padStart(2, "0") + "′W", x + 18, 32, { size: 34, weight: 500, fill: "#334155", haloWidth: 8 });
+  for (let lon = lonMinG; lon <= BOUNDS.east; lon += GRATICULE_DEG) {
+    const samples = [];
+    for (let lat = BOUNDS.south; lat <= BOUNDS.north; lat += 0.005) samples.push(pxOf(lat, lon));
+    strokeGraticule(samples, { stroke: "#475569", width: 1.4, opacity: 0.28 });
+    let best = null;
+    for (const p of samples) {
+      if (!p || p[0] < 34 || p[0] > CANVAS_W - 34) continue;
+      const d = Math.abs(p[1] - 44);
+      if (!best || d < best.d) best = { d, p };
+    }
+    if (best) {
+      const deg = Math.floor(-lon), min = Math.round((-lon - deg) * 60);
+      text(deg + "°" + String(min).padStart(2, "0") + "′W", best.p[0] + 18, 32, { size: 34, weight: 500, fill: "#334155", haloWidth: 8 });
+    }
   }
 
   // Range rings: centred on the field, every 5 NM, cased so they read over terrain.
@@ -612,17 +722,28 @@ async function main() {
   // The one line of print the data licences ask for.
   text("Terrain: AWS Terrain Tiles  ·  Water: © OpenStreetMap contributors (ODbL)  ·  25:1, 1,000 ft arrival",
        bx, by - 70, { size: 29, weight: 500, fill: "#334155", haloWidth: 8 });
-  const nx = CANVAS_W - 96, ny = 72;
-  el("path", { d: "M" + nx + " " + (ny - 30) + " L" + (nx - 15) + " " + (ny + 16) + " L" + nx + " " + (ny + 6) + " L" + (nx + 15) + " " + (ny + 16) + " Z",
-               fill: "#1e293b", stroke: "rgba(255,255,255,0.95)", "stroke-width": 4 });
-  text("N", nx, ny + 44, { anchor: "middle", size: 40, weight: 700, haloWidth: 8 });
+  // North arrow, pointed at true north in the turned frame: north's screen
+  // direction is its (east, north) components read through the sheet's axes.
+  const ndx = ER.north, ndy = -UP.north;
+  const pdx = -ndy, pdy = ndx;
+  const ax = CANVAS_W - 104, ay = 178;
+  const at = (fx, fy) => [ax + ndx * fx + pdx * fy, ay + ndy * fx + pdy * fy];
+  const tip = at(54, 0), left = at(-18, 20), notch = at(-4, 0), right = at(-18, -20);
+  el("path", {
+    d: "M" + tip[0].toFixed(1) + " " + tip[1].toFixed(1) + " L" + left[0].toFixed(1) + " " + left[1].toFixed(1) +
+       " L" + notch[0].toFixed(1) + " " + notch[1].toFixed(1) + " L" + right[0].toFixed(1) + " " + right[1].toFixed(1) + " Z",
+    fill: "#1e293b", stroke: "rgba(255,255,255,0.95)", "stroke-width": 4,
+  });
+  const nLab = at(92, 0);
+  text("N", nLab[0], nLab[1], { anchor: "middle", size: 40, weight: 700, haloWidth: 8 });
 
   if (DEBUG) {
-    for (let lat = 44.0; lat <= 44.85; lat += 0.05) {
-      const [, y] = pxOf(lat, CENTER.lon);
-      if (y < 0 || y > CANVAS_H) continue;
-      line(0, y, CANVAS_W, y, { stroke: "#dc2626", width: 1, opacity: 0.5 });
-      text(lat.toFixed(2), 60, y - 10, { size: 24, fill: "#dc2626", haloWidth: 4 });
+    for (let lat = Math.floor(BOUNDS.south * 20) / 20; lat <= BOUNDS.north; lat += 0.05) {
+      const samples = [];
+      for (let lon = BOUNDS.west; lon <= BOUNDS.east; lon += 0.005) samples.push(pxOf(lat, lon));
+      strokeGraticule(samples, { stroke: "#dc2626", width: 1, opacity: 0.5 });
+      const first = samples.find((p) => p && p[0] > 60 && inSheet(p[0], p[1]));
+      if (first) text(lat.toFixed(2), 60, first[1] - 10, { size: 24, fill: "#dc2626", haloWidth: 4 });
     }
     for (const label of LABELS) {
       const [sx, sy] = pxOf(label.lat, label.lon);

@@ -200,10 +200,11 @@ export default function FlyingPage() {
                     The printable chart — range rings on paper
                   </p>
                   <p className="mt-2 text-sm leading-7 text-slate-600">
-                    The wave country from above at 1:400,000 on a full tabloid sheet — rings
-                    every 5 NM around Gorham (2G8), each labelled with the altitude a 25:1
-                    glide needs to arrive with 1,000 ft to spare — with the exchange&apos;s
-                    turnpoints, the rivers and lakes, and the landmarks the briefing names.
+                    The wave country from above at 1:450,000 on a full tabloid sheet, turned so
+                    the Moosilauke&ndash;Sugarloaf line runs across it — rings every 5 NM around
+                    Gorham (2G8), each labelled with the altitude a 25:1 glide needs to arrive
+                    with 1,000 ft to spare, over the exchange&apos;s turnpoints, the rivers and
+                    lakes, and the landmarks the briefing names.
                   </p>
                 </div>
                 <ButtonLink href="/files/gorham-range-rings.pdf" variant="secondary">
