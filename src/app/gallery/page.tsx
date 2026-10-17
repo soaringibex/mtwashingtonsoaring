@@ -14,7 +14,7 @@ export default function GalleryPage() {
   return (
     <>
       <PageHero
-        eyebrow="From the field"
+        eyebrow="Wave Camp"
         title="Photos"
         lede="Gliders on the grid at Gorham, wave clouds over the valley, and the summit from the air. Photos come from members and friends of the association."
         image="/images/gallery/2024/oct-7.jpg"
