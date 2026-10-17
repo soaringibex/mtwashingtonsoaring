@@ -483,7 +483,7 @@ const WAYPOINTS = ${JSON.stringify(waypoints)};
 const WAYPOINT_POS = ${JSON.stringify(WAYPOINT_POS)};
 const WAYPOINT_SKIP = new Set(${JSON.stringify([...WAYPOINT_SKIP])});
 const MAIN_SUMMITS = ${JSON.stringify(MAIN_SUMMITS)};
-const LOGO_URI = ${JSON.stringify("data:image/png;base64," + readFileSync(join(ROOT, "public/images/brand/signal-icon-512.png")).toString("base64"))};
+const LOGO_URI = ${JSON.stringify("data:image/svg+xml;base64," + readFileSync(join(ROOT, "public/images/brand/signal-icon.svg")).toString("base64"))};
 const INSET = ${JSON.stringify(INSET)};
 const INSET_LABELS = ${JSON.stringify(INSET_LABELS)};
 const CENTER = ${JSON.stringify(CENTER)};
@@ -817,18 +817,18 @@ async function main() {
   const nLab = at(92, 0);
   text("N", nLab[0], nLab[1], { anchor: "middle", size: 40, weight: 700, haloWidth: 8 });
 
-  // The club mark, then the sheet's title beside it.
-  el("image", { href: LOGO_URI, x: 40, y: 36, width: 112, height: 112 });
-  el("rect", { x: 40, y: 36, width: 112, height: 112, fill: "none", stroke: "#1e293b", "stroke-width": 1.5 });
-  text("Mt Washington Glider Area", 170, 122, { size: 92, weight: 700, fill: "#1e293b", haloWidth: 14, spacing: "0.01em" });
+  // The club mark, then the sheet's title beside it — clear of the neatline.
+  el("image", { href: LOGO_URI, x: 110, y: 60, width: 112, height: 112 });
+  el("rect", { x: 110, y: 60, width: 112, height: 112, fill: "none", stroke: "#1e293b", "stroke-width": 1.5 });
+  text("Mt Washington Glider Area", 240, 146, { size: 92, weight: 700, fill: "#1e293b", haloWidth: 14, spacing: "0.01em" });
 
   // What the rings are, and the data licences, below the title.
-  text("Gorham range rings at 1:25 L/D + 1,000 ft pattern altitude", 40, 186, { size: 30, weight: 600, fill: "#334155", haloWidth: 9 });
-  text("Terrain: AWS Terrain Tiles  ·  Water: © OpenStreetMap contributors (ODbL)", 40, 220, { size: 23, weight: 500, fill: "#334155", haloWidth: 8 });
+  text("Gorham range rings at 1:25 L/D + 1,000 ft pattern altitude", 110, 210, { size: 30, weight: 600, fill: "#334155", haloWidth: 9 });
+  text("Terrain: AWS Terrain Tiles  ·  Water: © OpenStreetMap contributors (ODbL)", 110, 244, { size: 23, weight: 500, fill: "#334155", haloWidth: 8 });
 
   // The disclaimer, boxed below them with clear air under the title.
   {
-    const dx0 = 40, dy0 = 244;
+    const dx0 = 110, dy0 = 268;
     el("rect", { x: dx0, y: dy0, width: 735, height: 116, rx: 10, fill: "rgba(255,255,255,0.93)", stroke: "#1e293b", "stroke-width": 2.5 });
     text("Not Suitable for Navigation", dx0 + 20, dy0 + 36, { size: 28, weight: 700, fill: "#991b1b" });
     text("User assumes all risk of use", dx0 + 20, dy0 + 68, { size: 23, weight: 500, fill: "#334155" });
