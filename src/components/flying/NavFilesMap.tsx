@@ -654,6 +654,8 @@ export function NavFilesMap() {
                   <a
                     key={download.id}
                     href={navDownloadHref(download.id)}
+                    data-umami-event="Download"
+                    data-umami-event-file={download.file}
                     className="group inline-flex items-center gap-2 rounded-full bg-slate-100 py-1.5 pl-2.5 pr-3.5 text-xs font-medium text-slate-700 transition-colors hover:bg-sky-50 hover:text-sky-700"
                   >
                     <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 group-hover:text-sky-700">
@@ -670,6 +672,7 @@ export function NavFilesMap() {
                     href={WSTX_GORHAM_FILES}
                     target="_blank"
                     rel="noreferrer"
+                    data-umami-event="Open waypoint exchange"
                     className="group inline-flex items-center gap-2 rounded-full bg-slate-100 py-1.5 pl-2.5 pr-3.5 text-xs font-medium text-slate-700 transition-colors hover:bg-sky-50 hover:text-sky-700"
                   >
                     <span>More formats at soaringweb.org</span>
@@ -686,12 +689,16 @@ export function NavFilesMap() {
           <span>Also useful:</span>
           <a
             href="/files/45-minute-diamond.igc"
+            data-umami-event="Download"
+            data-umami-event-file="45-minute-diamond.igc"
             className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"
           >
             45-Minute Diamond · IGC
           </a>
           <a
             href="/files/gorham-landing-places.kmz"
+            data-umami-event="Download"
+            data-umami-event-file="gorham-landing-places.kmz"
             className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"
           >
             Landing places within 100 miles · KMZ for Google Earth

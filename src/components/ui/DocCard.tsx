@@ -35,6 +35,9 @@ export function DocCard({ doc }: { doc: DocLink }) {
   const className =
     "group flex h-full flex-col rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5 transition hover:shadow-md";
 
+  /** Only actual file downloads are tracked — not the web editions or external links. */
+  const downloadHref = !doc.page && !doc.external ? doc.href : undefined;
+
   if (doc.page) {
     return (
       <Link href={doc.page} className={className}>
@@ -47,6 +50,13 @@ export function DocCard({ doc }: { doc: DocLink }) {
     <a
       href={doc.href}
       {...(doc.external ? { target: "_blank", rel: "noreferrer" } : {})}
+      {...(downloadHref
+        ? {
+            "data-umami-event": "Download",
+            "data-umami-event-file": downloadHref,
+            "data-umami-event-document": doc.title,
+          }
+        : {})}
       className={className}
     >
       {body}

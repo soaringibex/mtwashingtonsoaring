@@ -49,7 +49,11 @@ export function DocumentView({
         ) : null}
         {doc.href ? (
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <ButtonLink href={doc.href} variant="secondary">
+            <ButtonLink
+              href={doc.href}
+              variant="secondary"
+              track={{ event: "Download", file: doc.href, document: doc.title }}
+            >
               Download the original PDF
             </ButtonLink>
             <span className="text-xs text-slate-400">

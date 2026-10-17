@@ -13,24 +13,43 @@ export function ButtonLink({
   children,
   variant = "primary",
   className = "",
+  track,
 }: {
   href: string;
   children: ReactNode;
   variant?: keyof typeof variants;
   className?: string;
+  /** Optional analytics event; see src/lib/analytics.ts. */
+  track?: {
+    event: string;
+    file?: string;
+    document?: string;
+  };
 }) {
   const classes = `inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${variants[variant]} ${className}`;
 
   if (href.startsWith("http") || href.startsWith("mailto:")) {
     return (
-      <a href={href} className={classes}>
+      <a
+        href={href}
+        className={classes}
+        data-umami-event={track?.event}
+        data-umami-event-file={track?.file}
+        data-umami-event-document={track?.document}
+      >
         {children}
       </a>
     );
   }
 
   return (
-    <Link href={href} className={classes}>
+    <Link
+      href={href}
+      className={classes}
+      data-umami-event={track?.event}
+      data-umami-event-file={track?.file}
+      data-umami-event-document={track?.document}
+    >
       {children}
     </Link>
   );

@@ -77,6 +77,18 @@ Vercel hosts this site. Push the repository and import it at vercel.com — no e
 variables or special build settings are required. `www.mtwashingtonsoaring.org` can be pointed at
 the deployment once DNS is moved.
 
+## Analytics
+
+Traffic is measured with [Umami Cloud](https://umami.is) — cookieless and privacy-friendly, so no
+consent banner is needed. The tracker lives in `src/app/layout.tsx`; its website id and the
+production-domain allow-list are in `src/lib/analytics.ts`. The id comes from the Umami dashboard
+(Website → Tracking code).
+
+Download clicks are recorded as `Download` events with `file` and `document` properties via
+`data-umami-event-*` attributes. Add the same attributes to any new download link; the tracker
+ignores everything else. Local development and Vercel preview deployments are excluded by
+`data-domains`.
+
 ## Notes
 
 - The association has no officers and no dues; the site is intentionally a static brochure with no

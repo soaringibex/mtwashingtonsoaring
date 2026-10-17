@@ -206,7 +206,11 @@ export default function FlyingPage() {
                     ringed in red on the map and enlarged as the corner disc.
                   </p>
                 </div>
-                <ButtonLink href="/files/gorham-range-rings.pdf" variant="secondary">
+                <ButtonLink
+                  href="/files/gorham-range-rings.pdf"
+                  variant="secondary"
+                  track={{ event: "Download", file: "gorham-range-rings.pdf" }}
+                >
                   Open the PDF
                 </ButtonLink>
               </div>

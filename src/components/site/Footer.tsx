@@ -98,6 +98,9 @@ export function Footer() {
           <p>
             © {year} {site.name}. All rights reserved.
           </p>
+          <p className="sm:text-right">
+            Traffic is measured with cookieless, privacy-friendly analytics.
+          </p>
         </div>
       </Container>
     </footer>
