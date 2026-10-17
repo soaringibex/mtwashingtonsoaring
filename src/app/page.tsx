@@ -3,13 +3,22 @@ import Link from "next/link";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow, SectionHeading } from "@/components/ui/SectionHeading";
-import { SummitWinds } from "@/components/home/SummitWinds";
-import { WavePotentialCard } from "@/components/home/WavePotentialCard";
+import { CampCarousel } from "@/components/home/CampCarousel";
 import { WindProfile } from "@/components/home/WindProfile";
 import { Reveal } from "@/components/ui/Reveal";
+import { albums } from "@/lib/gallery";
 import { linkGroups } from "@/lib/links";
 import { LOGBOOK_HREF, latestLogbookEntry } from "@/lib/camp-logbook";
-import { site } from "@/lib/site";
+
+const PHOTOS_2026_HREF = "/gallery#album-2026";
+
+/** The short list for anyone starting to plan the next camp. */
+const nextYearResources = [
+  { href: "/flying#required", label: "Required reading" },
+  { href: "/flying#airspace", label: "Airspace & LOA" },
+  { href: "/flying#gorham", label: "Gorham procedures" },
+  { href: "/wx", label: "Wavecast" },
+];
 
 const stats = [
   {
@@ -52,6 +61,19 @@ const waveCards = [
   },
 ];
 
+/**
+ * Every photo in the 2026 album. The carousel shuffles them on the client so
+ * each visit walks the whole album in a different order.
+ */
+const campPhotos =
+  albums
+    .find((album) => album.id === "2026")
+    ?.photos.map((photo) => ({
+      src: photo.src,
+      alt: photo.alt,
+      credit: photo.credit,
+    })) ?? [];
+
 const galleryPreview = [
   {
     src: "/images/scenic/ridge-glider.webp",
@@ -89,7 +111,7 @@ export default function HomePage() {
       <section className="relative isolate overflow-hidden bg-slate-950">
         <Image
           src="/images/home/the-summit-from-the-wing.webp"
-          alt="Mount Washington's summit and the Auto Road seen from the wing, a wall of cloud beyond"
+          alt="Mount Washington's summit and the Auto Road seen from the wing, with an undercast beyond"
           fill
           priority
           sizes="100vw"
@@ -100,44 +122,73 @@ export default function HomePage() {
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
             <div className="animate-fade-up">
               <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">
-                {site.name}
+                Wave Camp 2026 · Gorham, NH
               </p>
               <h1 className="mt-4 max-w-3xl font-display text-4xl font-bold tracking-tight text-white text-balance sm:text-6xl">
-                2026 Wave Camp
+                A week in the wave.
               </h1>
-              {entry ? (
-                <div className="mt-6 max-w-2xl border-l-2 border-sky-300/80 pl-5">
-                  <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">
-                    camp logbook · Glen Kelley
+              <div className="mt-6 max-w-2xl border-l-2 border-sky-300/80 pl-5">
+                <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">
+                  The camp, in review
+                </p>
+                <div className="mt-3 space-y-2.5">
+                  <p className="text-base leading-7 text-slate-200">
+                    Seven days at Gorham, four of them flying. Saturday&apos;s clear wave took the
+                    camp to its highest logged climb — 22,600 feet — and five pilots earned new
+                    badges: Gold for Chris Stokes and David Tauber; Diamond for Jared Granzow,
+                    Nelson Howe and Thomas Van de Velde.
                   </p>
-                  <p className="mt-3 font-display text-xl font-semibold leading-snug text-white text-balance sm:text-2xl">
-                    {entry.heading}
+                  <p className="text-base leading-7 text-slate-200">
+                    Midweek weather kept the field quiet; Thursday closed the camp on a high
+                    note, with wave to 15,000 feet and cross-countries along the Whites and the
+                    Mahoosucs.
                   </p>
-                  <div className="mt-3 space-y-2.5">
-                    {entry.paragraphs.map((paragraph, index) => (
-                      <p key={index} className="text-base leading-7 text-slate-200">
-                        {paragraph}
-                      </p>
-                    ))}
-                  </div>
-                  <Link
-                    href={LOGBOOK_HREF}
-                    className="mt-4 inline-block text-sm font-medium text-sky-200 transition-colors hover:text-white"
-                  >
-                    Read the full logbook <span aria-hidden="true">→</span>
-                  </Link>
                 </div>
-              ) : null}
+                {entry ? (
+                  <p className="mt-4 text-sm italic leading-6 text-sky-100/90">
+                    “{entry.paragraphs[entry.paragraphs.length - 1]}”
+                    <Link
+                      href={LOGBOOK_HREF}
+                      className="mt-1.5 block not-italic text-xs font-medium text-sky-200/80 transition-colors hover:text-white"
+                    >
+                      Glen Kelley&apos;s camp logbook · {entry.heading}{" "}
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                  </p>
+                ) : null}
+              </div>
               <div className="mt-8 flex flex-wrap gap-3">
-                <ButtonLink href="/flying">Plan for wave camp</ButtonLink>
-                <ButtonLink href="/flying#required" variant="light">
-                  Required reading
+                <ButtonLink href={LOGBOOK_HREF}>Read the camp logbook</ButtonLink>
+                <ButtonLink href="/flights" variant="light">
+                  The 2026 flights
+                </ButtonLink>
+                <ButtonLink href={PHOTOS_2026_HREF} variant="light">
+                  The 2026 photos
                 </ButtonLink>
               </div>
+              <div className="mt-7 max-w-2xl border-t border-white/15 pt-5">
+                <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">
+                  Before next October
+                </p>
+                <div className="mt-3 grid gap-x-8 gap-y-2 sm:grid-cols-2">
+                  {nextYearResources.map((resource) => (
+                    <Link
+                      key={resource.href}
+                      href={resource.href}
+                      className="text-sm font-medium text-sky-200 transition-colors hover:text-white"
+                    >
+                      {resource.label} <span aria-hidden="true">→</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="animate-fade-up space-y-4 lg:animate-fade-up [animation-delay:150ms]">
-              <SummitWinds />
-              <WavePotentialCard />
+            <div className="animate-fade-up [animation-delay:150ms]">
+              <CampCarousel
+                photos={campPhotos}
+                label="Photos from Wave Camp 2026"
+                albumHref={PHOTOS_2026_HREF}
+              />
             </div>
           </div>
         </Container>

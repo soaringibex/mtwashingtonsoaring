@@ -23,7 +23,7 @@ npm start            # serve the production build
 
 | Route | Content source |
 | --- | --- |
-| `/` | Home — hero, countdown to the next wave camp, club intro, gallery preview, founding clubs |
+| `/` | Home — hero with the 2026 camp recap, photo carousel and next-camp reading, club intro, gallery preview, founding clubs |
 | `/history` | Full history essay, 1938 → today |
 | `/accomplishments` | Lennie Pin / Diamond / Gold records by year |
 | `/gallery` | Photo albums with a lightbox (2008–2026, archive) |

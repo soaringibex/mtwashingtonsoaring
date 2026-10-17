@@ -55,9 +55,9 @@ const pages: SearchEntry[] = [
     title: "Home",
     href: "/",
     kind: "page",
-    text: "The Mount Washington wave, the October encampment at Gorham, the 2026 camp logbook, and today's wave potential.",
+    text: "The Mount Washington wave, the October encampment at Gorham, a recap of the 2026 camp, and the reading and forecast for the next one.",
     keywords:
-      "index start wave camp gorham october dates camp logbook glen kelley wave potential wavecast scorer",
+      "index start wave camp gorham october dates camp logbook glen kelley 2026 recap prepare next year required reading photos carousel wavecast scorer",
   },
   {
     title: "Vertical wind profile — current conditions",

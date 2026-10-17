@@ -43,7 +43,7 @@ export default function FlyingPage() {
           </div>
 
           <div className="mt-14 space-y-20">
-            <section id="required">
+            <section id="required" className="scroll-mt-28">
               <SectionHeading
                 eyebrow="Start here"
                 title="Required reading"
@@ -112,7 +112,7 @@ export default function FlyingPage() {
               </div>
             </section>
 
-            <section>
+            <section id="safety" className="scroll-mt-28">
               <SectionHeading
                 eyebrow="Staying sharp"
                 title="Safety at altitude"
@@ -125,7 +125,7 @@ export default function FlyingPage() {
               </div>
             </section>
 
-            <section>
+            <section id="airspace" className="scroll-mt-28">
               <SectionHeading
                 eyebrow="Legal & airspace"
                 title="Airspace and paperwork"
@@ -138,7 +138,7 @@ export default function FlyingPage() {
               </div>
             </section>
 
-            <section>
+            <section id="gorham" className="scroll-mt-28">
               <SectionHeading
                 eyebrow="Gorham (2G8)"
                 title="Airport information"
@@ -183,7 +183,7 @@ export default function FlyingPage() {
               </div>
             </section>
 
-            <section id="electronic-files">
+            <section id="electronic-files" className="scroll-mt-28">
               <SectionHeading
                 eyebrow="For your moving map"
                 title="Electronic files"
