@@ -824,11 +824,11 @@ async function main() {
 
   // What the rings are, and the data licences, below the title.
   text("Gorham range rings at 1:25 L/D + 1,000 ft pattern altitude", 150, 216, { size: 30, weight: 600, fill: "#334155", haloWidth: 9 });
-  text("Terrain: AWS Terrain Tiles  ·  Water: © OpenStreetMap contributors (ODbL)", 150, 278, { size: 23, weight: 500, fill: "#334155", haloWidth: 8 });
+  text("Terrain: AWS Terrain Tiles  ·  Water: © OpenStreetMap contributors (ODbL)", 150, 426, { size: 23, weight: 500, fill: "#334155", haloWidth: 8 });
 
   // The disclaimer, boxed below them with clear air under the title.
   {
-    const dx0 = 150, dy0 = 306;
+    const dx0 = 150, dy0 = 278;
     el("rect", { x: dx0, y: dy0, width: 735, height: 116, rx: 10, fill: "rgba(255,255,255,0.93)", stroke: "#1e293b", "stroke-width": 2.5 });
     text("Not Suitable for Navigation", dx0 + 20, dy0 + 36, { size: 28, weight: 700, fill: "#991b1b" });
     text("User assumes all risk of use", dx0 + 20, dy0 + 68, { size: 23, weight: 500, fill: "#334155" });
