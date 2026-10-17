@@ -12,13 +12,18 @@ type FlatPhoto = {
   credit?: string;
 };
 
-/** The album's contributors, in the order their pictures appear. */
+/** The album's contributors, alphabetical by surname. */
 function contributors(album: Album): string[] {
   const names: string[] = [];
   for (const photo of album.photos) {
     if (photo.credit && !names.includes(photo.credit)) names.push(photo.credit);
   }
-  return names;
+  return names.sort((a, b) => surname(a).localeCompare(surname(b), "en", { sensitivity: "base" }));
+}
+
+function surname(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  return parts[parts.length - 1] ?? name;
 }
 
 export function PhotoGrid({ albums }: { albums: Album[] }) {
@@ -85,12 +90,12 @@ export function PhotoGrid({ albums }: { albums: Album[] }) {
                 <p className="text-sm italic text-slate-500">{album.blurb}</p>
               </div>
               {credits.length > 0 ? (
-                <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-slate-500">
+                <p className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-slate-500">
                   <span className="text-slate-400">Contributors:</span>
                   {credits.map((name, index) => (
-                    <span key={name} className="inline-flex items-center gap-x-1.5">
+                    <span key={name} className="inline-flex items-center gap-x-1">
                       {index > 0 ? (
-                        <span aria-hidden="true" className="text-slate-300">
+                        <span aria-hidden="true" className="text-slate-400">
                           ·
                         </span>
                       ) : null}
