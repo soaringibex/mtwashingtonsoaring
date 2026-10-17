@@ -461,6 +461,74 @@ export const albums: Album[] = [
     ],
   },
   {
+    id: "2021",
+    title: "Wave Camp 2021",
+    blurb:
+      "Cathy Keller's pictures from the 2021 camp week — the field and the trailer row, the Puchacz readied for a high tow toward Mount Washington, fall color along The View and the Rattle River trails, and a sailplane climbing in the October sky.",
+    photos: [
+      {
+        src: "/images/gallery/2021/the-field-at-gorham.webp",
+        alt: "The grass field at Gorham under a blue October sky — yellow runway cones on the turf and the ridge rising beyond the treeline",
+        aspect: "landscape",
+        credit: "Cathy Keller",
+      },
+      {
+        src: "/images/gallery/2021/the-trailer-row.webp",
+        alt: "A row of covered glider trailers parked on the grass at Gorham, a white pickup at the near end, the ridge in fall color behind",
+        aspect: "landscape",
+        credit: "Cathy Keller",
+      },
+      {
+        src: "/images/gallery/2021/toward-the-moriah-ridge.webp",
+        alt: "The airfield at Gorham looking toward Mount Moriah — yellow cones on the grass, trailers at the far edge, the ridge blue with haze",
+        aspect: "landscape",
+        credit: "Cathy Keller",
+      },
+      {
+        src: "/images/gallery/2021/shamit-prepares-the-high-tow.webp",
+        alt: "Shamit at the wing of the club Puchacz, Cathy in the front seat and Rick behind her, the canopy open and the tow rope laid out on the grass before a high tow",
+        aspect: "portrait",
+        credit: "Cathy Keller",
+      },
+      {
+        src: "/images/gallery/2021/the-view-trail-sign.webp",
+        alt: "The View trail sign near the base of the Mount Washington Auto Road, two red cowbells hanging from the post, fall color and a cloud-capped ridge beyond",
+        aspect: "landscape",
+        credit: "Cathy Keller",
+      },
+      {
+        src: "/images/gallery/2021/fall-color-below-the-auto-road.webp",
+        alt: "Fall color on the slopes below the Mount Washington Auto Road's base — red and gold hardwoods above a river, the ridge under cloud",
+        aspect: "portrait",
+        credit: "Cathy Keller",
+      },
+      {
+        src: "/images/gallery/2021/the-rattle-river-trailhead.webp",
+        alt: "The Rattle River Trail sign at the trailhead in the White Mountain National Forest, fallen leaves across the gravel and the trail register board beyond",
+        aspect: "landscape",
+        credit: "Cathy Keller",
+      },
+      {
+        src: "/images/gallery/2021/the-rattle-river.webp",
+        alt: "The Rattle River running over mossy rocks under hemlock and birch, late-fall leaves along the bank",
+        aspect: "landscape",
+        credit: "Cathy Keller",
+      },
+      {
+        src: "/images/gallery/2021/a-sailplane-in-the-october-sky.webp",
+        alt: "A sailplane high over the field, seen through bare birch tops against a sky streaked with cirrus",
+        aspect: "landscape",
+        credit: "Cathy Keller",
+      },
+      {
+        src: "/images/gallery/2021/cathy-and-steve-with-the-puchacz.webp",
+        alt: "Cathy Keller and Steve beside the club Puchacz at Gorham, the Pawnee towplane and fall color behind",
+        aspect: "landscape",
+        credit: "Cathy Keller",
+      },
+    ],
+  },
+  {
     id: "2018",
     title: "Wave Camp 2018",
     blurb: "The range in the season's first snow, and the field at Gorham that launched out over it.",
