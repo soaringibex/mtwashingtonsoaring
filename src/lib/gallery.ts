@@ -17,8 +17,32 @@ export const albums: Album[] = [
   {
     id: "2026",
     title: "Wave Camp 2026",
-    blurb: "The opening days at Gorham — virga, a rainbow, the field, and the snow-dusted range from the air.",
+    blurb: "From the opening days to the last — virga, a rainbow, the field, and the snow-dusted range from the air.",
     photos: [
+      {
+        src: "/images/gallery/2026/cathy-at-the-wing-after-landing.webp",
+        alt: "Cathy Keller at the ASG 29 after landing on the Gorham field, trailers and the fall ridge behind",
+        aspect: "portrait",
+        credit: "Cathy Keller",
+      },
+      {
+        src: "/images/gallery/2026/gorham-and-the-carters-from-the-air.webp",
+        alt: "Gorham and the Androscoggin from 11,000 feet, the Pine Mountain and Carter–Moriah ridges beyond, fall color across the valley",
+        aspect: "landscape",
+        credit: "Cathy Keller",
+      },
+      {
+        src: "/images/gallery/2026/the-summit-and-the-auto-road-from-11000-feet.webp",
+        alt: "Mount Washington's summit cone and the Auto Road switchbacks from 11,000 feet, snow along the crest and cirrus above",
+        aspect: "portrait",
+        credit: "Cathy Keller",
+      },
+      {
+        src: "/images/gallery/2026/toward-gorham-from-the-horn.webp",
+        alt: "Looking down over the hazy valley from The Horn at 11,000 feet, the canopy frame and vario in the foreground",
+        aspect: "landscape",
+        credit: "Cathy Keller",
+      },
       {
         src: "/images/gallery/2026/the-covered-glider-under-a-lenticular.webp",
         alt: "A glider under wing covers on the Gorham turf, a dog beside it, and a lenticular wave cloud over the fall ridge",
