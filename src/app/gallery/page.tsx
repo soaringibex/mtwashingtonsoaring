@@ -24,6 +24,26 @@ export default function GalleryPage() {
 
       <section className="py-16 sm:py-20">
         <Container>
+          <nav
+            aria-label="Jump to an album year"
+            className="mb-12 flex flex-wrap items-center gap-x-0.5 gap-y-1 border-b border-slate-900/5 pb-5 sm:gap-x-1 sm:gap-y-2"
+          >
+            <span className="mr-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+              Jump to
+            </span>
+            {albums.map((album) => {
+              const label = album.id === "archive" ? "Archive" : album.id;
+              return (
+                <a
+                  key={album.id}
+                  href={`#album-${album.id}`}
+                  className="rounded-full px-2 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-sky-50 hover:text-sky-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 sm:px-3"
+                >
+                  {label}
+                </a>
+              );
+            })}
+          </nav>
           <PhotoGrid albums={albums} />
         </Container>
       </section>

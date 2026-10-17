@@ -79,7 +79,12 @@ export function PhotoGrid({ albums }: { albums: Album[] }) {
           const credits = contributors(album);
           const selected = highlight?.albumId === album.id ? highlight.credit : null;
           return (
-            <section key={album.id} id={`album-${album.id}`} aria-labelledby={`album-${album.id}-title`}>
+            <section
+              key={album.id}
+              id={`album-${album.id}`}
+              aria-labelledby={`album-${album.id}-title`}
+              className="scroll-mt-28"
+            >
               <h3
                 id={`album-${album.id}-title`}
                 className="font-display text-2xl font-bold tracking-tight text-slate-900"
