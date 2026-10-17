@@ -426,6 +426,7 @@ async function buildWaypoints() {
     const columns = line.match(/("([^"]*)"|[^,]*)(,|$)/g)?.map((c) => c.replace(/,$/, "").replace(/^"|"$/g, ""));
     if (!columns || columns.length < 5) continue;
     const [name, code, , rawLat, rawLon, elevation] = columns;
+    const frequency = columns[9] ?? "";
     if (!rawLat || !rawLon) continue;
     const lat = parseLat(rawLat);
     const lon = parseLon(rawLon);
@@ -436,6 +437,7 @@ async function buildWaypoints() {
       lat,
       lon,
       elevation: elevation ?? "",
+      frequency,
       // CUP styles 2 and 5 are the airfields, as src/lib/nav-files.ts reads them.
       airport: style === 2 || style === 5,
       ...(() => {
@@ -481,6 +483,7 @@ const WAYPOINTS = ${JSON.stringify(waypoints)};
 const WAYPOINT_POS = ${JSON.stringify(WAYPOINT_POS)};
 const WAYPOINT_SKIP = new Set(${JSON.stringify([...WAYPOINT_SKIP])});
 const MAIN_SUMMITS = ${JSON.stringify(MAIN_SUMMITS)};
+const LOGO_URI = ${JSON.stringify("data:image/png;base64," + readFileSync(join(ROOT, "public/images/brand/signal-icon-512.png")).toString("base64"))};
 const INSET = ${JSON.stringify(INSET)};
 const INSET_LABELS = ${JSON.stringify(INSET_LABELS)};
 const CENTER = ${JSON.stringify(CENTER)};
@@ -766,6 +769,18 @@ async function main() {
     const shown = wp.name.replace(/^Mount /, "Mt ").replace(/ Mountain$/, " Mtn");
     text(shown, sx + (left ? (wp.airport ? -22 : -12) : wp.airport ? 22 : 12), sy + 3 + (pos.dy ?? 0) * PX_PER_MM * 0.25,
          { anchor: left ? "end" : "start", size: 26, weight: wp.airport ? 600 : 500, fill: wp.airport ? "#334155" : "#3f4c5f", haloWidth: 6, spacing: "0.01em" });
+    if (wp.airport) {
+      const elev = Number(String(wp.elevation ?? "").replace(/[^0-9.]/g, ""));
+      const frq = Number(String(wp.frequency ?? "").trim());
+      const data = [
+        Number.isFinite(elev) && elev > 0 ? elev.toLocaleString("en-US") + " ft" : "",
+        Number.isFinite(frq) && frq > 0 ? String(frq) : "",
+      ].filter(Boolean).join(" · ");
+      if (data) {
+        text(data, sx + (left ? -22 : 22), sy + 29 + (pos.dy ?? 0) * PX_PER_MM * 0.25,
+             { anchor: left ? "end" : "start", size: 21, weight: 500, fill: "#475569", haloWidth: 5 });
+      }
+    }
   }
 
   // Mount Washington itself, in the disc's triangle.
@@ -787,9 +802,6 @@ async function main() {
   text("0", bx, by - 28, { anchor: "middle", size: 34, weight: 600, haloWidth: 8 });
   text("5", bx + bar5nm, by - 28, { anchor: "middle", size: 34, weight: 600, haloWidth: 8 });
   text("10 NM", bx + bar5nm * 2, by - 28, { anchor: "middle", size: 34, weight: 600, haloWidth: 8 });
-  // The one line of print the data licences ask for.
-  text("Terrain: AWS Terrain Tiles  ·  Water: © OpenStreetMap contributors (ODbL)  ·  25:1, 1,000 ft arrival",
-       bx, by - 70, { size: 29, weight: 500, fill: "#334155", haloWidth: 8 });
   // North arrow, pointed at true north in the turned frame: north's screen
   // direction is its (east, north) components read through the sheet's axes.
   const ndx = ER.north, ndy = -UP.north;
@@ -805,12 +817,18 @@ async function main() {
   const nLab = at(92, 0);
   text("N", nLab[0], nLab[1], { anchor: "middle", size: 40, weight: 700, haloWidth: 8 });
 
-  // The sheet's title, top-left, aligned with the credit line below.
-  text("Mt Washington Glider Area", 40, 122, { size: 92, weight: 700, fill: "#1e293b", haloWidth: 14, spacing: "0.01em" });
+  // The club mark, then the sheet's title beside it.
+  el("image", { href: LOGO_URI, x: 40, y: 36, width: 112, height: 112 });
+  el("rect", { x: 40, y: 36, width: 112, height: 112, fill: "none", stroke: "#1e293b", "stroke-width": 1.5 });
+  text("Mt Washington Glider Area", 170, 122, { size: 92, weight: 700, fill: "#1e293b", haloWidth: 14, spacing: "0.01em" });
 
-  // The disclaimer, boxed under the title.
+  // What the rings are, and the data licences, below the title.
+  text("Gorham range rings at 1:25 L/D + 1,000 ft pattern altitude", 40, 186, { size: 30, weight: 600, fill: "#334155", haloWidth: 9 });
+  text("Terrain: AWS Terrain Tiles  ·  Water: © OpenStreetMap contributors (ODbL)", 40, 220, { size: 23, weight: 500, fill: "#334155", haloWidth: 8 });
+
+  // The disclaimer, boxed below them with clear air under the title.
   {
-    const dx0 = 40, dy0 = 152;
+    const dx0 = 40, dy0 = 244;
     el("rect", { x: dx0, y: dy0, width: 735, height: 116, rx: 10, fill: "rgba(255,255,255,0.93)", stroke: "#1e293b", "stroke-width": 2.5 });
     text("Not Suitable for Navigation", dx0 + 20, dy0 + 36, { size: 28, weight: 700, fill: "#991b1b" });
     text("User assumes all risk of use", dx0 + 20, dy0 + 68, { size: 23, weight: 500, fill: "#334155" });
@@ -896,6 +914,14 @@ async function main() {
     } else if (label.kind === "field") {
       planeIcon(sx, sy, 44, "#0ea5e9", io);
       text(label.name, tx, ty, { anchor: label.align, size: 26, weight: 700 }, io);
+      const fw = WAYPOINTS.find((w) => w.name === "Gorham");
+      const fel = Number(String(fw ? fw.elevation : "").replace(/[^0-9.]/g, ""));
+      const ffr = Number(String(fw ? fw.frequency : "").trim());
+      const fdata = [
+        Number.isFinite(fel) && fel > 0 ? fel.toLocaleString("en-US") + " ft" : "",
+        Number.isFinite(ffr) && ffr > 0 ? String(ffr) : "",
+      ].filter(Boolean).join(" · ");
+      if (fdata) text(fdata, tx, ty + 25, { anchor: label.align, size: 22, weight: 500, fill: "#475569", haloWidth: 6 }, io);
     } else {
       el("circle", { cx: sx, cy: sy, r: 8, fill: "#475569", stroke: "rgba(255,255,255,0.95)", "stroke-width": 3.5 }, io);
       text(label.name, tx, ty, { anchor: label.align, size: 26, weight: 600, fill: "#334155" }, io);
