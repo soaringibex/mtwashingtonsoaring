@@ -12,8 +12,18 @@ type FlatPhoto = {
   credit?: string;
 };
 
+/** The album's contributors, in the order their pictures appear. */
+function contributors(album: Album): string[] {
+  const names: string[] = [];
+  for (const photo of album.photos) {
+    if (photo.credit && !names.includes(photo.credit)) names.push(photo.credit);
+  }
+  return names;
+}
+
 export function PhotoGrid({ albums }: { albums: Album[] }) {
   const [active, setActive] = useState<number | null>(null);
+  const [highlight, setHighlight] = useState<{ albumId: string; credit: string } | null>(null);
 
   const flat = useMemo<FlatPhoto[]>(
     () =>
@@ -61,6 +71,8 @@ export function PhotoGrid({ albums }: { albums: Album[] }) {
       <div className="space-y-14">
         {albums.map((album) => {
           const offset = flat.findIndex((photo) => photo.albumId === album.id);
+          const credits = contributors(album);
+          const selected = highlight?.albumId === album.id ? highlight.credit : null;
           return (
             <section key={album.id} id={`album-${album.id}`} aria-labelledby={`album-${album.id}-title`}>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -72,6 +84,43 @@ export function PhotoGrid({ albums }: { albums: Album[] }) {
                 </h3>
                 <p className="text-sm italic text-slate-500">{album.blurb}</p>
               </div>
+              {credits.length > 0 ? (
+                <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-slate-500">
+                  <span className="text-slate-400">Contributors:</span>
+                  {credits.map((name, index) => (
+                    <span key={name} className="inline-flex items-center gap-x-1.5">
+                      {index > 0 ? (
+                        <span aria-hidden="true" className="text-slate-300">
+                          ·
+                        </span>
+                      ) : null}
+                      <button
+                        type="button"
+                        aria-pressed={selected === name}
+                        title={
+                          selected === name
+                            ? "Show every photo again"
+                            : `Highlight photos by ${name}`
+                        }
+                        onClick={() =>
+                          setHighlight((current) =>
+                            current && current.albumId === album.id && current.credit === name
+                              ? null
+                              : { albumId: album.id, credit: name },
+                          )
+                        }
+                        className={`transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 ${
+                          selected === name
+                            ? "font-semibold text-sky-700"
+                            : "hover:text-sky-700 hover:underline underline-offset-4"
+                        }`}
+                      >
+                        {name}
+                      </button>
+                    </span>
+                  ))}
+                </p>
+              ) : null}
               <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 {album.photos.map((photo, index) => (
                   <button
@@ -86,7 +135,9 @@ export function PhotoGrid({ albums }: { albums: Album[] }) {
                       alt={photo.alt}
                       fill
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className="object-cover transition duration-500 ease-out group-hover:scale-[1.04]"
+                      className={`object-cover transition duration-500 ease-out group-hover:scale-[1.04] ${
+                        selected && photo.credit !== selected ? "opacity-25" : ""
+                      }`}
                     />
                   </button>
                 ))}
