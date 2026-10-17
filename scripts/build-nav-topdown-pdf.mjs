@@ -808,6 +808,15 @@ async function main() {
   // The sheet's title, top-left, aligned with the credit line below.
   text("Mt Washington Glider Area", 40, 122, { size: 92, weight: 700, fill: "#1e293b", haloWidth: 14, spacing: "0.01em" });
 
+  // The disclaimer, boxed under the title.
+  {
+    const dx0 = 40, dy0 = 152;
+    el("rect", { x: dx0, y: dy0, width: 735, height: 116, rx: 10, fill: "rgba(255,255,255,0.93)", stroke: "#1e293b", "stroke-width": 2.5 });
+    text("Not Suitable for Navigation", dx0 + 20, dy0 + 36, { size: 28, weight: 700, fill: "#991b1b" });
+    text("User assumes all risk of use", dx0 + 20, dy0 + 68, { size: 23, weight: 500, fill: "#334155" });
+    text("Always refer to approved navigational materials prior to flight", dx0 + 20, dy0 + 98, { size: 23, weight: 500, fill: "#334155" });
+  }
+
   // ------------------------- the glider-area inset ---------------------------
   // The LOA's 10 NM cylinder at 1.5x the sheet's scale, pinned to the top-left.
   const IW = Math.round(INSET.widthMm * PX_PER_MM);
