@@ -11,6 +11,7 @@ export type CampCarouselPhoto = {
 };
 
 const AUTOPLAY_MS = 6000;
+const IMAGE_SIZES = "(max-width: 480px) 760px, (max-width: 1023px) 972px, 900px";
 
 function shuffle<T>(items: T[]): T[] {
   const copy = [...items];
@@ -61,51 +62,54 @@ export function CampCarousel({
   if (slides.length === 0) return null;
 
   const current = slides[index] ?? slides[0];
+  const next = slides[(index + 1) % slides.length];
 
-  const show = (next: number) => {
+  const show = (nextIndex: number) => {
     setAuto(false);
-    setIndex((next + slides.length) % slides.length);
+    setIndex((nextIndex + slides.length) % slides.length);
   };
 
   return (
     <section
       aria-roledescription="carousel"
       aria-label={label}
-      className="overflow-hidden rounded-3xl bg-slate-900 shadow-2xl ring-1 ring-white/20"
+      className="mx-auto w-full max-w-md overflow-hidden rounded-3xl bg-slate-900 shadow-2xl ring-1 ring-white/20 lg:mx-0"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setAuto(false)}
     >
-      <div className="relative aspect-[3/4]">
-        {slides.map((photo, slide) => (
-          <div
-            key={photo.src}
-            role="group"
-            aria-roledescription="slide"
-            aria-label={`${slide + 1} of ${slides.length}`}
-            aria-hidden={slide !== index}
-            className={`absolute inset-0 transition-opacity duration-700 ease-out ${
-              slide === index ? "opacity-100" : "opacity-0"
-            }`}
-          >
+      <div className="relative aspect-[4/3]">
+        <div className="absolute inset-0">
+          <Image
+            key={current.src}
+            src={current.src}
+            alt={current.alt}
+            fill
+            priority
+            sizes={IMAGE_SIZES}
+            quality={90}
+            className="animate-fade-in object-cover motion-reduce:animate-none"
+          />
+        </div>
+
+        {next && next.src !== current.src ? (
+          <div className="pointer-events-none absolute inset-0 opacity-0" aria-hidden="true">
             <Image
-              src={photo.src}
-              alt={photo.alt}
+              src={next.src}
+              alt=""
               fill
-              priority={slide === 0}
-              sizes="(max-width: 1023px) 100vw, 360px"
+              sizes={IMAGE_SIZES}
+              quality={90}
               className="object-cover"
             />
           </div>
-        ))}
+        ) : null}
 
         <Link
           href={albumHref}
           aria-label={albumLabel}
           className="absolute inset-0"
         />
-
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/25 to-transparent" />
 
         <button
           type="button"
@@ -127,23 +131,22 @@ export function CampCarousel({
             <path d="m9.5 5 7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
+      </div>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 pt-16">
-          {current.credit ? (
-            <p className="text-xs text-sky-200/75">{current.credit}</p>
-          ) : null}
-
-          <div className="mt-4 flex items-center gap-3">
-            <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/25">
-              <div
-                className="h-full rounded-full bg-white transition-[width] duration-500 ease-out"
-                style={{ width: `${((index + 1) / slides.length) * 100}%` }}
-              />
-            </div>
-            <p className="shrink-0 text-[10px] tabular-nums text-sky-200/60">
-              {index + 1} / {slides.length}
-            </p>
-          </div>
+      <div className="px-4 pb-4 pt-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="min-w-0 truncate text-xs text-sky-200/80">
+            {current.credit ?? "Wave Camp 2026"}
+          </p>
+          <p className="shrink-0 text-[10px] tabular-nums text-sky-200/60">
+            {index + 1} / {slides.length}
+          </p>
+        </div>
+        <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/15">
+          <div
+            className="h-full rounded-full bg-sky-300 transition-[width] duration-500 ease-out"
+            style={{ width: `${((index + 1) / slides.length) * 100}%` }}
+          />
         </div>
       </div>
     </section>

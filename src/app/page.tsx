@@ -119,7 +119,7 @@ export default function HomePage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-900/20" />
         <Container className="relative flex min-h-[92svh] flex-col justify-end pb-14 pt-32 sm:pb-20">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-start">
             <div className="animate-fade-up">
               <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">
                 Wave Camp 2026 · Gorham, NH
@@ -134,9 +134,9 @@ export default function HomePage() {
                 <div className="mt-3 space-y-2.5">
                   <p className="text-base leading-7 text-slate-200">
                     Seven days at Gorham, four of them flying. Saturday&apos;s clear wave took the
-                    camp to its highest logged climb — 22,600 feet — and five pilots earned new
+                    camp to its highest logged climb of 22,600 feet. Five pilots earned new
                     badges: Gold for Chris Stokes and David Tauber; Diamond for Jared Granzow,
-                    Nelson Howe and Thomas Van de Velde.
+                    Nelson Howe and Thomas Van&nbsp;de&nbsp;Velde.
                   </p>
                   <p className="text-base leading-7 text-slate-200">
                     Midweek weather kept the field quiet; Thursday closed the camp on a high

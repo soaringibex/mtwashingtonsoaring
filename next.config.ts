@@ -19,6 +19,8 @@ const nextConfig: NextConfig = {
     // Belt and braces with the header above: the optimizer keeps its variants a year
     // rather than the 4-hour default, inside each deployment (URLs carry the build id).
     minimumCacheTTL: 31536000,
+    // The hero carousel asks for 90; Next allows only the values listed here.
+    qualities: [75, 90],
   },
   async redirects() {
     return [
