@@ -80,15 +80,12 @@ export function PhotoGrid({ albums }: { albums: Album[] }) {
           const selected = highlight?.albumId === album.id ? highlight.credit : null;
           return (
             <section key={album.id} id={`album-${album.id}`} aria-labelledby={`album-${album.id}-title`}>
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3
-                  id={`album-${album.id}-title`}
-                  className="font-display text-2xl font-bold tracking-tight text-slate-900"
-                >
-                  {album.title}
-                </h3>
-                <p className="text-sm italic text-slate-500">{album.blurb}</p>
-              </div>
+              <h3
+                id={`album-${album.id}-title`}
+                className="font-display text-2xl font-bold tracking-tight text-slate-900"
+              >
+                {album.title}
+              </h3>
               {credits.length > 0 ? (
                 <p className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-slate-500">
                   <span className="text-slate-400">Contributors:</span>
