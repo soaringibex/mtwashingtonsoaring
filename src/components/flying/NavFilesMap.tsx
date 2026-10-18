@@ -177,7 +177,7 @@ function clampSpot(text: string, spot: LabelSpot, view: (typeof VIEWS)[ViewId]):
 
 const FT_FORMAT = new Intl.NumberFormat("en-US");
 
-export function NavFilesMap() {
+export function NavFilesMap({ showDiamondLink = true }: { showDiamondLink?: boolean } = {}) {
   const [view, setView] = useState<ViewId>("wave");
   const [files, setFiles] = useState<NavFilesPayload | null>(null);
   const [filesFailed, setFilesFailed] = useState(false);
@@ -687,14 +687,16 @@ export function NavFilesMap() {
         </div>
         <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-slate-500">
           <span>Also useful:</span>
-          <a
-            href="/files/45-minute-diamond.igc"
-            data-umami-event="Download"
-            data-umami-event-file="45-minute-diamond.igc"
-            className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"
-          >
-            45-Minute Diamond · IGC
-          </a>
+          {showDiamondLink ? (
+            <a
+              href="/files/45-minute-diamond.igc"
+              data-umami-event="Download"
+              data-umami-event-file="45-minute-diamond.igc"
+              className="font-medium text-sky-700 underline underline-offset-4 hover:text-sky-600"
+            >
+              45-Minute Diamond · IGC
+            </a>
+          ) : null}
           <a
             href="/files/gorham-landing-places.kmz"
             data-umami-event="Download"
