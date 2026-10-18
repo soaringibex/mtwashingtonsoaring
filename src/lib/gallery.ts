@@ -17,8 +17,57 @@ export const albums: Album[] = [
   {
     id: "2026",
     title: "Wave Camp 2026",
-    blurb: "From the opening days to the last — virga, a rainbow, the field, and the snow-dusted range from the air.",
+    blurb:
+      "From the opening days to the last — virga, a rainbow, wave clouds over the grid, sailplanes in the wave, and the snow-dusted range from the air.",
     photos: [
+      {
+        src: "/images/gallery/2026/the-wave-cloud-over-the-grid.webp",
+        alt: "Gliders and crew on the grid at Gorham under a huge wave cloud, a DG in its open trailer in the foreground",
+        aspect: "landscape",
+        credit: "Jared Granzow",
+      },
+      {
+        src: "/images/gallery/2026/the-lenticular-over-the-treeline.webp",
+        alt: "The wave cloud in close — a great white lenticular standing over the dark treeline",
+        aspect: "landscape",
+        credit: "Jared Granzow",
+      },
+      {
+        src: "/images/gallery/2026/a-sailplane-below-the-cloud-streets.webp",
+        alt: "A sailplane against the cloud streets high over the valley, the towns and ridges far below",
+        aspect: "landscape",
+        credit: "Jared Granzow",
+      },
+      {
+        src: "/images/gallery/2026/a-sailplane-over-the-summit-cone.webp",
+        alt: "A sailplane crossing the summit cone of Mount Washington, cloud spilling over the alpine slopes and the summit buildings below",
+        aspect: "landscape",
+        credit: "Jared Granzow",
+      },
+      {
+        src: "/images/gallery/2026/a-sailplane-along-the-alpine-ridge.webp",
+        alt: "A sailplane below, flying the alpine ridge above a deep shadowed ravine",
+        aspect: "landscape",
+        credit: "Jared Granzow",
+      },
+      {
+        src: "/images/gallery/2026/the-wingtip-and-a-sailplane-over-the-valley.webp",
+        alt: "The wingtip over the valley, a river winding below and another sailplane far beneath",
+        aspect: "landscape",
+        credit: "Jared Granzow",
+      },
+      {
+        src: "/images/gallery/2026/the-androscoggin-and-the-mill-town.webp",
+        alt: "The Androscoggin and the mill town from the air, the river bending past the mill with fall color on the hills",
+        aspect: "landscape",
+        credit: "Jared Granzow",
+      },
+      {
+        src: "/images/gallery/2026/the-mountainside-in-gold.webp",
+        alt: "A mountainside in gold below the winglet, the valley and the blue ridges beyond",
+        aspect: "landscape",
+        credit: "Jared Granzow",
+      },
       {
         src: "/images/gallery/2026/cathy-at-the-wing-after-landing.webp",
         alt: "Cathy Keller at the ASG 29 after landing on the Gorham field, trailers and the fall ridge behind",
