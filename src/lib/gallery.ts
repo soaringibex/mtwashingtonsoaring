@@ -160,18 +160,6 @@ export const albums: Album[] = [
               credit: "Jared Granzow",
       },
       {
-        src: "/images/gallery/2026/the-range-from-the-southwest.webp",
-        alt: "The Presidential Range from the southwest, the river threading the valley below",
-        aspect: "landscape",
-              credit: "Jared Granzow",
-      },
-      {
-        src: "/images/gallery/2026/the-range-from-above.webp",
-        alt: "The Presidential Range from high above, fresh snow along the crest and the valley beyond",
-        aspect: "landscape",
-              credit: "Jared Granzow",
-      },
-      {
         src: "/images/gallery/2026/mount-washington-from-the-west.webp",
         alt: "Mount Washington's snow-covered summit cone and the Auto Road, seen from the west",
         aspect: "landscape",
