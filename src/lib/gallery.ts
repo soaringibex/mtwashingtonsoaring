@@ -700,6 +700,128 @@ export const albums: Album[] = [
     ],
   },
   {
+    id: "2014",
+    title: "Wave Camp 2014",
+    blurb:
+      "Steve Waitekaitis's pictures from the 2014 camp — the grid and the trailer row at Gorham, and a wave flight over the autumn ridges and the undercast.",
+    photos: [
+      {
+        src: "/images/gallery/2014/the-grid-at-gorham.webp",
+        alt: "Gliders and trailers spread across the grass at Gorham, the ridge rising beyond the treeline under a cloud-streaked sky",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/rigging-beside-the-red-truck.webp",
+        alt: "A white glider on the grass beside a red pickup, crew gathered by the trailers and the fall ridge beyond",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-crew-at-the-trailer.webp",
+        alt: "Two of the crew at an open glider trailer on the grass, a golf cart and pickup on the ramp behind and fall color in the trees",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/beside-the-discus.webp",
+        alt: "A pilot in a red shirt beside a Discus on the grass, gliders and trailers spread along the field behind and the ridge in the distance",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-trailer-row-and-the-range.webp",
+        alt: "A glider trailer on the grass with gliders and the trailer row beyond, the ridge brown and blue under a bright sky",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-trailer-row-at-dusk.webp",
+        alt: "A row of covered glider trailers on the grass at dusk, crew walking along them, the ridge and a pale sky beyond",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/dusk-on-the-field.webp",
+        alt: "Gliders and trailers on the field in the last light, the ridge catching the sunset",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-canopy-over-the-ridge-country.webp",
+        alt: "Looking down over the fall ridges from the cockpit, brown and gold woods and clouds in the valleys, the pilot's head below the canopy",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-pilot-in-the-wave.webp",
+        alt: "The pilot in the cockpit at altitude, oxygen cannula in place, with wave cloud and the wing behind",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-wing-over-the-cloud-tops.webp",
+        alt: "The wing over a sea of cloud tops, the cockpit and the pilot's head in the corner of the frame",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-cockpit-over-the-undercast.webp",
+        alt: "The cockpit over the undercast — a white sea of cloud below the canopy and the sky deep blue above",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-sun-and-the-other-sailplane.webp",
+        alt: "The sun in a deep blue sky and another sailplane above the cloud deck, the wingtip in the foreground",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-sun-over-the-undercast.webp",
+        alt: "Sun over the cloud deck, a river winding through the valley below and the wingtip at the edge of the frame",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-cloud-deck-to-the-horizon.webp",
+        alt: "The cloud deck stretching to the horizon under a deep blue sky, seen over the nose of the glider",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-sailplane-over-the-autumn-ridges.webp",
+        alt: "Another sailplane high over the autumn ridges, a band of cloud along the crest beyond",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-cloud-spilling-over-the-ridge.webp",
+        alt: "Cloud spilling over a dark ridge into the valley below, seen over the wing",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-wave-cloud-over-the-ridge.webp",
+        alt: "The wing over a ridge with wave cloud streaming across the sky above",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-wing-over-the-fall-slopes.webp",
+        alt: "The wing over the fall slopes, cloud streaming off the ridge and the valley below",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+      {
+        src: "/images/gallery/2014/the-presidential-range-from-the-wing.webp",
+        alt: "The Presidential Range from the wing — the alpine summits under a cap of cloud, fall color in the valleys below",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
+    ],
+  },
+  {
     id: "2010",
     title: "Wave Camp 2010",
     blurb:

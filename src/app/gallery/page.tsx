@@ -7,7 +7,7 @@ import { albums } from "@/lib/gallery";
 export const metadata: Metadata = {
   title: "Photos",
   description:
-    "Photos from the Mount Washington wave camps — 2016 to 2026, plus slides recovered from the 2008–2010 camps and the archive — gliders, lenticular clouds and the summit seen from the air.",
+    "Photos from the Mount Washington wave camps — 2014 to 2026, plus slides recovered from the 2008–2010 camps and the archive — gliders, lenticular clouds and the summit seen from the air.",
 };
 
 export default function GalleryPage() {
