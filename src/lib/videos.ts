@@ -53,11 +53,26 @@ export const videos: Video[] = [
     description: "The field at Gorham during the 2015 camp.",
   },
   {
+    id: "7v2N8CISHgw",
+    title: "Mt Washington 2015",
+    year: 2015,
+    credit: "Eric Foertsch",
+    description: "A good wave day at the 2015 Mount Washington Wave Camp.",
+  },
+  {
     id: "0FJJH6CjBNY",
     title: "Mt Washington Wave Camp 2014",
     year: 2014,
     credit: "Steve Waitekaitis",
     description: "From the cockpit — climbing above the cloud deck at the 2014 camp.",
+  },
+  {
+    id: "yIOlMiIYvfE",
+    title: "Soaring at Mt. Washington, NH",
+    year: 2014,
+    credit: "Eric Foertsch",
+    description:
+      "A 2014 camp day when the wave was not working — soaring from Gorham by thermaling instead.",
   },
   {
     id: "WaQm3Y7Njj8",
