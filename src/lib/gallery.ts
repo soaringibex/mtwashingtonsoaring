@@ -837,6 +837,12 @@ export const albums: Album[] = [
         aspect: "landscape",
         credit: "Steve Waitekaitis",
       },
+      {
+        src: "/images/gallery/2014/the-sailplane-over-the-snowy-range.webp",
+        alt: "A sailplane flying over the snow-dusted Presidential Range, cloud shadows and fall color across the valleys beyond",
+        aspect: "landscape",
+        credit: "Steve Waitekaitis",
+      },
     ],
   },
   {
