@@ -76,7 +76,7 @@ export const awards: Award[] = [
         entries: [
           "Thomas Van de Velde, Brookline, MA",
           "Jared Granzow, Columbus, OH, pending",
-          "Nelson Howe, Marlborough, NH, pending",
+          "Nelson Howe, Marlborough, NH",
         ],
       },
       { year: "2024", entries: ["David Lysy, Lyme, NH"] },

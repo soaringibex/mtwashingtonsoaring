@@ -269,7 +269,7 @@ export const waveCampFlights: WaveCampFlight[] = [
   { id: 927865, date: "2025-10-18", pilot: "Nelson Howe", aircraft: "JS3 TJ 18m", minutes: 108, distanceKm: 32.2, maxAltFt: 3200, ssa: [], record: false },
   { id: 928059, date: "2025-10-18", pilot: "David Joyce", aircraft: "Ventus 2c 18m", minutes: 77, distanceKm: 35.6, maxAltFt: 4800, ssa: [], record: false },
   { id: 960484, date: "2025-10-18", pilot: "Mauricio Poodts", aircraft: "DG 300", minutes: 30, distanceKm: 23.2, maxAltFt: 5300, ssa: [], record: false },
-  { id: 1252554, date: "2026-10-10", pilot: "Nelson Howe", aircraft: "JS3 TJ 15m", minutes: 124, distanceKm: 90.0, maxAltFt: 20100, ssa: [], ssaPending: ["SSA Diamond badge"], record: false },
+  { id: 1252554, date: "2026-10-10", pilot: "Nelson Howe", aircraft: "JS3 TJ 15m", minutes: 124, distanceKm: 90.0, maxAltFt: 20100, ssa: ["SSA Diamond badge"], record: false },
   { id: 1252583, date: "2026-10-10", pilot: "Steven Waitekaitis", aircraft: "ASW 27", minutes: 153, distanceKm: 114.9, maxAltFt: 20800, ssa: [], record: false },
   { id: 1252616, date: "2026-10-10", pilot: "David Baxter", aircraft: "L23 SuperBlanik", minutes: 73, distanceKm: 29.8, maxAltFt: 15500, ssa: [], record: false },
   { id: 1252623, date: "2026-10-10", pilot: "Mark Brisson", aircraft: "DG 300", minutes: 79, distanceKm: 27.8, maxAltFt: 16900, ssa: [], record: false },
