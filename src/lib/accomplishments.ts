@@ -168,7 +168,7 @@ export const awards: Award[] = [
     years: [
       {
         year: "2026",
-        entries: ["Chris Stokes, Cambridge, MA, pending", "David Tauber, New Castle, NH, pending"],
+        entries: ["Chris Stokes, Cambridge, MA, pending", "David Tauber, New Castle, NH"],
       },
       { year: "2025", entries: ["Thomas Van de Velde, Brookline, MA"] },
       { year: "2024", entries: ["Emilie Phillips, Mason, NH", "David Sherrill, Westford, MA", "Tyson Sawyer, Mason, NH", "Nelson Howe, Marlborough, NH", "David Lysy, Lyme, NH"] },
